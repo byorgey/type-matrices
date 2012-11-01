@@ -47,6 +47,8 @@ Matrices of types are sweet
 \item Maybe show an ad-hoc solution to a special case, to give a
   better sense of the problem.
 
+This is a test.
+
 Do lists:
 > data List a = Nil | Cons a (List a)
 > data AList a b = ANil | ACons a (BList a b)
