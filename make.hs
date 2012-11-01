@@ -1,8 +1,8 @@
 import Development.Shake
 import Development.Shake.FilePath
 
-lhs2TeX = "/Users/dpiponi/Library/Haskell/bin/lhs2TeX"
-pdflatex = "/usr/texbin/pdflatex"
+lhs2TeX = "lhs2TeX"
+pdflatex = "pdflatex"
 
 main = shake shakeOptions $ do
 
