@@ -1,6 +1,9 @@
 \documentclass[authoryear,preprint]{sigplanconf}
 
 \usepackage{amsmath}
+\usepackage{tikz}
+
+%vim: set makeprg=runghc make:
 
 %% ODER: format ==         = "\mathrel{==}"
 %% ODER: format /=         = "\neq "
@@ -133,22 +136,148 @@ Matrices of types are sweet
 \item Maybe show an ad-hoc solution to a special case, to give a
   better sense of the problem.
 
-This is a test.
+I'm listing some elementary examples. We don't have to use all of them.
 
-Do lists:\begingroup\par\noindent\advance\leftskip\mathindent\(
+Ordinary lists:
+\begingroup\par\noindent\advance\leftskip\mathindent\(
 \begin{pboxed}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{3}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[3]{}\mathbf{data}\;\Conid{List}\;\Varid{a}\mathrel{=}\Conid{Nil}\mid \Conid{Cons}\;\Varid{a}\;(\Conid{List}\;\Varid{a}){}\<[E]%
-\\
-\>[3]{}\mathbf{data}\;\Conid{AList}\;\Varid{a}\;\Varid{b}\mathrel{=}\Conid{ANil}\mid \Conid{ACons}\;\Varid{a}\;(\Conid{BList}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[3]{}\mathbf{data}\;\Conid{BList}\;\Varid{a}\;\Varid{b}\mathrel{=}\Conid{BNil}\mid \Conid{BCons}\;\Varid{b}\;(\Conid{AList}\;\Varid{a}\;\Varid{b}){}\<[E]%
 \ColumnHook
 \end{pboxed}
 \)\par\noindent\endgroup\resethooks
+Lists with alternating elements:
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[3]{}\mathbf{data}\;\Conid{AList}\;\Varid{a}\;\Varid{b}\mathrel{=}\Conid{ANil}\mid \Conid{ACons}\;\Varid{a}\;(\Conid{BList}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[3]{}\mathbf{data}\;\Conid{BList}\;\Varid{a}\;\Varid{b}\mathrel{=}\Conid{BCons}\;\Varid{b}\;(\Conid{AList}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+An \ensuremath{\Conid{AList}} corresponds to a regexp like $(AB)^*$.
+
 Then trees:
+
+%    ---A->--
+%   /        \
+% (1)        (2)
+%   \        /
+%    --<-B---
+
+
+
+
+Maybe nobody wants to see this:
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{19}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[3]{}\mathbf{data}\;\Conid{Tree}\;\Varid{a}\mathrel{=}{}\<[18]%
+\>[18]{}\Conid{Leaf}\;\Varid{a}\mid \Conid{Fork}\;(\Conid{Tree}\;\Varid{a})\;(\Conid{Tree}\;\Varid{a}){}\<[E]%
+\\
+\>[18]{}\hsindent{1}{}\<[19]%
+\>[19]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{20}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{31}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{45}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[3]{}\mathbf{data}\;\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}{}\<[20]%
+\>[20]{}\mathrel{=}{}\<[23]%
+\>[23]{}\Conid{Fork}_{11}\;{}\<[31]%
+\>[31]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{11}'\;(\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[23]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
+\\
+\>[3]{}\mathbf{data}\;\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b}{}\<[20]%
+\>[20]{}\mathrel{=}\Conid{Leaf}_{12}\;\Varid{a}{}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{12}\;{}\<[31]%
+\>[31]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{12}'\;(\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\hsindent{2}{}\<[22]%
+\>[22]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
+\\
+\>[3]{}\mathbf{data}\;\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}{}\<[20]%
+\>[20]{}\mathrel{=}\Conid{Leaf}_{21}\;\Varid{b}{}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork21}\;{}\<[31]%
+\>[31]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{21}'\;(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[23]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
+\\
+\>[3]{}\mathbf{data}\;\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b}{}\<[20]%
+\>[20]{}\mathrel{=}{}\<[23]%
+\>[23]{}\Conid{Fork}_{22}\;{}\<[31]%
+\>[31]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{22}'\;(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[23]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[3]{}\Varid{ex1}\mathrel{=}\Conid{Fork}_{11}'\;(\Conid{Leaf}_{12}\;\mathrm{1})\;(\Conid{Leaf}_{21}\;\text{\tt \char34 a\char34}){}\<[E]%
+\\
+\>[3]{}\Varid{ex2}\mathrel{=}\Conid{Fork}_{11}'\;(\Conid{Fork}_{12}\;\Varid{ex1}\;(\Conid{Leaf}_{12}\;\mathrm{1}))\;(\Conid{Leaf}_{21}\;\text{\tt \char34 b\char34}){}\<[E]%
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+\begin{tikzpicture}[level/.style={sibling distance=30mm/#1}]
+\node {\ensuremath{\Conid{Fork}_{11}'}}
+  child {
+      node {\ensuremath{\Conid{Fork}_{12}}}
+          child {node {\ensuremath{\Conid{Fork}_{11}'}}
+                    child {node {\ensuremath{\Conid{Leaf}_{12}\;\mathrm{1}}}}
+                    child {node {\ensuremath{\Conid{Leaf}_{21}\;\text{\tt \char34 a\char34}}}}
+          }
+          child {node {\ensuremath{\Conid{Leaf}_{12}\;\mathrm{1}}}}
+  }
+  child {node {\ensuremath{\Conid{Leaf}_{21}\;\text{\tt \char34 b\char34}}}};
+\end{tikzpicture}
+
 \end{itemize}
 
 \section{Zippers and dissections}
