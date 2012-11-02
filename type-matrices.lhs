@@ -23,10 +23,10 @@
 
 \authorinfo{Dan Piponi}
            {Google}
-           {dpiponi@gmail.com}
+           {dpiponi@@gmail.com}
 \authorinfo{Brent A. Yorgey}
            {University of Pennsylvania}
-           {byorgey@cis.upenn.edu}
+           {byorgey@@cis.upenn.edu}
 
 \maketitle
 
