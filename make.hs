@@ -1,8 +1,9 @@
 import Development.Shake
 import Development.Shake.FilePath
 
-lhs2TeX = "lhs2TeX"
+lhs2TeX  = "lhs2TeX"
 pdflatex = "pdflatex"
+rubber   = "rubber"
 
 main = shake shakeOptions $ do
 
@@ -13,10 +14,12 @@ main = shake shakeOptions $ do
         need [input]
         system' lhs2TeX $ ["-o", output] ++ [input]
 
-    -- How many times do I need to run latex
-    -- to resolve xrefs. Is there a clever trick using
-    -- Shake to deal with this?
+    -- In general, running LaTeX enough times to resolve everything
+    -- requires parsing the output of LaTeX.  A nice tool that can do
+    -- this automatically is "rubber".  If you have (or can install)
+    -- rubber then this ought to work.  Otherwise we'll have to go
+    -- with the tried and true "just run LaTeX twice no matter what".
     "*.pdf" *> \output -> do
         let input = replaceExtension output "tex"
         need [input]
-        system' pdflatex $ [input]
+        system' rubber $ ["-f", "-d", input]
