@@ -1,3 +1,4 @@
+% -*- LaTeX -*-
 \documentclass[authoryear,preprint]{sigplanconf}
 
 \usepackage{amsmath}
