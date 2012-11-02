@@ -168,6 +168,6 @@ Acknowledgments.
 
 % We recommend abbrvnat bibliography style.
 
-\bibliographystyle{abbrvnat}
+% \bibliographystyle{abbrvnat}
 
 \end{document}
