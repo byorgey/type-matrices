@@ -128,17 +128,11 @@ Matrices of types are sweet
 %matrices, types
 
 \section{Introduction}
+\label{sec:introduction}
 
-\begin{itemize}
-\item Problem statement: how to constrain the leaves of a type to
-  conform to a regular expression?
+(I'm listing some elementary examples. We don't have to use all of them.)
 
-\item Maybe show an ad-hoc solution to a special case, to give a
-  better sense of the problem.
-
-I'm listing some elementary examples. We don't have to use all of them.
-
-Ordinary lists:
+Here is how we might define a homogeneous list type in Haskell:
 \begingroup\par\noindent\advance\leftskip\mathindent\(
 \begin{pboxed}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -148,7 +142,7 @@ Ordinary lists:
 \ColumnHook
 \end{pboxed}
 \)\par\noindent\endgroup\resethooks
-Lists with alternating elements:
+It's homogeneous because each element has the same type as every other element. But suppose we want some other constraint on our list, for example that the types of the elements alternate between \ensuremath{\Varid{a}} and \ensuremath{\Varid{b}}, starting with \ensuremath{\Varid{a}} and ending with \ensuremath{\Varid{b}}. We can define a pair of mutually recursive types as follows:
 \begingroup\par\noindent\advance\leftskip\mathindent\(
 \begin{pboxed}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -160,9 +154,14 @@ Lists with alternating elements:
 \ColumnHook
 \end{pboxed}
 \)\par\noindent\endgroup\resethooks
-An \ensuremath{\Conid{AList}} corresponds to a regexp like $(AB)^*$.
+The required list is \ensuremath{\Conid{AList}\;\Varid{a}\;\Varid{b}}. Our goal will be to generalise this in two different ways
+\begin{itemize}
+\item We can think of the sequence of types in our list as conforming to a regular expression $(ab)^\ast$. We can generalize this to other regular expressions.
+\item We can consider more general recursive types than lists and make their leaf nodes, when read from left to right, conform to a regular expression
+\end{itemize}
 
-Then trees:
+\section{An alternating tree}
+Let's consider the example of constructing a binary tree whose leaves conform to the regular expression $(ab)^\ast$.
 
 %    ---A->--
 %   /        \
@@ -173,7 +172,9 @@ Then trees:
 
 
 
-Maybe nobody wants to see this:
+(Maybe nobody wants to see the gory details of this.)
+
+Here's a basic binary tree:
 \begingroup\par\noindent\advance\leftskip\mathindent\(
 \begin{pboxed}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -189,28 +190,46 @@ Maybe nobody wants to see this:
 \ColumnHook
 \end{pboxed}
 \)\par\noindent\endgroup\resethooks
+Now suppose that \ensuremath{\Conid{Tree}_{11}} is a tree whose leaf nodes are in $(ab)^\ast$.
+(We'll explain the suffix $11$ later.)
+It can't itself be a leaf node because then it would have only one element.
+It must be a fork consisting of two subtrees.
+There are two ways this could happen.
+The left fork could start with \ensuremath{\Varid{a}} and end with \ensuremath{\Varid{b}} in which case the right fork must also start with \ensuremath{\Varid{a}} and end with \ensuremath{\Varid{b}}.
+Or the left fork could start with \ensuremath{\Varid{a}} and end with \ensuremath{\Varid{a}} in which case the right fork must start with \ensuremath{\Varid{b}} and end with \ensuremath{\Varid{b}}. So we are led to this type:
 \begingroup\par\noindent\advance\leftskip\mathindent\(
 \begin{pboxed}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{3}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{20}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{20}{@{}>{\hspre}c<{\hspost}@{}}%
+\column{20E}{@{}l@{}}%
 \column{23}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{31}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{45}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[3]{}\mathbf{data}\;\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}{}\<[20]%
-\>[20]{}\mathrel{=}{}\<[23]%
+\>[20]{}\mathrel{=}{}\<[20E]%
 \>[23]{}\Conid{Fork}_{11}\;{}\<[31]%
 \>[31]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
 \>[45]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}){}\<[E]%
 \\
-\>[20]{}\mid {}\<[23]%
+\>[20]{}\mid {}\<[20E]%
 \>[23]{}\Conid{Fork}_{11}'\;(\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
 \>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[23]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
-\\
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+
+Similar reasoning about the subtree types leads to the remainder of the mutually recursive definition:
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{20}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{31}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{45}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[3]{}\mathbf{data}\;\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b}{}\<[20]%
 \>[20]{}\mathrel{=}\Conid{Leaf}_{12}\;\Varid{a}{}\<[E]%
 \\
@@ -222,35 +241,6 @@ Maybe nobody wants to see this:
 \>[20]{}\mid {}\<[23]%
 \>[23]{}\Conid{Fork}_{12}'\;(\Conid{Tree}_{12}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
 \>[45]{}(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[20]{}\hsindent{2}{}\<[22]%
-\>[22]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
-\\
-\>[3]{}\mathbf{data}\;\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}{}\<[20]%
-\>[20]{}\mathrel{=}\Conid{Leaf}_{21}\;\Varid{b}{}\<[E]%
-\\
-\>[20]{}\mid {}\<[23]%
-\>[23]{}\Conid{Fork21}\;{}\<[31]%
-\>[31]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
-\>[45]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[20]{}\mid {}\<[23]%
-\>[23]{}\Conid{Fork}_{21}'\;(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
-\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[23]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
-\\
-\>[3]{}\mathbf{data}\;\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b}{}\<[20]%
-\>[20]{}\mathrel{=}{}\<[23]%
-\>[23]{}\Conid{Fork}_{22}\;{}\<[31]%
-\>[31]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
-\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[20]{}\mid {}\<[23]%
-\>[23]{}\Conid{Fork}_{22}'\;(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
-\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
-\\
-\>[23]{}\mathbf{deriving}\;\Conid{Show}{}\<[E]%
 \ColumnHook
 \end{pboxed}
 \)\par\noindent\endgroup\resethooks
@@ -258,10 +248,58 @@ Maybe nobody wants to see this:
 \begin{pboxed}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{20}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{31}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{45}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[3]{}\Varid{ex1}\mathrel{=}\Conid{Fork}_{11}'\;(\Conid{Leaf}_{12}\;\mathrm{1})\;(\Conid{Leaf}_{21}\;\text{\tt \char34 a\char34}){}\<[E]%
+\>[3]{}\mathbf{data}\;\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}{}\<[20]%
+\>[20]{}\mathrel{=}\Conid{Leaf}_{21}\;\Varid{b}{}\<[E]%
 \\
-\>[3]{}\Varid{ex2}\mathrel{=}\Conid{Fork}_{11}'\;(\Conid{Fork}_{12}\;\Varid{ex1}\;(\Conid{Leaf}_{12}\;\mathrm{1}))\;(\Conid{Leaf}_{21}\;\text{\tt \char34 b\char34}){}\<[E]%
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{21}\;{}\<[31]%
+\>[31]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\mid {}\<[23]%
+\>[23]{}\Conid{Fork}_{21}'\;(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{20}{@{}>{\hspre}c<{\hspost}@{}}%
+\column{20E}{@{}l@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{31}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{45}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[3]{}\mathbf{data}\;\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b}{}\<[20]%
+\>[20]{}\mathrel{=}{}\<[20E]%
+\>[23]{}\Conid{Fork}_{22}\;{}\<[31]%
+\>[31]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\\
+\>[20]{}\mid {}\<[20E]%
+\>[23]{}\Conid{Fork}_{22}'\;(\Conid{Tree}_{22}\;\Varid{a}\;\Varid{b})\;{}\<[45]%
+\>[45]{}(\Conid{Tree}_{21}\;\Varid{a}\;\Varid{b}){}\<[E]%
+\ColumnHook
+\end{pboxed}
+\)\par\noindent\endgroup\resethooks
+
+Any tree of type \ensuremath{\Conid{Tree}_{11}\;\Varid{a}\;\Varid{b}} is now constrained to have alternating leaf node types:
+
+\begingroup\par\noindent\advance\leftskip\mathindent\(
+\begin{pboxed}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[3]{}\Varid{ex}_{1}\mathrel{=}\Conid{Fork}_{11}'\;(\Conid{Leaf}_{12}\;\mathrm{1})\;(\Conid{Leaf}_{21}\;\text{\tt 'a'}){}\<[E]%
+\\
+\>[3]{}\Varid{ex}_{2}\mathrel{=}\Conid{Fork}_{11}'\;(\Conid{Fork}_{12}\;\Varid{ex}_{1}\;(\Conid{Leaf}_{12}\;\mathrm{2}))\;(\Conid{Leaf}_{21}\;\text{\tt 'b'}){}\<[E]%
 \ColumnHook
 \end{pboxed}
 \)\par\noindent\endgroup\resethooks
@@ -278,17 +316,16 @@ Maybe nobody wants to see this:
   child {node {\ensuremath{\Conid{Leaf}_{21}\;\text{\tt \char34 b\char34}}}};
 \end{tikzpicture}
 
-\end{itemize}
+While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the properties of the pieces we get when we split a string from $(ab)^\ast$ into two and used this to find corresponding types for the subtrees. Why did we end up with four tree types? And how does this relate to the standard theory of regular languages?
 
 \section{Zippers and dissections}
 \label{sec:zippers-and-dissections}
 
+Given a recursive type $t$ we can consider the problem of `lifting' it to a new type that conforms to a given regular expression. It turns out that for certain regular expressions this problem has already been solved in the literature without the problem having been phrased in this form.
 
-\begin{itemize}
-\item To lend more weight to the problem, show that
-  zippers/derivatives, dissection, and infinitesimals are special
-  cases (or possibly only some of these).
-\end{itemize}
+Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one occurrence of $1$ somewhere in the word, where $1$ represents the unit type (usually written \ensuremath{()} in Haskell). Applied to a recursive types it corresponds to trees where all of the leaf nodes are of type \ensuremath{\Varid{a}} apart from one which has the fixed value \ensuremath{()}. In other words, it's the derivative of the orginal type. The regular language $a^\ast ba^\ast$ is a zipper type with elements of type $b$ at the `focus'. And the regular language $a^\ast1b^\ast$ corresponds to dissection types.
+
+Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
 
 \section{Matrices of types}
 \label{sec:matrices-of-types}
