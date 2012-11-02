@@ -329,6 +329,21 @@ Zippers, derivatives and dissections are usually described using Leibniz rules a
 
 \section{Matrices of types}
 \label{sec:matrices-of-types}
+A {\it deterministic finite state automaton} (DFA) consists of a set of states $Q$ and a set of input symbols $\Sigma$ along with a transition function $\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be considered to be in one of the states in $Q$, say $q$. Whenever it receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA is started in a particular state called its {\it start} state, say $q_0$. Some subset of states $F\subset S$ are considered to be {\it accept} states.
+
+If we have a string of symbols from the set $\Sigma$, we can feed them one by one to a DFA and at the end of the string it will be left in some state. If the DFA starts in the start state $q_0$ and ends in an accept state then it is said to {\it accept} the string.
+
+We can draw a DFA as a directed multigraph where each graph edge is labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever $\delta(q_1,s)=q_2$. We can think of the state of the DFA as ``walking'' through the graph each time it receives an input.
+
+[The symbol $0$ stuff below may be the wrong way to do this.]
+
+The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to also take the value $0$ so its range is $Q\cup\{0\}$. If $\delta(q,s)=0$, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)=0$.
+
+Kleene's Theorem says that the set of strings accepted by a DFA is a regular language, ie. it corresponds to strings that match a regular expression.
+
+Given any pair of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings that, when input to the DFA, would take it from state $q_1$ to state $q_2$. The set of strings taking the DFA from $q_0$ to a state in $F$ is the set of strings accepted by the DFA. We consider the empty string to take the DFA from state $q$ to $q$ for any $q$.
+
+Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose we break up our string into two pieces $S=S_1S_2$. Then $S_1$ must take the DFA from $q_1$ to some intermediate state $q_3$ and $S_2$ must take it from state $q_3$ to $q_2$. In other words the set of strings taking the DFA from $q_1$ to $q_2$ is the set o
 
 \begin{itemize}
 \item Work up to the full solution involving matrices of types.
