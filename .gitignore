@@ -27,3 +27,10 @@
 *.mtc0
 *~
 *.pdf
+*.tex
+*.ptb
+
+*.o
+*.hi
+make
+.shake.database
