@@ -72,23 +72,23 @@ Then trees:
 %   \        /
 %    --<-B---
 
-%format Tree11=\VarID{Tree_{11}}
-%format Tree12=\VarID{Tree_{12}}
-%format Tree21=\VarID{Tree_{21}}
-%format Tree22=\VarID{Tree_{22}}
+%format Tree11
+%format Tree12
+%format Tree21
+%format Tree22
 
-%format Fork11=\VarID{Fork_{11}}
-%format Fork11'=\VarID{Fork'_{11}}
-%format Fork12=\VarID{Fork_{12}}
-%format Fork12'=\VarID{Fork'_{12}}
-%format Fork21'=\VarID{Fork'_{21}}
-%format Fork22=\VarID{Fork_{22}}
-%format Fork22'=\VarID{Fork'_{22}}
+%format Fork11
+%format Fork11'
+%format Fork12
+%format Fork12'
+%format Fork21'
+%format Fork22
+%format Fork22'
 
-%format Leaf11=\VarID{Leaf_{11}}
-%format Leaf12=\VarID{Leaf_{12}}
-%format Leaf21=\VarID{Leaf_{21}}
-%format Leaf22=\VarID{Leaf_{22}}
+%format Leaf11
+%format Leaf12
+%format Leaf21
+%format Leaf22
 
 Maybe nobody wants to see this:
 
