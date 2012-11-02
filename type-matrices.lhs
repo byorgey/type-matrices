@@ -1,4 +1,4 @@
-% -*- LaTeX -*-
+% -*- mode: LaTeX; compile-command: "runghc make" -*-
 \documentclass[authoryear,preprint]{sigplanconf}
 
 \usepackage{amsmath}
