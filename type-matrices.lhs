@@ -81,6 +81,7 @@ Then trees:
 %format Fork11'
 %format Fork12
 %format Fork12'
+%format Fork21
 %format Fork21'
 %format Fork22
 %format Fork22'
