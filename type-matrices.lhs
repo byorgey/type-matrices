@@ -24,7 +24,7 @@
 \authorinfo{Dan Piponi}
            {Google}
            {dpiponi@gmail.com}
-\authorinfo{Brent Yorgey}
+\authorinfo{Brent A. Yorgey}
            {University of Pennsylvania}
            {byorgey@cis.upenn.edu}
 
