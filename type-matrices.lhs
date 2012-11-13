@@ -65,12 +65,6 @@ The required list is |AList a b|. Our goal will be to generalise this in two dif
 \section{An alternating tree}
 Let's consider the example of constructing a binary tree whose leaves conform to the regular expression $(ab)^\ast$.
 
-%    ---A->--
-%   /        \
-% (1)        (2)
-%   \        /
-%    --<-B---
-
 %format Tree11
 %format Tree12
 %format Tree21
@@ -181,8 +175,8 @@ Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with
 
 Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
 
-\section{Matrices of types}
-\label{sec:matrices-of-types}
+\section{Regular expressions and DFAs}
+\label{sec:dfas}
 A {\it deterministic finite state automaton} (DFA) consists of a set of states $Q$ and a set of input symbols $\Sigma$ along with a transition function $\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be considered to be in one of the states in $Q$, say $q$. Whenever it receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA is started in a particular state called its {\it start} state, say $q_0$. Some subset of states $F\subset S$ are considered to be {\it accept} states.
 
 If we have a string of symbols from the set $\Sigma$, we can feed them one by one to a DFA and at the end of the string it will be left in some state. If the DFA starts in the start state $q_0$ and ends in an accept state then it is said to {\it accept} the string.
@@ -199,10 +193,53 @@ Given any pair of states $q_1$ and $q_2$ in $Q$ we can consider the set of strin
 
 Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose we break up our string into two pieces $S=S_1S_2$. Then $S_1$ must take the DFA from $q_1$ to some intermediate state $q_3$ and $S_2$ must take it from state $q_3$ to $q_2$. In other words the set of strings taking the DFA from $q_1$ to $q_2$ is the set o
 
+\section{Matrices of types}
+\label{sec:matrices-of-types}
+
+Consider again the regular expression $(ab)^\ast$, whose corresponding
+DFA is shown in Figure~\ref{fig:ab-star-dfa}.  Again, our goal will be
+to construct a type with the same shape as
+
+> data Tree a =  Leaf a | Fork (Tree a) (Tree a)
+>                 deriving Show
+
+but whose sequences of leaf types always match $(ab)^\ast$---that is,
+whose sequences of leaf types, considered as a string, take the DFA
+from state $1$ to itself.
+
+\begin{figure}
+  \centering
+  TODO
+%    ---A->--
+%   /        \
+% (1)        (2)
+%   \        /
+%    --<-B---
+
+  \caption{A DFA for $(ab)^\ast$}
+  \label{fig:ab-star-dfa}
+\end{figure}
+
+%format Treeij = Tree "_{ij}"
+
+Generalizing a bit, let |Treeij a b| denote the type of binary trees
+whose leaf sequences take the DFA from state $i$ to state $j$.  Since
+the DFA has two states, there are four such types:
 \begin{itemize}
-\item Work up to the full solution involving matrices of types.
-  Matrices!  Of types!
+\item |Tree11 a b| --- this is the type of trees we are primarily
+  interested in constructing, whose leaf sequences match $(ab)^\ast$.
+\item |Tree12 a b| --- trees of this type have leaf sequences which
+  take the DFA from state $1$ to state $2$; that is, they match the
+  regular expression $a(ba)^\ast$ (or, equivalently, $(ab)^\ast{}a$).
+\item |Tree21 a b| --- trees matching $b(ab)^\ast$.
+\item |Tree22 a b| --- trees matching $(ba)^\ast$.
 \end{itemize}
+
+TODO: finish this example.  Derive |Treeij| intuitively---sums,
+products, etc.  Then show how we can organize everything into matrices.
+
+TODO: explain more generally.  type algebra, homomorphism to semiring
+of matrices, etc.
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
