@@ -9,11 +9,32 @@
 %include lhs2TeX.fmt
 %include lhs2TeX.sty
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Notes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifcomments\commentstrue
+
+\ifcomments
+\newcommand{\authornote}[3]{\textcolor{#1}{[#3 ---#2]}}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\else
+\newcommand{\authornote}[3]{}
+\newcommand{\todo}[1]{}
+\fi
+
+\newcommand{\brent}[1]{\authornote{blue}{BAY}{#1}}
+\newcommand{\dan}[1]{\authornote{green}{DP}{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{document}
 
-%\conferenceinfo{WXYZ '05}{date, City.} 
-%\copyrightyear{2005} 
-%\copyrightdata{[to be supplied]} 
+%\conferenceinfo{WXYZ '05}{date, City.}
+%\copyrightyear{2005}
+%\copyrightdata{[to be supplied]}
 
 %\titlebanner{banner above paper title}        % These are ignored unless
 %\preprintfooter{short description of paper}   % 'preprint' option specified.
@@ -183,7 +204,12 @@ If we have a string of symbols from the set $\Sigma$, we can feed them one by on
 
 We can draw a DFA as a directed multigraph where each graph edge is labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever $\delta(q_1,s)=q_2$. We can think of the state of the DFA as ``walking'' through the graph each time it receives an input.
 
-[The symbol $0$ stuff below may be the wrong way to do this.]
+\dan{The symbol $0$ stuff below may be the wrong way to do this.}
+
+\brent{Why not just allow the transition function to be partial?  If the
+  transition function is undefined for the current (state, input)
+  pair, then the DFA rejects. It's essentially the same thing but
+  avoids the messiness with $0$.}
 
 The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to also take the value $0$ so its range is $Q\cup\{0\}$. If $\delta(q,s)=0$, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)=0$.
 
@@ -200,7 +226,13 @@ Consider again the regular expression $(ab)^\ast$, whose corresponding
 DFA is shown in Figure~\ref{fig:ab-star-dfa}.  Again, our goal will be
 to construct a type with the same shape as
 
-> data Tree a =  Leaf a | Fork (Tree a) (Tree a)
+%format Tij = T "_{ij}"
+%format T11
+%format T12
+%format T21
+%format T22
+
+> data T a =  Leaf a | Fork (T a) (T a)
 >                 deriving Show
 
 but whose sequences of leaf types always match $(ab)^\ast$---that is,
@@ -209,7 +241,7 @@ from state $1$ to itself.
 
 \begin{figure}
   \centering
-  TODO
+  \todo{draw a DFA}
 %    ---A->--
 %   /        \
 % (1)        (2)
@@ -220,26 +252,65 @@ from state $1$ to itself.
   \label{fig:ab-star-dfa}
 \end{figure}
 
-%format Treeij = Tree "_{ij}"
-
-Generalizing a bit, let |Treeij a b| denote the type of binary trees
+Generalizing a bit, let |Tij a b| denote the type of binary trees
 whose leaf sequences take the DFA from state $i$ to state $j$.  Since
 the DFA has two states, there are four such types:
 \begin{itemize}
-\item |Tree11 a b| --- this is the type of trees we are primarily
+\item |T11 a b| --- this is the type of trees we are primarily
   interested in constructing, whose leaf sequences match $(ab)^\ast$.
-\item |Tree12 a b| --- trees of this type have leaf sequences which
+\item |T12 a b| --- trees of this type have leaf sequences which
   take the DFA from state $1$ to state $2$; that is, they match the
   regular expression $a(ba)^\ast$ (or, equivalently, $(ab)^\ast{}a$).
-\item |Tree21 a b| --- trees matching $b(ab)^\ast$.
-\item |Tree22 a b| --- trees matching $(ba)^\ast$.
+\item |T21 a b| --- trees matching $b(ab)^\ast$.
+\item |T22 a b| --- trees matching $(ba)^\ast$.
 \end{itemize}
 
-TODO: finish this example.  Derive |Treeij| intuitively---sums,
-products, etc.  Then show how we can organize everything into matrices.
+\todo{finish this example.  Derive |Tij| intuitively---sums,
+products, etc.  Then show how we can organize everything into matrices.}
 
-TODO: explain more generally.  type algebra, homomorphism to semiring
-of matrices, etc.
+\newcommand{\m}[1]{\mathbf{#1}}
+
+\[ \m{T} =
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|
+\end{bmatrix}
+\]
+
+\[ \m{T} = \m{X} + \m{T}^2 \]
+
+\[
+  \begin{bmatrix}
+    |T11| & |T12| \\
+    |T21| & |T22|
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    0 & a \\
+    b & 0
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    |T11| & |T12| \\
+    |T21| & |T22|
+  \end{bmatrix}
+  ^2
+\]
+
+\[
+  \begin{bmatrix}
+    |T11| & |T12| \\
+    |T21| & |T22|
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    |T11|^2 + |T12| |T21| & |a| + |T11| |T12| + |T12| |T22| \\
+    |b| + |T21| |T12| + |T22| |T21| & |T21| |T12| + |T22|^2
+  \end{bmatrix}
+\]
+
+\todo{explain more generally.  type algebra, homomorphism to semiring
+of matrices, etc.}
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
