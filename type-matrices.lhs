@@ -1,13 +1,48 @@
 % -*- mode: LaTeX; compile-command: "runghc make" -*-
 \documentclass[authoryear,preprint]{sigplanconf}
 
-\usepackage{amsmath}
-\usepackage{tikz}
-
 %vim: set makeprg=runghc make:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% lhs2tex setup
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %include lhs2TeX.fmt
 %include lhs2TeX.sty
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Package imports
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{prettyref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Prettyref
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newrefformat{fig}{Figure~\ref{#1}}
+\newrefformat{sec}{Section~\ref{#1}}
+\newrefformat{var}{Variation~\ref{#1}}
+\newrefformat{eq}{equation~\eqref{#1}}
+\newrefformat{prob}{Problem~\ref{#1}}
+\newrefformat{tab}{Table~\ref{#1}}
+\newrefformat{thm}{Theorem~\ref{#1}}
+\newrefformat{lem}{Lemma~\ref{#1}}
+\newrefformat{prop}{Proposition~\ref{#1}}
+\newrefformat{defn}{Definition~\ref{#1}}
+\newrefformat{cor}{Corollary~\ref{#1}}
+\newcommand{\pref}[1]{\prettyref{#1}}
+
+% \Pref is just like \pref but it uppercases the first letter; for use
+% at the beginning of a sentence.
+\newcommand{\Pref}[1]{%
+  \expandafter\ifx\csname r@@#1\endcsname\relax {\scriptsize[ref]}
+    \else
+    \edef\reftext{\prettyref{#1}}\expandafter\MakeUppercase\reftext
+    \fi
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Notes
@@ -84,6 +119,8 @@ The required list is |AList a b|. Our goal will be to generalise this in two dif
 \end{itemize}
 
 \section{An alternating tree}
+\label{sec:alt-tree}
+
 Let's consider the example of constructing a binary tree whose leaves conform to the regular expression $(ab)^\ast$.
 
 %format Tree11
@@ -219,8 +256,8 @@ Given any pair of states $q_1$ and $q_2$ in $Q$ we can consider the set of strin
 
 Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose we break up our string into two pieces $S=S_1S_2$. Then $S_1$ must take the DFA from $q_1$ to some intermediate state $q_3$ and $S_2$ must take it from state $q_3$ to $q_2$. In other words the set of strings taking the DFA from $q_1$ to $q_2$ is the set o
 
-\section{Matrices of types}
-\label{sec:matrices-of-types}
+\section{Types and DFAs}
+\label{sec:types-and-dfas}
 
 Consider again the regular expression $(ab)^\ast$, whose corresponding
 DFA is shown in Figure~\ref{fig:ab-star-dfa}.  Again, our goal will be
@@ -267,6 +304,52 @@ the DFA has two states, there are four such types:
 
 \todo{finish this example.  Derive |Tij| intuitively---sums,
 products, etc.  Then show how we can organize everything into matrices.}
+
+What does a tree of type |T11| look like?  It cannot be a leaf,
+because a single leaf takes the DFA from state 1 to 2 or vice versa.
+It must be a pair of trees, which together take the DFA from state 1
+to state 1.  There are two ways for that to happen: both trees could
+themselves begin and end in state 1; or the first tree could take the
+DFA from state 1 to state 2, and the second from state 2 to state 1.
+In fact, we have already carried out this analysis in
+\pref{sec:alt-tree}; the only difference is that we now have a DFA as
+a less ad-hoc framework in which to do the analysis.
+
+\section{Matrices of types}
+\label{sec:matrices-of-types}
+
+\todo{Generalize to arbitrary-arity polynomial functors; introduce
+  some definitions and notations etc.}
+
+More generally, let $F_{ij}$ \todo{finish}
+
+The constant functor $1$ creates structures containing no elements,
+\emph{i.e.} which do not drive a DFA at all.  \todo{Hence...}
+
+\[ 1_{ij} =
+\begin{cases}
+  1 & i = j \\
+  0 & i \neq j
+\end{cases}
+\]
+
+\todo{The identity functor $X$}
+
+A value of type $F + G$ is either a value of type $F$ or a value of
+type $G$; so
+
+\[ (F + G)_{ij} = F_{ij} + G_{ij}. \]
+
+Products are more interesting.  An $FG$-structure consists of an
+$F$-structure paired with a $G$-structure, which drive the DFA in
+sequence.  Hence, in order to take the DFA from state $i$ to state $j$
+overall, the $F$-structure must take the DFA from state $i$ to some state
+$k$, and then the $G$-structure must take it from $k$ to $j$.  This
+works for any state $k$, and $(FG)_{ij}$ is the sum over all
+such possibilities.  Thus,
+
+\[ (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
+
 
 \newcommand{\m}[1]{\mathbf{#1}}
 
