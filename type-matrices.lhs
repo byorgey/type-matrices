@@ -19,6 +19,16 @@
 \usepackage{prettyref}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Semantic markup
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\term}[1]{\emph{#1}}
+
+\newcommand{\pkg}[1]{\texttt{#1}}
+\newcommand{\ext}[1]{\texttt{#1}}
+\newcommand{\module}[1]{\texttt{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Prettyref
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -60,6 +70,14 @@
 
 \newcommand{\brent}[1]{\authornote{blue}{BAY}{#1}}
 \newcommand{\dan}[1]{\authornote{green}{DP}{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Math typesetting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\union}{\cup}
+
+\newcommand{\m}[1]{\mathbf{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -318,13 +336,64 @@ a less ad-hoc framework in which to do the analysis.
 \section{Matrices of types}
 \label{sec:matrices-of-types}
 
-\todo{Generalize to arbitrary-arity polynomial functors; introduce
-  some definitions and notations etc.}
+In what follows, we abstract away from the particular details of
+Haskell data types and work in terms of \term{polynomial
+  functors}. \todo{explain this better? Shouldn't have to know any CT
+  to understand it\dots do we actually make use of functoriality, or
+  should we just say ``polynomial type constructors''?}
+\begin{itemize}
+\item $1$ denotes the constantly unit functor $1\ A = 1$ (whether $1$
+denotes the constantly unit functor or the unit value should be clear
+from the context).
+\item $X$ denotes the identity functor $X\ A = A$.
+\item Given two functors $F$ and $G$, we can form their sum, $(F + G)\
+  A = F\ A + G\ A$.
+\item We can also form products of functors, $(F \times G)\ A = F\ A
+  \times G\ A$.  We will often abbreviate $F \times G$ as $FG$.
+\end{itemize}
 
-More generally, let $F_{ij}$ \todo{finish}
+The above also generalizes naturally to multi-argument functors:
+\begin{itemize}
+\item $1\ A_1\ \dots\ A_n = 1$;
+\item $(F + G)\ A_1\ \dots\ A_n = F\ A_1\ \dots\ A_n + G\ A_1\ \dots\
+  A_n$;
+\end{itemize}
+and similarly for products.  The identity functor $X$ generalizes to
+the family of projections ${}_nX_i$, where \[ {}_nX_i\ A_1\ \dots\ A_n = A_i. \]  For
+example, the Haskell type
+\begin{spec}
+data S a b = Apple a | Banana b | Fork (S a b) (S a b)
+\end{spec}
+corresponds to the two-argument functor $S = {}_2X_1 + {}_2X_2 + S
+\times S$.  Usually we omit the pre-subscript on $X$ and just write
+$X_1$, $X_2$ and so on when the arity $n$ is clear from the context.
 
-The constant functor $1$ creates structures containing no elements,
-\emph{i.e.} which do not drive a DFA at all.  \todo{Hence...}
+\todo{formally define ``sequence of leaf types''?}
+
+% \newcommand{\leafseq}[1]{\llbracket #1 \rrbracket}
+
+% $\leafseq{1} = \emptyset$
+% $\leafseq{X_i} = \{ i \}$
+% $\leafseq{F + G} = \leafseq{F} \union \leafseq{G}$
+% $\leafseq{F \times G} = \leafseq{F} \cdot \leafseq{G}$
+
+Suppose we have a one-argument functor $F$ and some DFA $D =
+(Q,\Sigma,\delta)$ with $n$ states (that is, $||Q|| = n$).  Let
+$F_{ij}$ denote the type with the same shape as $F$ \brent{should we
+  define this ``have the same shape as'' thing formally?  I guess the
+  idea would be that $F$ and $G$ have the same shape iff $F\ 1\ \dots\
+  1 \cong G\ 1\ \dots\ 1$ (where $F$ and $G$ could have different
+  arities).} but whose sequence of leaf types takes $D$ from state $i$
+to state $j$.  In particular $F_{ij}$ has arity $||\Sigma||$, since
+there is a leaf type corresponding to each alphabet symbol of $D$.  We
+can deduce $F_{ij}$ compositionally by considering each of the functor
+building blocks above in turn.
+
+\begin{itemize}
+\item The constant functor $1$ creates structures containing no
+  elements, \emph{i.e.} which do not cause the DFA to transition at
+  all.  So the only way a $1$ structure can take the DFA from state
+  $i$ to state $j$ is if $i = j$:
 
 \[ 1_{ij} =
 \begin{cases}
@@ -333,36 +402,74 @@ The constant functor $1$ creates structures containing no elements,
 \end{cases}
 \]
 
-\todo{The identity functor $X$}
+\item The identity functor $X$ creates structures containing a single
+  leaf element.  So an $X$ structure containing a single value of type
+  $A$ takes the DFA from state $i$ to state $j$ precisely when the DFA
+  contains a transition from $i$ to $j$ labeled with $A$.   For
+  example, \todo{give example?}
+  \[ X_{ij} = \sum_{\substack{A \in \Sigma \\ \delta(i,A) = j}} X_A \]
+  \todo{need to figure out the right way to present the above}
 
-A value of type $F + G$ is either a value of type $F$ or a value of
+\item A value of type $F + G$ is either a value of type $F$ or a value of
 type $G$; so
 
 \[ (F + G)_{ij} = F_{ij} + G_{ij}. \]
 
-Products are more interesting.  An $FG$-structure consists of an
-$F$-structure paired with a $G$-structure, which drive the DFA in
-sequence.  Hence, in order to take the DFA from state $i$ to state $j$
-overall, the $F$-structure must take the DFA from state $i$ to some state
-$k$, and then the $G$-structure must take it from $k$ to $j$.  This
-works for any state $k$, and $(FG)_{ij}$ is the sum over all
-such possibilities.  Thus,
+\item Products are more interesting.  An $FG$-structure consists of an
+  $F$-structure paired with a $G$-structure, which drive the DFA in
+  sequence.  Hence, in order to take the DFA from state $i$ to state
+  $j$ overall, the $F$-structure must take the DFA from state $i$ to
+  some state $k$, and then the $G$-structure must take it from $k$ to
+  $j$.  This works for any state $k$, and $(FG)_{ij}$ is the sum over
+  all such possibilities.  Thus,
 
 \[ (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
+\end{itemize}
 
+The above rules for $1$, sums, and products might look familiar.  In
+fact, they are just the definitions of the identity matrix, matrix
+addition, and matrix product.  That is, we can arrange all the
+$F_{ij}$ for a given functor $F$ in a matrix $\m{F}$ whose $(i,j)$th
+entry is $F_{ij}$.  Then $\m{1}$ is the identity matrix (with ones
+along the main diagonal and zeros everywhere else); the matrix for the
+sum of $F$ and $G$ the sum of their matrices; and the matrix for their
+product is the product of their matrices.
 
-\newcommand{\m}[1]{\mathbf{#1}}
+And what about $X$?  Recall that $X_{ij}$ is the sum of the labels on
+all transitions from state $i$ to state $j$ in the DFA.  Hence, the
+matrix $\m{X}_D$ is the \emph{transition matrix} for $D$.
 
+In other words, given a DFA $D$, we have a \emph{semiring
+  homomorphism} from arity-$1$ functors to $||Q|| \times ||Q||$
+matrices of arity-$||\Sigma||$ functors---that is, a mapping from
+functors to matrices which preserves sum and product. \todo{explain
+  better what is meant by semiring homomorphism}
+
+As an example, consider again the recursive tree type given by $T = X
++ T \times T$, along with the two-state DFA for $(ab)^*$ shown in
+\pref{fig:ab-star-dfa}.  The matrix for $T$ can be written
 \[ \m{T} =
 \begin{bmatrix}
   |T11| & |T12| \\
   |T21| & |T22|
 \end{bmatrix}
 \]
+and we have already determined previously what is represented by each
+$T_{ij}$.  The punchline is that we can take the recursive equation
+for $T$ and simply apply the homomorphism to both sides, resulting in
+the matrix equation
+\[ \m{T} = \m{X}_D + \m{T}^2, \] where $\m{X}_D$ is the transition
+matrix for $D$, namely
+\[ \m{X}_D =
+  \begin{bmatrix}
+    0 & a \\
+    b & 0
+  \end{bmatrix}.
+\]
+Expanding out this matrix equation and performing the indicated matrix
+operations yields
 
-\[ \m{T} = \m{X} + \m{T}^2 \]
-
-\[
+\begin{multline*}
   \begin{bmatrix}
     |T11| & |T12| \\
     |T21| & |T22|
@@ -378,22 +485,18 @@ such possibilities.  Thus,
     |T21| & |T22|
   \end{bmatrix}
   ^2
-\]
-
-\[
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
+  \\
   =
   \begin{bmatrix}
     |T11|^2 + |T12| |T21| & |a| + |T11| |T12| + |T12| |T22| \\
     |b| + |T21| |T12| + |T22| |T21| & |T21| |T12| + |T22|^2
-  \end{bmatrix}
-\]
+  \end{bmatrix}.
+\end{multline}
+Equating the left- and right-hand sides elementwise yields precisely
+the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 
-\todo{explain more generally.  type algebra, homomorphism to semiring
-of matrices, etc.}
+\todo{include a bunch more examples here.  Both other DFAs and other
+  types.  lists, even/odd, \dots}
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
