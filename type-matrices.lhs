@@ -320,9 +320,6 @@ the DFA has two states, there are four such types:
 \item |T22 a b| --- trees matching $(ba)^\ast$.
 \end{itemize}
 
-\todo{finish this example.  Derive |Tij| intuitively---sums,
-products, etc.  Then show how we can organize everything into matrices.}
-
 What does a tree of type |T11| look like?  It cannot be a leaf,
 because a single leaf takes the DFA from state 1 to 2 or vice versa.
 It must be a pair of trees, which together take the DFA from state 1
