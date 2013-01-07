@@ -247,7 +247,8 @@ While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the
 
 Given a recursive type $t$ we can consider the problem of `lifting' it to a new type that conforms to a given regular expression. It turns out that for certain regular expressions this problem has already been solved in the literature without the problem having been phrased in this form.
 
-Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one occurrence of $1$ somewhere in the word, where $1$ represents the unit type (usually written |()| in Haskell). Applied to a recursive types it corresponds to trees where all of the leaf nodes are of type |a| apart from one which has the fixed value |()|. In other words, it's the derivative of the orginal type. The regular language $a^\ast ba^\ast$ is a zipper type with elements of type $b$ at the `focus'. And the regular language $a^\ast1b^\ast$ corresponds to dissection types.
+Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one occurrence of $1$ somewhere in the word, where $1$ represents the unit type (usually written |()| in Haskell). Applied to a recursive types it corresponds to trees where all of the leaf nodes are of type |a| apart from one which has the fixed value |()|. In other words, it's the derivative of the orginal type \cite{DBLP:journals/fuin/AbbottAMG05}. The regular language $a^\ast ba^\ast$ is a zipper type with elements of type $b$ at the `focus'.
+And the regular language $a^\ast1b^\ast$ corresponds to dissection types \cite{dissection}.
 
 Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
 
@@ -488,7 +489,7 @@ operations yields
     |T11|^2 + |T12| |T21| & |a| + |T11| |T12| + |T12| |T22| \\
     |b| + |T21| |T12| + |T22| |T21| & |T21| |T12| + |T22|^2
   \end{bmatrix}.
-\end{multline}
+\end{multline*}
 Equating the left- and right-hand sides elementwise yields precisely
 the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 
@@ -518,6 +519,7 @@ Acknowledgments.
 
 % We recommend abbrvnat bibliography style.
 
-% \bibliographystyle{abbrvnat}
+\bibliography{type-matrices}{}
+\bibliographystyle{abbrvnat}
 
 \end{document}
