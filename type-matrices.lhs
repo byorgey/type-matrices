@@ -262,11 +262,6 @@ We can draw a DFA as a directed multigraph where each graph edge is labeled by a
 
 \dan{The symbol $0$ stuff below may be the wrong way to do this.}
 
-\brent{Why not just allow the transition function to be partial?  If the
-  transition function is undefined for the current (state, input)
-  pair, then the DFA rejects. It's essentially the same thing but
-  avoids the messiness with $0$.}
-
 The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)$ isn't defined.
 
 Kleene's Theorem says that the set of strings accepted by a DFA is a regular language, ie. it corresponds to strings that match a regular expression.
@@ -526,6 +521,7 @@ the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
   where the usual Leibniz equation comes from.)
 \end{itemize}
 DFA for $a^\ast1a^\ast$.
+\dan{Diagram}
 \[ \m{T} =
 \begin{bmatrix}
   |a| & |1| \\
@@ -570,7 +566,7 @@ So $F_{01}$ is the derivative of $F$.
 We described above how $a^\ast1a^\ast$ gives rise to zipper types.
 We have now shown how these can be computed as derivatives.
   \dan{
-  Need to do fixpoints.
+  Need to do sums and fixed points.
   }
 
 There is another way to look at this. Write
@@ -584,6 +580,7 @@ where
   |0| & |0|
 \end{bmatrix}
 \]
+Note that $\m{d}^2=\m{0}$.
 
 \section{Divided differences}
 \label{sec:divided-differences}
@@ -592,6 +589,56 @@ where
 \item Use the new power to also generalize dissections to divided
   differences.
 \end{itemize}
+
+DFA for $a^\ast1b^\ast$.
+\dan{Diagram}
+\[ \m{T} =
+\begin{bmatrix}
+  |a| & |1| \\
+  |0| & |b|
+\end{bmatrix}
+\]
+Suppose a functor \dan{?} is a product of two functors
+\[
+F = G \times H
+\]
+\dan{
+This is just placeholder really. I need to work out precisely what is a function
+of what.
+}
+Then
+\[
+F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
+\]
+$G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
+But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
+So $F_{00} = F_{00}\times G_{00}$.
+As before, $F_{00}$ is structures whose leaves take the DFA from state 0 to state 0 and so whose
+leaves match the regular expression $a^\ast$.
+So we have simply that $F_{00}(a,b) = F(a)$.
+However, we now have that $F_{11}(a,b) = F(b)$.
+We also have
+\[
+F_{01} = F_{00}\times G_{01}+F_{01}\times G_{11}
+\]
+So
+\[
+F_{01}(a,b) = F(a)\times G_{01}(a,b)+F_{01}(a,b)\times G(b)
+\]
+This is the modified Leibniz rule described in \cite{dissection}.
+\dan{Do other operations}
+We have already argued above \dan{xref} that the regular expression $a^\ast1b^\ast$
+gives rise to dissections. We have now also shown how the algebraic rules for
+dissections are actually statements about the transition matrices for the
+corresponding DFA.
+\dan{I'd like to point out
+\begin{itemize}
+\item that dissection is actually divided difference
+\item we can generalise to higher divided differences
+\item the transition matrix (and its generalisation) corresponds to Opitz formula, but this
+might be too much information
+\end{itemize}
+}
 
 \acks
 
