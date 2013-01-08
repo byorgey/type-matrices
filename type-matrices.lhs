@@ -254,7 +254,7 @@ Zippers, derivatives and dissections are usually described using Leibniz rules a
 
 \section{Regular expressions and DFAs}
 \label{sec:dfas}
-A {\it deterministic finite state automaton} (DFA) consists of a set of states $Q$ and a set of input symbols $\Sigma$ along with a transition function $\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be considered to be in one of the states in $Q$, say $q$. Whenever it receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA is started in a particular state called its {\it start} state, say $q_0$. Some subset of states $F\subset S$ are considered to be {\it accept} states.
+A {\it deterministic finite state automaton} (DFA) $D$ is a triple $(Q, \Sigma, \delta)$ consisting of a set of states $Q$ and a set of input symbols $\Sigma$ along with a transition function $\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be considered to be in one of the states in $Q$, say $q$. Whenever it receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA is started in a particular state called its {\it start} state, say $q_0$. Some subset of states $F\subset S$ are considered to be {\it accept} states.
 
 If we have a string of symbols from the set $\Sigma$, we can feed them one by one to a DFA and at the end of the string it will be left in some state. If the DFA starts in the start state $q_0$ and ends in an accept state then it is said to {\it accept} the string.
 
@@ -267,13 +267,17 @@ We can draw a DFA as a directed multigraph where each graph edge is labeled by a
   pair, then the DFA rejects. It's essentially the same thing but
   avoids the messiness with $0$.}
 
-The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to also take the value $0$ so its range is $Q\cup\{0\}$. If $\delta(q,s)=0$, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)=0$.
+The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)$ isn't defined.
 
 Kleene's Theorem says that the set of strings accepted by a DFA is a regular language, ie. it corresponds to strings that match a regular expression.
 
-Given any pair of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings that, when input to the DFA, would take it from state $q_1$ to state $q_2$. The set of strings taking the DFA from $q_0$ to a state in $F$ is the set of strings accepted by the DFA. We consider the empty string to take the DFA from state $q$ to $q$ for any $q$.
+\dan{
+I'm implicitly defining the notion of "taking a DFA from state $q_0$ to $q_1$". Is there a better word for this?
+}
+Given any pair of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings that, when input to the DFA, would take it from state $q_1$ to state $q_2$. Call this $D(q_0,q_1)$.
+The set of strings taking the DFA from $q_0$ to a state in $F$ is the set of strings accepted by the DFA. We consider the empty string to take the DFA from state $q$ to $q$ for any $q$.
 
-Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose we break up our string into two pieces $S=S_1S_2$. Then $S_1$ must take the DFA from $q_1$ to some intermediate state $q_3$ and $S_2$ must take it from state $q_3$ to $q_2$. In other words the set of strings taking the DFA from $q_1$ to $q_2$ is the set o
+Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose also that we break up our string into two pieces $S=S_1S_2$. Then $S_1$ must take the DFA from $q_1$ to some intermediate state $r$ and $S_2$ must take it from state $r$ to $q_2$. In other words $D(q_1,q_2) = \bigcup_{r\in Q}\{ST || S \in D(q_1,r), T \in D(r,q_2)\}$.
 
 \section{Types and DFAs}
 \label{sec:types-and-dfas}
@@ -288,10 +292,16 @@ to construct a type with the same shape as
 %format T21
 %format T22
 
-> data T a =  Leaf a | Fork (T a) (T a)
+> data T a b =  Apple a | Banana b | Fork (T a) (T a)
+
+%options ghci
+%if False
+
 >                 deriving Show
 
-but whose sequences of leaf types always match $(ab)^\ast$---that is,
+%endif
+
+\noindent but whose sequences of leaf types always match $(ab)^\ast$---that is,
 whose sequences of leaf types, considered as a string, take the DFA
 from state $1$ to itself.
 
@@ -377,11 +387,21 @@ $X_1$, $X_2$ and so on when the arity $n$ is clear from the context.
 
 Suppose we have a one-argument functor $F$ and some DFA $D =
 (Q,\Sigma,\delta)$ with $n$ states (that is, $||Q|| = n$).  Let
-$F_{ij}$ denote the type with the same shape as $F$ \brent{should we
+$F_{ij}$ denote the type with the same shape as $F$
+  \brent{should we
   define this ``have the same shape as'' thing formally?  I guess the
   idea would be that $F$ and $G$ have the same shape iff $F\ 1\ \dots\
   1 \cong G\ 1\ \dots\ 1$ (where $F$ and $G$ could have different
-  arities).} but whose sequence of leaf types takes $D$ from state $i$
+  arities).}
+  \dan{
+  Should that be $F$ and $G$ have the same shape iff $F\ a\ \dots\
+  a \cong G\ a\ \dots\ a$?
+  Your definition gives the usual notion of shape: ie. the branching
+  structure without regard to what the elements are. But I'm
+  talking about the shape as a container with elements.
+  I'm also not sure we need to make this formal.
+  }
+but whose sequence of leaf types takes $D$ from state $i$
 to state $j$.  In particular $F_{ij}$ has arity $||\Sigma||$, since
 there is a leaf type corresponding to each alphabet symbol of $D$.  We
 can deduce $F_{ij}$ compositionally by considering each of the functor
@@ -415,7 +435,9 @@ type $G$; so
 
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, which drive the DFA in
-  sequence.  Hence, in order to take the DFA from state $i$ to state
+  sequence.
+  \dan{Should the matrix be transposed?} 
+  Hence, in order to take the DFA from state $i$ to state
   $j$ overall, the $F$-structure must take the DFA from state $i$ to
   some state $k$, and then the $G$-structure must take it from $k$ to
   $j$.  This works for any state $k$, and $(FG)_{ij}$ is the sum over
@@ -498,12 +520,70 @@ the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
-
 \begin{itemize}
 \item Circle back round and discuss derivatives, dissection, and
   infinitesimals again from the new vantage point.  (e.g. discuss
   where the usual Leibniz equation comes from.)
 \end{itemize}
+DFA for $a^\ast1a^\ast$.
+\[ \m{T} =
+\begin{bmatrix}
+  |a| & |1| \\
+  |0| & |a|
+\end{bmatrix}
+\]
+Suppose a functor \dan{?} is a product of two functors
+\[
+F = G \times H
+\]
+Then
+\[
+F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
+\]
+$G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
+But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
+So $F_{00} = F_{00}\times G_{00}$.
+In fact, $F_{00}$ is simply structures whose leaves take the DFA from state 0 to state 0 and so whose
+leaves match the regular expression $a^\ast$.
+So we have simply that $F_{00} = F$.
+Similarly $F_{11} = F$.
+We also have
+\[
+F_{01} = F_{00}\times G_{01}+F_{01}\times G_{11}
+\]
+So
+\[
+F_{01} = F\times G_{01}+F_{01}\times G
+\]
+This looks suspiciously like the Leibniz law.
+We also know that
+\[
+1_{01} = 0
+\]
+and
+\[
+X_{01} = 1
+\]
+\dan{Make sure $1$ isn't ambiguous}
+These are precisely the rules for differentiating polynomials.
+So $F_{01}$ is the derivative of $F$.
+We described above how $a^\ast1a^\ast$ gives rise to zipper types.
+We have now shown how these can be computed as derivatives.
+  \dan{
+  Need to do fixpoints.
+  }
+
+There is another way to look at this. Write
+\[
+\m{T} = a\m{1}+\m{d}
+\]
+where
+\[ \m{d} =
+\begin{bmatrix}
+  |0| & |1| \\
+  |0| & |0|
+\end{bmatrix}
+\]
 
 \section{Divided differences}
 \label{sec:divided-differences}
