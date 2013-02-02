@@ -511,7 +511,56 @@ Equating the left- and right-hand sides elementwise yields precisely
 the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 
 \todo{include a bunch more examples here.  Both other DFAs and other
-  types.  lists, even/odd, \dots}
+  types \dots}
+
+%format Lij = L "_{ij}"
+%format L11
+%format L12
+%format L21
+%format L22
+
+To make things concrete can revisit some familiar types from this viewpoint. For example consider the resular expression $(aa)^\ast$. This corresponds to the DFA:
+\todo{draw it}
+Now apply our homomorphism to the defining equation for lists and we get
+\[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where $\m{X}_D$.
+The transition matrix in this case is
+\[ \m{X}_D =
+\begin{bmatrix}
+  |0| & |a| \\
+  |a| & |0|
+\end{bmatrix}
+\]
+\begin{multline*}
+  \begin{bmatrix}
+    |L11| & |L12| \\
+    |L21| & |L22|
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    0 & a \\
+    a & 0
+  \end{bmatrix}
+  \begin{bmatrix}
+    |L11| & |L12| \\
+    |L21| & |L22|
+  \end{bmatrix}
+  \\
+  =
+  \begin{bmatrix}
+    1+a |L21| & a |L22| \\
+    a | L12| & 1+a |L21|
+  \end{bmatrix}.
+\end{multline*}
+
+|L11| and |L22| are isomorphic types as are the pair of types |L12| and |L21|. We can recognise |L11| as a list with odd length and |L12| as a list with even length. More familarly:
+
+> data EvenList a = EvenNil | EvenList a (OddList a)
+> data OddList a = OddList a (EvenList a)
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
@@ -522,7 +571,7 @@ the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 \end{itemize}
 DFA for $a^\ast1a^\ast$.
 \dan{Diagram}
-\[ \m{T} =
+\[ \m{X} =
 \begin{bmatrix}
   |a| & |1| \\
   |0| & |a|
