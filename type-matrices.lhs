@@ -680,9 +680,27 @@ We have already argued above \dan{xref} that the regular expression $a^\ast1b^\a
 gives rise to dissections. We have now also shown how the algebraic rules for
 dissections are actually statements about the transition matrices for the
 corresponding DFA.
+
+There is a more familiar interpretation of the dissection operation.
+Given a function of a single real variable $f$,
+the divided difference is the function of two variables mapping $x_0$, $x_1$ to $(f(x_0)-f(x_1)/(x_0-x_1))$ which is sometimes also written as $[x_0, x_1]f$.
+\dan{Terrible notation.}
+\begin{multline*}
+[x_0,x_1]fg = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
+= (f(x_0)g(x_0)-f(x_0)g(x_1)+f(x_0)g(x_1)-f(x_1)g(x_1))/(x_0-x_1)\\
+= f(x_0)[x_0,x_1]g+[x_0,x_1]fg(x_1)
+\end{multline*}
+This is McBride's modified Leibniz rule above.
+For polynomial types it appears that dissection is the divided difference.
+There is an important caveat: divided differences are defined using
+subtraction which isn't meaningful for types.
+But the Leibniz law above shows that for polynomials divided differences
+could have been defined without making reference to subtraction and that
+this definition carries over to types.
+Notice how in the limit as $x_0\rightarrow x_1$ we recover the derivative.
+
 \dan{I'd like to point out
 \begin{itemize}
-\item that dissection is actually divided difference
 \item we can generalise to higher divided differences
 \item the transition matrix (and its generalisation) corresponds to Opitz formula, but this
 might be too much information
