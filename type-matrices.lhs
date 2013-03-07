@@ -7,7 +7,7 @@
 % lhs2tex setup
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%include lhs2TeX.fmt
+%include polycode.fmt
 %include lhs2TeX.sty
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
