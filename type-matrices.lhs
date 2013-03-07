@@ -119,27 +119,45 @@ Matrices of types are sweet
 \section{Introduction}
 \label{sec:introduction}
 
-(I'm listing some elementary examples. We don't have to use all of them.)
+\dan{I'm listing some elementary examples. We don't have to use all of
+  them.} \brent{I like these examples. I certainly don't think we
+  should have fewer.}
 
-Here is how we might define a homogeneous list type in Haskell:
+Consider the standard singly-linked list type, which can be defined in
+Haskell \cite{haskell} as:
 
-> data List a = Nil | Cons a (List a)
+> data List a  =  Nil
+>              |  Cons a (List a)
 
-It's homogeneous because each element has the same type as every other element. But suppose we want some other constraint on our list, for example that the types of the elements alternate between |a| and |b|, starting with |a| and ending with |b|. We can define a pair of mutually recursive types as follows:
+This type is \term{homogeneous} because each element in the list has
+the same type as every other element.
 
-> data AList a b = ANil | ACons a (BList a b)
-> data BList a b = BCons b (AList a b)
+Suppose, however, that we wanted some other sort of list type with a
+different constraint on the types of its elements.  For example, we
+might want a list whose elements alternate between two types |a| and
+|b|, beginning with |a| and ending with |b|. One way to encode such an
+alternating list is with a pair of mutually recursive types, as follows:
 
-The required list is |AList a b|. Our goal will be to generalise this in two different ways
-\begin{itemize}
-\item We can think of the sequence of types in our list as conforming to a regular expression $(ab)^\ast$. We can generalize this to other regular expressions.
-\item We can consider more general recursive types than lists and make their leaf nodes, when read from left to right, conform to a regular expression
-\end{itemize}
+> data AList a b  =  ANil
+>                 |  ACons a (BList a b)
+>
+> data BList a b  =  BCons b (AList a b)
 
-\section{An alternating tree}
-\label{sec:alt-tree}
+(Another way would be to use a single GADT with a phantom type
+parameter.) \brent{Include this parenthetical?} The required type is
+|AList a b|: a value of type |AList a b| must be either empty (|ANil|)
+or contain a value of type |a|, followed by a value of type |b|,
+followed recursively by another |AList a b|.
 
-Let's consider the example of constructing a binary tree whose leaves conform to the regular expression $(ab)^\ast$.
+In fact, we can think of |AList a b| as containing values whose
+\term{shape} corresponds to the original |List| type, but whose
+sequence of element types corresponds to the \term{regular expression}
+$(ab)^\ast$.
+
+We can easily generalize this idea to regular expressions other than
+$(ab)^\ast$. What's more, we can also generalize to algebraic data
+types other than |List|, by considering the sequence of element types
+encountered by an \term{inorder traversal} of each data structure.
 
 %format Tree11
 %format Tree12
@@ -160,12 +178,20 @@ Let's consider the example of constructing a binary tree whose leaves conform to
 %format Leaf21
 %format Leaf22
 
-(Maybe nobody wants to see the gory details of this.)
+\dan{Maybe nobody wants to see the gory details of this.}
+\brent{Actually, I think an example which is both understandable and
+  has lots of gory details (like this one) will serve well: it both
+  gives people some good intuition, and at the same time sets them up
+  to really appreciate the elegant, general solution in contrast.}
 
-Here's a basic binary tree:
+For example, consider the following type |Tree| of binary trees with
+data stored in the leaves:
 
-> data Tree a =  Leaf a | Fork (Tree a) (Tree a)
+> data Tree a  =  Leaf a
+>              |  Fork (Tree a) (Tree a)
+%if False
 >                 deriving Show
+%endif
 
 Now suppose that |Tree11| is a tree whose leaf nodes are in $(ab)^\ast$.
 (We'll explain the suffix $11$ later.)
@@ -177,46 +203,30 @@ Or the left fork could start with |a| and end with |a| in which case the right f
 
 > data Tree11 a b  =  Fork11  (Tree11 a b)  (Tree11 a b)
 >                  |  Fork11' (Tree12 a b)  (Tree21 a b)
-
-%options ghci
 %if False
-
 >                     deriving Show
-
 %endif
 
 Similar reasoning about the subtree types leads to the remainder of the mutually recursive definition:
 
-> data Tree12 a b  = Leaf12 a
+> data Tree12 a b  =  Leaf12 a
 >                  |  Fork12  (Tree11 a b)  (Tree12 a b)
 >                  |  Fork12' (Tree12 a b)  (Tree22 a b)
-
-%options ghci
 %if False
-
 >                     deriving Show
-
 %endif
 
-> data Tree21 a b  = Leaf21 b
+> data Tree21 a b  =  Leaf21 b
 >                  |  Fork21  (Tree21 a b)  (Tree11 a b)
 >                  |  Fork21' (Tree22 a b)  (Tree21 a b)
-
-%options ghci
 %if False
-
 >                     deriving Show
-
 %endif
 
 > data Tree22 a b  =  Fork22  (Tree21 a b)  (Tree21 a b)
 >                  |  Fork22' (Tree22 a b)  (Tree21 a b)
-
-%options ghci
 %if False
-
 >                     deriving Show
-
 %endif
 
 Any tree of type |Tree11 a b| is now constrained to have alternating leaf node types:
@@ -251,6 +261,13 @@ Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with
 And the regular language $a^\ast1b^\ast$ corresponds to dissection types \cite{dissection}.
 
 Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
+
+\todo{should quickly define somewhere what we mean by ``regular
+  expression'', just to be explicit about the sorts of things we will
+  consier.}
+
+\todo{should insert somewhere around here a list of
+  contributions/outline of the rest of the paper.}
 
 \section{Regular expressions and DFAs}
 \label{sec:dfas}
