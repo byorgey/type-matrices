@@ -252,10 +252,12 @@ Any tree of type |Tree11 a b| is now constrained to have alternating leaf node t
 
 While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the properties of the pieces we get when we split a string from $(ab)^\ast$ into two and used this to find corresponding types for the subtrees. Why did we end up with four tree types? And how does this relate to the standard theory of regular languages?
 
-\section{Zippers and dissections}
+\section{Zippers, derivatives and dissections}
 \label{sec:zippers-and-dissections}
 
-Given a recursive type $t$ we can consider the problem of `lifting' it to a new type that conforms to a given regular expression. It turns out that for certain regular expressions this problem has already been solved in the literature without the problem having been phrased in this form.
+Given a recursive type we can consider the problem of `lifting' it to a new type that conforms to a given regular expression. It turns out that for certain regular expressions this problem has already been solved in the literature without the problem having been phrased in this form.
+\dan{Is there a better word than `lift'. It is a lift in the sense that there is a homomorphism back down to
+the unlifted type.}
 
 Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one occurrence of $1$ somewhere in the word, where $1$ represents the unit type (usually written |()| in Haskell). Applied to a recursive types it corresponds to trees where all of the leaf nodes are of type |a| apart from one which has the fixed value |()|. In other words, it's the derivative of the orginal type \cite{DBLP:journals/fuin/AbbottAMG05}. The regular language $a^\ast ba^\ast$ is a zipper type with elements of type $b$ at the `focus'.
 And the regular language $a^\ast1b^\ast$ corresponds to dissection types \cite{dissection}.
@@ -276,8 +278,6 @@ A {\it deterministic finite state automaton} (DFA) $D$ is a triple $(Q, \Sigma, 
 If we have a string of symbols from the set $\Sigma$, we can feed them one by one to a DFA and at the end of the string it will be left in some state. If the DFA starts in the start state $q_0$ and ends in an accept state then it is said to {\it accept} the string.
 
 We can draw a DFA as a directed multigraph where each graph edge is labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever $\delta(q_1,s)=q_2$. We can think of the state of the DFA as ``walking'' through the graph each time it receives an input.
-
-\dan{The symbol $0$ stuff below may be the wrong way to do this.}
 
 The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)$ isn't defined.
 
@@ -313,7 +313,7 @@ to construct a type with the same shape as
 
 %endif
 
-\noindent but whose sequences of leaf types always match $(ab)^\ast$---that is,
+\noindent but whose inorder sequences of leaf types always match $(ab)^\ast$---that is,
 whose sequences of leaf types, considered as a string, take the DFA
 from state $1$ to itself.
 
@@ -361,6 +361,8 @@ Haskell data types and work in terms of \term{polynomial
   functors}. \todo{explain this better? Shouldn't have to know any CT
   to understand it\dots do we actually make use of functoriality, or
   should we just say ``polynomial type constructors''?}
+  \dan{We can try to use what's in https://personal.cis.strath.ac.uk/conor.mcbride/Dissect.pdf
+  as a lead, though we have n-ary functors and so we shouldn't get bogged down implementung |bimap| etc.}
 \begin{itemize}
 \item $1$ denotes the constantly unit functor $1\ A = 1$ (whether $1$
 denotes the constantly unit functor or the unit value should be clear
@@ -389,6 +391,17 @@ corresponds to the two-argument functor $S = {}_2X_1 + {}_2X_2 + S
 $X_1$, $X_2$ and so on when the arity $n$ is clear from the context.
 
 \todo{formally define ``sequence of leaf types''?}
+
+\dan{Don't know if we want this}
+We can define $S(F)$, the language of possible sequences of leaf types
+of a multi-argument functor, $F$ as follows:
+
+\begin{itemize}
+\item $S(1) = \empty$, the empty sequence
+\item $S(F+G) = S(F)+S(G)$
+\item $S(F\times G) = S(F)S(G)$
+\item \dan{Fixed point???}
+\end{itemize}
 
 % \newcommand{\leafseq}[1]{\llbracket #1 \rrbracket}
 
@@ -455,7 +468,7 @@ type $G$; so
   $j$.  This works for any state $k$, and $(FG)_{ij}$ is the sum over
   all such possibilities.  Thus,
 
-\[ (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
+\[ \label{eq:product-of-functors} (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
 \end{itemize}
 
 The above rules for $1$, sums, and products might look familiar.  In
@@ -586,28 +599,34 @@ The transition matrix in this case is
   infinitesimals again from the new vantage point.  (e.g. discuss
   where the usual Leibniz equation comes from.)
 \end{itemize}
-DFA for $a^\ast1a^\ast$.
-\dan{Diagram}
+Now we'll return to the derivative example of section~\ref{sec:zippers-and-dissections}.
+We require the DFA for the regular expression $a^\ast1a^\ast$.
+
+\dan{Diagram goes here}
+
+The corresponding transition matrix is:
 \[ \m{X} =
 \begin{bmatrix}
   |a| & |1| \\
   |0| & |a|
 \end{bmatrix}
 \]
-Suppose a functor \dan{?} is a product of two functors
+Now consider using the procedure described in section~\ref{sec:matrices-of-types} to lift
+the product of two functors:
 \[
 F = G \times H
 \]
-Then
+From equation\~ref{eq:product-of-functors} we see that
 \[
 F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
 \]
 $G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
-But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
-So $F_{00} = F_{00}\times G_{00}$.
-In fact, $F_{00}$ is simply structures whose leaves take the DFA from state 0 to state 0 and so whose
+But there are no such strings. So $G_{10}$ is the uninhabited type $0$ and
+$F_{00} = F_{00}\times G_{00}$.
+In fact, $F_{00}$ is simply the type of structures whose leaves take the
+DFA from state 0 to state 0 and so whose
 leaves match the regular expression $a^\ast$.
-So we have simply that $F_{00} = F$.
+So we have $F_{00} = F$.
 Similarly $F_{11} = F$.
 We also have
 \[
@@ -637,7 +656,7 @@ We have now shown how these can be computed as derivatives.
 
 There is another way to look at this. Write
 \[
-\m{T} = a\m{1}+\m{d}
+\m{X} = a\m{1}+\m{d}
 \]
 where
 \[ \m{d} =
@@ -647,6 +666,23 @@ where
 \end{bmatrix}
 \]
 Note that $\m{d}^2=\m{0}$.
+If we have a polynomial $F$, then we have that
+\begin{eqnarray}
+F(\m{X}) &=& F(a\m{1}+\m{d})\\
+&=& F(a\m{1})+F'(a)\m{d}\\
+&=& \begin{bmatrix}
+  |F(a)| & |0| \\
+  |0| & |F(a)|
+\end{bmatrix}
++\begin{bmatrix}
+  |0| & |F'(a)| \\
+  |0| & |0|
+\end{bmatrix}
+\end{eqnarray}
+The matrix $\m{d}$ is playing a role similar to an
+``infinitesimal'' in calculus where the expression
+$dx$ is manipulated informally as if $(dx)^2=0$.
+(Compare wth the dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
 
 \section{Divided differences}
 \label{sec:divided-differences}
@@ -656,7 +692,8 @@ Note that $\m{d}^2=\m{0}$.
   differences.
 \end{itemize}
 
-DFA for $a^\ast1b^\ast$.
+Consider now the DFA for the regular expression $a^\ast1b^\ast$.
+The corresponding diagram is
 \dan{Diagram}
 \[ \m{T} =
 \begin{bmatrix}
@@ -664,19 +701,16 @@ DFA for $a^\ast1b^\ast$.
   |0| & |b|
 \end{bmatrix}
 \]
-Suppose a functor \dan{?} is a product of two functors
+Just as when we considered derivatives, suppose a functor \dan{?} is a
+product of two functors
 \[
-F = G \times H
+F = G \times H.
 \]
-\dan{
-This is just placeholder really. I need to work out precisely what is a function
-of what.
-}
 Then
 \[
 F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
 \]
-$G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
+As before, $G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
 But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
 So $F_{00} = F_{00}\times G_{00}$.
 As before, $F_{00}$ is structures whose leaves take the DFA from state 0 to state 0 and so whose
@@ -693,7 +727,8 @@ F_{01}(a,b) = F(a)\times G_{01}(a,b)+F_{01}(a,b)\times G(b)
 \]
 This is the modified Leibniz rule described in \cite{dissection}.
 \dan{Do other operations}
-We have already argued above \dan{xref} that the regular expression $a^\ast1b^\ast$
+We have already argued above in section~\ref{sec:zippers-and-dissections}
+that the regular expression $a^\ast1b^\ast$
 gives rise to dissections. We have now also shown how the algebraic rules for
 dissections are actually statements about the transition matrices for the
 corresponding DFA.
@@ -701,28 +736,26 @@ corresponding DFA.
 There is a more familiar interpretation of the dissection operation.
 Given a function of a single real variable $f$,
 the divided difference is the function of two variables mapping $x_0$, $x_1$ to $(f(x_0)-f(x_1)/(x_0-x_1))$ which is sometimes also written as $[x_0, x_1]f$.
-\dan{Terrible notation.}
 \begin{multline*}
-[x_0,x_1]fg = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
+[x_0,x_1](fg) = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
 = (f(x_0)g(x_0)-f(x_0)g(x_1)+f(x_0)g(x_1)-f(x_1)g(x_1))/(x_0-x_1)\\
 = f(x_0)[x_0,x_1]g+[x_0,x_1]fg(x_1)
 \end{multline*}
-This is McBride's modified Leibniz rule above.
-For polynomial types it appears that dissection is the divided difference.
-There is an important caveat: divided differences are defined using
-subtraction which isn't meaningful for types.
+This is McBride's modified Leibniz rule.
+For polynomial types, dissection is the divided difference.
+There is an important caveat: in the usual context of numerical
+methods, divided differences are usually defined using
+subtraction. Subtraction isn't meaningful for types.
 But the Leibniz law above shows that for polynomials divided differences
 could have been defined without making reference to subtraction and that
 this definition carries over to types.
-Notice how in the limit as $x_0\rightarrow x_1$ we recover the derivative.
+Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
-\dan{I'd like to point out
-\begin{itemize}
-\item we can generalise to higher divided differences
-\item the transition matrix (and its generalisation) corresponds to Opitz formula, but this
-might be too much information
-\end{itemize}
-}
+\section{Discussion}
+Technique for constructing types with constraints. Ad hoc rules formalized.
+In some sense we've given an explanation for derivatives and dissections.
+Hope they can find new applications eg. trees with constraints in the style of
+2-3/red-black trees (though maybe it's not the same kind of thing actually).
 
 \acks
 
