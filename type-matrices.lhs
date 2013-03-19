@@ -252,6 +252,26 @@ Any tree of type |Tree11 a b| is now constrained to have alternating leaf node t
 
 While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the properties of the pieces we get when we split a string from $(ab)^\ast$ into two and used this to find corresponding types for the subtrees. Why did we end up with four tree types? And how does this relate to the standard theory of regular languages?
 
+% There's a detail whose importance I'm not 100\% sure of. There are
+% multiple solutions to the problem of 'lifting' a type to be
+% constrained by a regexp. Compare
+
+% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
+
+% vs.
+
+% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+
+% Both will end up with the same regular language. (Basically because we
+% have idempotence in languages, x+x=x.) Is here anything you think that
+% needs to be said about this? Some solutions are nice in that every
+% string in the language is represented precisely once. I think the
+% matrix construction gives us these because it's coming from a DFA so
+% there's only one path you can take through it. Does that sound right?
+% So we're actually doing slightly better than just constraining the
+% leaves with regular expressions. We're getting the best such type, in
+% some sense. Or at least I hope we are.
+
 \section{Zippers, derivatives and dissections}
 \label{sec:zippers-and-dissections}
 
