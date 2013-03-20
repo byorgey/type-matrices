@@ -1,5 +1,5 @@
-import Development.Shake
-import Development.Shake.FilePath
+import           Development.Shake
+import           Development.Shake.FilePath
 
 lhs2TeX  = "lhs2TeX"
 pdflatex = "pdflatex"
@@ -22,4 +22,5 @@ main = shake shakeOptions $ do
     "*.pdf" *> \output -> do
         let input = replaceExtension output "tex"
         need [input]
+        system' pdflatex $ ["--enable-write18", input]
         system' rubber $ ["-f", "-d", input]
