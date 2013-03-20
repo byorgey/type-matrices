@@ -135,7 +135,11 @@ the same type as every other element.
 Suppose, however, that we wanted some other sort of list type with a
 different constraint on the types of its elements.  For example, we
 might want a list whose elements alternate between two types |a| and
-|b|, beginning with |a| and ending with |b|. One way to encode such an
+|b|, beginning with |a| and ending with |b|.
+
+\todo{insert a picture here}
+
+One way to encode such an
 alternating list is with a pair of mutually recursive types, as follows:
 
 > data AList a b  =  ANil
@@ -159,24 +163,24 @@ $(ab)^\ast$. What's more, we can also generalize to algebraic data
 types other than |List|, by considering the sequence of element types
 encountered by an \term{inorder traversal} of each data structure.
 
-%format Tree11
-%format Tree12
-%format Tree21
-%format Tree22
+%format TreeAB = Tree "_{AB}"
+%format TreeAA = Tree "_{AA}"
+%format TreeBB = Tree "_{BB}"
+%format TreeBA = Tree "_{BA}"
 
-%format Fork11
-%format Fork11'
-%format Fork12
-%format Fork12'
-%format Fork21
-%format Fork21'
-%format Fork22
-%format Fork22'
+%format ForkAB = Fork "_{AB}"
+%format ForkAB' = Fork "_{AB}^\prime"
+%format ForkAA = Fork "_{AA}"
+%format ForkAA' = Fork "_{AA}^\prime"
+%format ForkBB = Fork "_{BB}"
+%format ForkBB' = Fork "_{BB}^\prime"
+%format ForkBA = Fork "_{BA}"
+%format ForkBA' = Fork "_{BA}^\prime"
 
-%format Leaf11
-%format Leaf12
-%format Leaf21
-%format Leaf22
+%format LeafAB = Leaf "_{AB}"
+%format LeafAA = Leaf "_{AA}"
+%format LeafBB = Leaf "_{BB}"
+%format LeafBA = Leaf "_{BA}"
 
 \dan{Maybe nobody wants to see the gory details of this.}
 \brent{Actually, I think an example which is both understandable and
@@ -184,8 +188,8 @@ encountered by an \term{inorder traversal} of each data structure.
   gives people some good intuition, and at the same time sets them up
   to really appreciate the elegant, general solution in contrast.}
 
-For example, consider the following type |Tree| of binary trees with
-data stored in the leaves:
+For example, consider the following type |Tree| of nonempty binary
+trees with data stored in the leaves:
 
 > data Tree a  =  Leaf a
 >              |  Fork (Tree a) (Tree a)
@@ -193,62 +197,86 @@ data stored in the leaves:
 >                 deriving Show
 %endif
 
-Now suppose that |Tree11| is a tree whose leaf nodes are in $(ab)^\ast$.
-(We'll explain the suffix $11$ later.)
-It can't itself be a leaf node because then it would have only one element.
-It must be a fork consisting of two subtrees.
-There are two ways this could happen.
-The left fork could start with |a| and end with |b| in which case the right fork must also start with |a| and end with |b|.
-Or the left fork could start with |a| and end with |a| in which case the right fork must start with |b| and end with |b|. So we are led to this type:
+Consider again the problem of writing down a type whose values have
+the same shape as values of type |Tree a|, but where the data elements
+alternate between two types |a| and |b| (when listed according to an
+inorder traversal), beginning with a leftmost element of type |a| and
+ending with a rightmost element of type |b|.
 
-> data Tree11 a b  =  Fork11  (Tree11 a b)  (Tree11 a b)
->                  |  Fork11' (Tree12 a b)  (Tree21 a b)
+\todo{insert a picture here}
+
+Suppose |TreeAB a b| is such a type. Values of type |TreeAB a b|
+cannot consist solely of a leaf node: there must be at least two
+elements, one of type |a| and one of type |b|.  Hence a value of type
+|TreeAB a b| must be a fork consisting of two subtrees.  There are two
+ways this could happen.  The left subtree could start with |a| and end
+with |b|, in which case the right subtree must also start with |a| and
+end with |b|.  Or the left subtree could start with |a| and end with
+|a|, in which case the right subtree must start with |b| and end with
+|b|. So we are led to define
+
+> data TreeAB a b  =  ForkAB  (TreeAB a b)  (TreeAB a b)
+>                  |  ForkAB' (TreeAA a b)  (TreeBB a b)
 %if False
 >                     deriving Show
 %endif
 
-Similar reasoning about the subtree types leads to the remainder of the mutually recursive definition:
+where |TreeAA a b| represents alternating trees with left and
+rightmost elements both of type |a|, and similarly for |TreeBB|.
 
-> data Tree12 a b  =  Leaf12 a
->                  |  Fork12  (Tree11 a b)  (Tree12 a b)
->                  |  Fork12' (Tree12 a b)  (Tree22 a b)
+Similar reasoning about the subtree types leads to the remainder of
+the mutually recursive definition:
+
+> data TreeAA a b  =  LeafAA a
+>                  |  ForkAA  (TreeAB a b)  (TreeAA a b)
+>                  |  ForkAA' (TreeAA a b)  (TreeBA a b)
 %if False
 >                     deriving Show
 %endif
 
-> data Tree21 a b  =  Leaf21 b
->                  |  Fork21  (Tree21 a b)  (Tree11 a b)
->                  |  Fork21' (Tree22 a b)  (Tree21 a b)
+> data TreeBB a b  =  LeafBB b
+>                  |  ForkBB  (TreeBB a b)  (TreeAB a b)
+>                  |  ForkBB' (TreeBA a b)  (TreeBB a b)
 %if False
 >                     deriving Show
 %endif
 
-> data Tree22 a b  =  Fork22  (Tree21 a b)  (Tree21 a b)
->                  |  Fork22' (Tree22 a b)  (Tree21 a b)
+> data TreeBA a b  =  ForkBA  (TreeBB a b)  (TreeAA a b)
+>                  |  ForkBA' (TreeBA a b)  (TreeBA a b)
 %if False
 >                     deriving Show
 %endif
 
-Any tree of type |Tree11 a b| is now constrained to have alternating leaf node types:
+Any tree of type |TreeAB a b| is now constrained to have alternating
+leaf node types.  For example, here are two values of type |TreeAB Int
+Char|:
 
-%format ex1=\VarID{ex_1}
-%format ex2=\VarID{ex_2}
+%format ex1
+%format ex2
 
-> ex1 = Fork11' (Leaf12 1) (Leaf21 'a')
-> ex2 = Fork11' (Fork12 ex1 (Leaf12 2)) (Leaf21 'b')
+> ex1, ex2 :: TreeAB Int Char
+> ex1 = ForkAB' (LeafAA 1) (LeafBB 'a')
+> ex2 = ForkAB' (ForkAA ex1 (LeafAA 2)) (LeafBB 'b')
 
-\begin{tikzpicture}[level/.style={sibling distance=30mm/#1}]
-\node {|Fork11'|}
+|ex2| can also be seen in pictorial form in \pref{fig:alt-tree}.
+
+\begin{figure}
+  \centering
+\begin{tikzpicture}[level/.style={sibling distance=50mm/#1}]
+\node {|ForkAB'|}
   child {
-      node {|Fork12|}
-          child {node {|Fork11'|}
-                    child {node {|Leaf12 1|}}
-                    child {node {|Leaf21 "a"|}}
+      node {|ForkAA|}
+          child {node {|ForkAB'|}
+                    child {node {|LeafAA 1|}}
+                    child {node {|LeafBB "a"|}}
           }
-          child {node {|Leaf12 1|}}
+          child {node {|LeafAA 1|}}
   }
-  child {node {|Leaf21 "b"|}};
+  child {node {|LeafBB "b"|}};
 \end{tikzpicture}
+  \caption{A tree with alternating leaf types}
+  \label{fig:alt-tree}
+\end{figure}
 
 While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the properties of the pieces we get when we split a string from $(ab)^\ast$ into two and used this to find corresponding types for the subtrees. Why did we end up with four tree types? And how does this relate to the standard theory of regular languages?
 
