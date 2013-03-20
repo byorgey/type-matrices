@@ -34,3 +34,7 @@
 *.hi
 make
 .shake.database
+.diagrams_cache
+diagrams/*.hs
+diagrams/*.eps
+TAGS
