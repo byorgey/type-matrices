@@ -18,6 +18,8 @@
 \usepackage{tikz}
 \usepackage{prettyref}
 
+\usepackage[outputdir=diagrams/,backend=ps,extension=eps]{diagrams-latex}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Semantic markup
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,8 +139,31 @@ different constraint on the types of its elements.  For example, we
 might want a list whose elements alternate between two types |a| and
 |b|, beginning with |a| and ending with |b|.
 
-\todo{insert a picture here}
+\begin{figure}[h]
+  \centering
+\begin{diagram}[width=150]
+import TypeMatricesDiagrams
+import Data.List
+import Data.Ord
 
+lst = withNameAll "elt" (\ds ->
+        let locs  = map location ds
+            cmpX  = comparing (fst . unp2)
+            start = minimumBy cmpX locs
+            end   = maximumBy cmpX locs
+        in
+            beneath (start ~~ end)
+      )
+    . hcat' with {sep=1}
+    . map (named "elt" . drawType)
+    $ [A,B,A,B,A,B]
+
+dia = lst # lw 0.1 # centerXY # pad 1.1
+\end{diagram}
+%$
+  \caption{A list with alternating types}
+  \label{fig:alt-list}
+\end{figure}
 One way to encode such an
 alternating list is with a pair of mutually recursive types, as follows:
 
@@ -201,9 +226,40 @@ Consider again the problem of writing down a type whose values have
 the same shape as values of type |Tree a|, but where the data elements
 alternate between two types |a| and |b| (when listed according to an
 inorder traversal), beginning with a leftmost element of type |a| and
-ending with a rightmost element of type |b|.
+ending with a rightmost element of type |b|.  An example can be seen
+in \pref{fig:alt-tree}.
 
-\todo{insert a picture here}
+\begin{figure}
+  \centering
+\begin{diagram}[width=150]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t = Nothing ##
+    [ Nothing ##
+      [ Nothing ##
+          leaves [ Just A, Just B ]
+      , leaf $ Just A
+      ]
+    , Nothing ##
+      [ Nothing ##
+        [ leaf $ Just B
+        , Nothing ## leaves [Just A, Just B]
+        ]
+      , Nothing ## leaves [Just A, Just B]
+      ]
+    ]
+  where (##)   = Node
+        leaf x = Node x []
+        leaves = map leaf
+
+dia = renderT t # lw 0.1 # centerXY # pad 1.1
+\end{diagram}
+%$
+  \caption{A tree with alternating leaf types}
+  \label{fig:alt-tree}
+\end{figure}
 
 Suppose |TreeAB a b| is such a type. Values of type |TreeAB a b|
 cannot consist solely of a leaf node: there must be at least two
@@ -258,7 +314,7 @@ Char|:
 > ex1 = ForkAB' (LeafAA 1) (LeafBB 'a')
 > ex2 = ForkAB' (ForkAA ex1 (LeafAA 2)) (LeafBB 'b')
 
-|ex2| can also be seen in pictorial form in \pref{fig:alt-tree}.
+|ex2| can also be seen in pictorial form in \pref{fig:alt-tree-hs}.
 
 \begin{figure}
   \centering
@@ -275,10 +331,16 @@ Char|:
   child {node {|LeafBB "b"|}};
 \end{tikzpicture}
   \caption{A tree with alternating leaf types}
-  \label{fig:alt-tree}
+  \label{fig:alt-tree-hs}
 \end{figure}
 
-While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the properties of the pieces we get when we split a string from $(ab)^\ast$ into two and used this to find corresponding types for the subtrees. Why did we end up with four tree types? And how does this relate to the standard theory of regular languages?
+While this works, the procedure was somewhat {\it ad hoc}. We reasoned
+about the properties of the pieces we get when we split a string
+matching $(ab)^\ast$ into two substrings, and used this to find
+corresponding types for the subtrees. One might wonder whether there
+is any simpler solution, or how well this sort of reasoning will extend
+to more complicated structures or regular expressions.  Our goal is to
+derive a more principled approach which \todo{finish this sentence}.
 
 % There's a detail whose importance I'm not 100\% sure of. There are
 % multiple solutions to the problem of 'lifting' a type to be
@@ -300,15 +362,53 @@ While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the
 % leaves with regular expressions. We're getting the best such type, in
 % some sense. Or at least I hope we are.
 
-\section{Zippers, derivatives and dissections}
-\label{sec:zippers-and-dissections}
+It's worth mentioning that for certain regular expressions, the
+problem of \todo{XXX} has already been solved in the literature,
+without the problem having been phrased in this form.  \dan{Is there a
+  better word than `lift'. It is a lift in the sense that there is a
+  homomorphism back down to the unlifted type.}  For example, consider
+the regular language $a^\ast1a^\ast$. It matches sequences of $a$s
+with precisely one occurrence of $1$ somewhere in the middle, where
+$1$ represents the unit type (written |()| in Haskell). Data
+structures whose inorder sequence of element types matches
+$a^\ast1a^\ast$ have all elements of type |a|, except for one which
+has the fixed value |()|. In other words, imposing this regular
+expression corresponds to finding the \term{derivative} of the orginal
+type \cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
+Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
+zipper type \cite{huet} with elements of type $b$ at the `focus', and
+the regular language $a^\ast1b^\ast$ corresponds to \term{dissection
+  types} \cite{dissection}.
 
-Given a recursive type we can consider the problem of `lifting' it to a new type that conforms to a given regular expression. It turns out that for certain regular expressions this problem has already been solved in the literature without the problem having been phrased in this form.
-\dan{Is there a better word than `lift'. It is a lift in the sense that there is a homomorphism back down to
-the unlifted type.}
+\begin{figure}
+  \centering
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
+import Data.Tree
 
-Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one occurrence of $1$ somewhere in the word, where $1$ represents the unit type (usually written |()| in Haskell). Applied to a recursive types it corresponds to trees where all of the leaf nodes are of type |a| apart from one which has the fixed value |()|. In other words, it's the derivative of the orginal type \cite{DBLP:journals/fuin/AbbottAMG05}. The regular language $a^\ast ba^\ast$ is a zipper type with elements of type $b$ at the `focus'.
-And the regular language $a^\ast1b^\ast$ corresponds to dissection types \cite{dissection}.
+t = Nothing ##
+    [ Nothing ##
+      [ Nothing ##
+          leaves [ Just A, Just A ]
+      , leaf $ Just A
+      ]
+    , Nothing ##
+      [ Nothing ##
+        [ leaf $ Just A
+        , Nothing ## leaves [Just H, Just A]
+        ]
+      , Nothing ## leaves [Just A, Just A]
+      ]
+    ]
+  where (##)   = Node
+        leaf x = Node x []
+        leaves = map leaf
+
+dia = renderT t # lw 0.1 # centerXY # pad 1.1
+  \end{diagram}
+  \caption{A tree corresponding to the regular language $a^\ast1a^\ast$}
+  \label{fig:derivative}
+\end{figure}
 
 Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
 
@@ -509,7 +609,7 @@ type $G$; so
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, which drive the DFA in
   sequence.
-  \dan{Should the matrix be transposed?} 
+  \dan{Should the matrix be transposed?}
   Hence, in order to take the DFA from state $i$ to state
   $j$ overall, the $F$-structure must take the DFA from state $i$ to
   some state $k$, and then the $G$-structure must take it from $k$ to
@@ -808,6 +908,8 @@ Hope they can find new applications eg. trees with constraints in the style of
 \acks
 
 Acknowledgments.
+
+\todo{should cite our blog posts on the topic}
 
 % We recommend abbrvnat bibliography style.
 
