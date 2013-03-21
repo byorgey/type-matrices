@@ -18,6 +18,8 @@
 \usepackage{tikz}
 \usepackage{prettyref}
 
+\usepackage[outputdir=diagrams/,backend=ps,extension=eps]{diagrams-latex}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Semantic markup
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,7 +137,34 @@ the same type as every other element.
 Suppose, however, that we wanted some other sort of list type with a
 different constraint on the types of its elements.  For example, we
 might want a list whose elements alternate between two types |a| and
-|b|, beginning with |a| and ending with |b|. One way to encode such an
+|b|, beginning with |a| and ending with |b|.
+
+\begin{figure}[h]
+  \centering
+\begin{diagram}[width=150]
+import TypeMatricesDiagrams
+import Data.List
+import Data.Ord
+
+lst = withNameAll "elt" (\ds ->
+        let locs  = map location ds
+            cmpX  = comparing (fst . unp2)
+            start = minimumBy cmpX locs
+            end   = maximumBy cmpX locs
+        in
+            beneath (start ~~ end)
+      )
+    . hcat' with {sep=1}
+    . map (named "elt" . drawType)
+    $ [A,B,A,B,A,B]
+
+dia = lst # lw 0.1 # centerXY # pad 1.1
+\end{diagram}
+%$
+  \caption{A list with alternating types}
+  \label{fig:alt-list}
+\end{figure}
+One way to encode such an
 alternating list is with a pair of mutually recursive types, as follows:
 
 > data AList a b  =  ANil
@@ -159,24 +188,24 @@ $(ab)^\ast$. What's more, we can also generalize to algebraic data
 types other than |List|, by considering the sequence of element types
 encountered by an \term{inorder traversal} of each data structure.
 
-%format Tree11
-%format Tree12
-%format Tree21
-%format Tree22
+%format TreeAB = Tree "_{AB}"
+%format TreeAA = Tree "_{AA}"
+%format TreeBB = Tree "_{BB}"
+%format TreeBA = Tree "_{BA}"
 
-%format Fork11
-%format Fork11'
-%format Fork12
-%format Fork12'
-%format Fork21
-%format Fork21'
-%format Fork22
-%format Fork22'
+%format ForkAB = Fork "_{AB}"
+%format ForkAB' = Fork "_{AB}^\prime"
+%format ForkAA = Fork "_{AA}"
+%format ForkAA' = Fork "_{AA}^\prime"
+%format ForkBB = Fork "_{BB}"
+%format ForkBB' = Fork "_{BB}^\prime"
+%format ForkBA = Fork "_{BA}"
+%format ForkBA' = Fork "_{BA}^\prime"
 
-%format Leaf11
-%format Leaf12
-%format Leaf21
-%format Leaf22
+%format LeafAB = Leaf "_{AB}"
+%format LeafAA = Leaf "_{AA}"
+%format LeafBB = Leaf "_{BB}"
+%format LeafBA = Leaf "_{BA}"
 
 \dan{Maybe nobody wants to see the gory details of this.}
 \brent{Actually, I think an example which is both understandable and
@@ -184,8 +213,8 @@ encountered by an \term{inorder traversal} of each data structure.
   gives people some good intuition, and at the same time sets them up
   to really appreciate the elegant, general solution in contrast.}
 
-For example, consider the following type |Tree| of binary trees with
-data stored in the leaves:
+For example, consider the following type |Tree| of nonempty binary
+trees with data stored in the leaves:
 
 > data Tree a  =  Leaf a
 >              |  Fork (Tree a) (Tree a)
@@ -193,72 +222,193 @@ data stored in the leaves:
 >                 deriving Show
 %endif
 
-Now suppose that |Tree11| is a tree whose leaf nodes are in $(ab)^\ast$.
-(We'll explain the suffix $11$ later.)
-It can't itself be a leaf node because then it would have only one element.
-It must be a fork consisting of two subtrees.
-There are two ways this could happen.
-The left fork could start with |a| and end with |b| in which case the right fork must also start with |a| and end with |b|.
-Or the left fork could start with |a| and end with |a| in which case the right fork must start with |b| and end with |b|. So we are led to this type:
+Consider again the problem of writing down a type whose values have
+the same shape as values of type |Tree a|, but where the data elements
+alternate between two types |a| and |b| (when listed according to an
+inorder traversal), beginning with a leftmost element of type |a| and
+ending with a rightmost element of type |b|.  An example can be seen
+in \pref{fig:alt-tree}.
 
-> data Tree11 a b  =  Fork11  (Tree11 a b)  (Tree11 a b)
->                  |  Fork11' (Tree12 a b)  (Tree21 a b)
+\begin{figure}
+  \centering
+\begin{diagram}[width=150]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t = Nothing ##
+    [ Nothing ##
+      [ Nothing ##
+          leaves [ Just A, Just B ]
+      , leaf $ Just A
+      ]
+    , Nothing ##
+      [ Nothing ##
+        [ leaf $ Just B
+        , Nothing ## leaves [Just A, Just B]
+        ]
+      , Nothing ## leaves [Just A, Just B]
+      ]
+    ]
+  where (##)   = Node
+        leaf x = Node x []
+        leaves = map leaf
+
+dia = renderT t # lw 0.1 # centerXY # pad 1.1
+\end{diagram}
+%$
+  \caption{A tree with alternating leaf types}
+  \label{fig:alt-tree}
+\end{figure}
+
+Suppose |TreeAB a b| is such a type. Values of type |TreeAB a b|
+cannot consist solely of a leaf node: there must be at least two
+elements, one of type |a| and one of type |b|.  Hence a value of type
+|TreeAB a b| must be a fork consisting of two subtrees.  There are two
+ways this could happen.  The left subtree could start with |a| and end
+with |b|, in which case the right subtree must also start with |a| and
+end with |b|.  Or the left subtree could start with |a| and end with
+|a|, in which case the right subtree must start with |b| and end with
+|b|. So we are led to define
+
+> data TreeAB a b  =  ForkAB  (TreeAB a b)  (TreeAB a b)
+>                  |  ForkAB' (TreeAA a b)  (TreeBB a b)
 %if False
 >                     deriving Show
 %endif
 
-Similar reasoning about the subtree types leads to the remainder of the mutually recursive definition:
+where |TreeAA a b| represents alternating trees with left and
+rightmost elements both of type |a|, and similarly for |TreeBB|.
 
-> data Tree12 a b  =  Leaf12 a
->                  |  Fork12  (Tree11 a b)  (Tree12 a b)
->                  |  Fork12' (Tree12 a b)  (Tree22 a b)
+Similar reasoning about the subtree types leads to the remainder of
+the mutually recursive definition:
+
+> data TreeAA a b  =  LeafAA a
+>                  |  ForkAA  (TreeAB a b)  (TreeAA a b)
+>                  |  ForkAA' (TreeAA a b)  (TreeBA a b)
 %if False
 >                     deriving Show
 %endif
 
-> data Tree21 a b  =  Leaf21 b
->                  |  Fork21  (Tree21 a b)  (Tree11 a b)
->                  |  Fork21' (Tree22 a b)  (Tree21 a b)
+> data TreeBB a b  =  LeafBB b
+>                  |  ForkBB  (TreeBB a b)  (TreeAB a b)
+>                  |  ForkBB' (TreeBA a b)  (TreeBB a b)
 %if False
 >                     deriving Show
 %endif
 
-> data Tree22 a b  =  Fork22  (Tree21 a b)  (Tree21 a b)
->                  |  Fork22' (Tree22 a b)  (Tree21 a b)
+> data TreeBA a b  =  ForkBA  (TreeBB a b)  (TreeAA a b)
+>                  |  ForkBA' (TreeBA a b)  (TreeBA a b)
 %if False
 >                     deriving Show
 %endif
 
-Any tree of type |Tree11 a b| is now constrained to have alternating leaf node types:
+Any tree of type |TreeAB a b| is now constrained to have alternating
+leaf node types.  For example, here are two values of type |TreeAB Int
+Char|:
 
-%format ex1=\VarID{ex_1}
-%format ex2=\VarID{ex_2}
+%format ex1
+%format ex2
 
-> ex1 = Fork11' (Leaf12 1) (Leaf21 'a')
-> ex2 = Fork11' (Fork12 ex1 (Leaf12 2)) (Leaf21 'b')
+> ex1, ex2 :: TreeAB Int Char
+> ex1 = ForkAB' (LeafAA 1) (LeafBB 'a')
+> ex2 = ForkAB' (ForkAA ex1 (LeafAA 2)) (LeafBB 'b')
 
-\begin{tikzpicture}[level/.style={sibling distance=30mm/#1}]
-\node {|Fork11'|}
+|ex2| can also be seen in pictorial form in \pref{fig:alt-tree-hs}.
+
+\begin{figure}
+  \centering
+\begin{tikzpicture}[level/.style={sibling distance=50mm/#1}]
+\node {|ForkAB'|}
   child {
-      node {|Fork12|}
-          child {node {|Fork11'|}
-                    child {node {|Leaf12 1|}}
-                    child {node {|Leaf21 "a"|}}
+      node {|ForkAA|}
+          child {node {|ForkAB'|}
+                    child {node {|LeafAA 1|}}
+                    child {node {|LeafBB "a"|}}
           }
-          child {node {|Leaf12 1|}}
+          child {node {|LeafAA 1|}}
   }
-  child {node {|Leaf21 "b"|}};
+  child {node {|LeafBB "b"|}};
 \end{tikzpicture}
+  \caption{A tree with alternating leaf types}
+  \label{fig:alt-tree-hs}
+\end{figure}
 
-While this works, the procedure was somewhat {\it ad hoc}. We reasoned about the properties of the pieces we get when we split a string from $(ab)^\ast$ into two and used this to find corresponding types for the subtrees. Why did we end up with four tree types? And how does this relate to the standard theory of regular languages?
+While this works, the procedure was somewhat {\it ad hoc}. We reasoned
+about the properties of the pieces we get when we split a string
+matching $(ab)^\ast$ into two substrings, and used this to find
+corresponding types for the subtrees. One might wonder whether there
+is any simpler solution, or how well this sort of reasoning will extend
+to more complicated structures or regular expressions.  Our goal is to
+derive a more principled approach which \todo{finish this sentence}.
 
-\section{Zippers and dissections}
-\label{sec:zippers-and-dissections}
+% There's a detail whose importance I'm not 100\% sure of. There are
+% multiple solutions to the problem of 'lifting' a type to be
+% constrained by a regexp. Compare
 
-Given a recursive type $t$ we can consider the problem of `lifting' it to a new type that conforms to a given regular expression. It turns out that for certain regular expressions this problem has already been solved in the literature without the problem having been phrased in this form.
+% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
 
-Consider the regular language $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one occurrence of $1$ somewhere in the word, where $1$ represents the unit type (usually written |()| in Haskell). Applied to a recursive types it corresponds to trees where all of the leaf nodes are of type |a| apart from one which has the fixed value |()|. In other words, it's the derivative of the orginal type \cite{DBLP:journals/fuin/AbbottAMG05}. The regular language $a^\ast ba^\ast$ is a zipper type with elements of type $b$ at the `focus'.
-And the regular language $a^\ast1b^\ast$ corresponds to dissection types \cite{dissection}.
+% vs.
+
+% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+
+% Both will end up with the same regular language. (Basically because we
+% have idempotence in languages, x+x=x.) Is here anything you think that
+% needs to be said about this? Some solutions are nice in that every
+% string in the language is represented precisely once. I think the
+% matrix construction gives us these because it's coming from a DFA so
+% there's only one path you can take through it. Does that sound right?
+% So we're actually doing slightly better than just constraining the
+% leaves with regular expressions. We're getting the best such type, in
+% some sense. Or at least I hope we are.
+
+It's worth mentioning that for certain regular expressions, the
+problem of \todo{XXX} has already been solved in the literature,
+without the problem having been phrased in this form.  \dan{Is there a
+  better word than `lift'. It is a lift in the sense that there is a
+  homomorphism back down to the unlifted type.}  For example, consider
+the regular language $a^\ast1a^\ast$. It matches sequences of $a$s
+with precisely one occurrence of $1$ somewhere in the middle, where
+$1$ represents the unit type (written |()| in Haskell). Data
+structures whose inorder sequence of element types matches
+$a^\ast1a^\ast$ have all elements of type |a|, except for one which
+has the fixed value |()|. In other words, imposing this regular
+expression corresponds to finding the \term{derivative} of the orginal
+type \cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
+Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
+zipper type \cite{huet} with elements of type $b$ at the `focus', and
+the regular language $a^\ast1b^\ast$ corresponds to \term{dissection
+  types} \cite{dissection}.
+
+\begin{figure}
+  \centering
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
+import Data.Tree
+
+t = Nothing ##
+    [ Nothing ##
+      [ Nothing ##
+          leaves [ Just A, Just A ]
+      , leaf $ Just A
+      ]
+    , Nothing ##
+      [ Nothing ##
+        [ leaf $ Just A
+        , Nothing ## leaves [Just H, Just A]
+        ]
+      , Nothing ## leaves [Just A, Just A]
+      ]
+    ]
+  where (##)   = Node
+        leaf x = Node x []
+        leaves = map leaf
+
+dia = renderT t # lw 0.1 # centerXY # pad 1.1
+  \end{diagram}
+  \caption{A tree corresponding to the regular language $a^\ast1a^\ast$}
+  \label{fig:derivative}
+\end{figure}
 
 Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
 
@@ -276,8 +426,6 @@ A {\it deterministic finite state automaton} (DFA) $D$ is a triple $(Q, \Sigma, 
 If we have a string of symbols from the set $\Sigma$, we can feed them one by one to a DFA and at the end of the string it will be left in some state. If the DFA starts in the start state $q_0$ and ends in an accept state then it is said to {\it accept} the string.
 
 We can draw a DFA as a directed multigraph where each graph edge is labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever $\delta(q_1,s)=q_2$. We can think of the state of the DFA as ``walking'' through the graph each time it receives an input.
-
-\dan{The symbol $0$ stuff below may be the wrong way to do this.}
 
 The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)$ isn't defined.
 
@@ -313,7 +461,7 @@ to construct a type with the same shape as
 
 %endif
 
-\noindent but whose sequences of leaf types always match $(ab)^\ast$---that is,
+\noindent but whose inorder sequences of leaf types always match $(ab)^\ast$---that is,
 whose sequences of leaf types, considered as a string, take the DFA
 from state $1$ to itself.
 
@@ -361,6 +509,8 @@ Haskell data types and work in terms of \term{polynomial
   functors}. \todo{explain this better? Shouldn't have to know any CT
   to understand it\dots do we actually make use of functoriality, or
   should we just say ``polynomial type constructors''?}
+  \dan{We can try to use what's in https://personal.cis.strath.ac.uk/conor.mcbride/Dissect.pdf
+  as a lead, though we have n-ary functors and so we shouldn't get bogged down implementung |bimap| etc.}
 \begin{itemize}
 \item $1$ denotes the constantly unit functor $1\ A = 1$ (whether $1$
 denotes the constantly unit functor or the unit value should be clear
@@ -389,6 +539,17 @@ corresponds to the two-argument functor $S = {}_2X_1 + {}_2X_2 + S
 $X_1$, $X_2$ and so on when the arity $n$ is clear from the context.
 
 \todo{formally define ``sequence of leaf types''?}
+
+\dan{Don't know if we want this}
+We can define $S(F)$, the language of possible sequences of leaf types
+of a multi-argument functor, $F$ as follows:
+
+\begin{itemize}
+\item $S(1) = \empty$, the empty sequence
+\item $S(F+G) = S(F)+S(G)$
+\item $S(F\times G) = S(F)S(G)$
+\item \dan{Fixed point???}
+\end{itemize}
 
 % \newcommand{\leafseq}[1]{\llbracket #1 \rrbracket}
 
@@ -448,14 +609,14 @@ type $G$; so
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, which drive the DFA in
   sequence.
-  \dan{Should the matrix be transposed?} 
+  \dan{Should the matrix be transposed?}
   Hence, in order to take the DFA from state $i$ to state
   $j$ overall, the $F$-structure must take the DFA from state $i$ to
   some state $k$, and then the $G$-structure must take it from $k$ to
   $j$.  This works for any state $k$, and $(FG)_{ij}$ is the sum over
   all such possibilities.  Thus,
 
-\[ (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
+\[ \label{eq:product-of-functors} (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
 \end{itemize}
 
 The above rules for $1$, sums, and products might look familiar.  In
@@ -586,28 +747,34 @@ The transition matrix in this case is
   infinitesimals again from the new vantage point.  (e.g. discuss
   where the usual Leibniz equation comes from.)
 \end{itemize}
-DFA for $a^\ast1a^\ast$.
-\dan{Diagram}
+Now we'll return to the derivative example of section~\ref{sec:zippers-and-dissections}.
+We require the DFA for the regular expression $a^\ast1a^\ast$.
+
+\dan{Diagram goes here}
+
+The corresponding transition matrix is:
 \[ \m{X} =
 \begin{bmatrix}
   |a| & |1| \\
   |0| & |a|
 \end{bmatrix}
 \]
-Suppose a functor \dan{?} is a product of two functors
+Now consider using the procedure described in section~\ref{sec:matrices-of-types} to lift
+the product of two functors:
 \[
 F = G \times H
 \]
-Then
+From equation\~ref{eq:product-of-functors} we see that
 \[
 F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
 \]
 $G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
-But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
-So $F_{00} = F_{00}\times G_{00}$.
-In fact, $F_{00}$ is simply structures whose leaves take the DFA from state 0 to state 0 and so whose
+But there are no such strings. So $G_{10}$ is the uninhabited type $0$ and
+$F_{00} = F_{00}\times G_{00}$.
+In fact, $F_{00}$ is simply the type of structures whose leaves take the
+DFA from state 0 to state 0 and so whose
 leaves match the regular expression $a^\ast$.
-So we have simply that $F_{00} = F$.
+So we have $F_{00} = F$.
 Similarly $F_{11} = F$.
 We also have
 \[
@@ -637,7 +804,7 @@ We have now shown how these can be computed as derivatives.
 
 There is another way to look at this. Write
 \[
-\m{T} = a\m{1}+\m{d}
+\m{X} = a\m{1}+\m{d}
 \]
 where
 \[ \m{d} =
@@ -647,6 +814,23 @@ where
 \end{bmatrix}
 \]
 Note that $\m{d}^2=\m{0}$.
+If we have a polynomial $F$, then we have that
+\begin{eqnarray}
+F(\m{X}) &=& F(a\m{1}+\m{d})\\
+&=& F(a\m{1})+F'(a)\m{d}\\
+&=& \begin{bmatrix}
+  |F(a)| & |0| \\
+  |0| & |F(a)|
+\end{bmatrix}
++\begin{bmatrix}
+  |0| & |F'(a)| \\
+  |0| & |0|
+\end{bmatrix}
+\end{eqnarray}
+The matrix $\m{d}$ is playing a role similar to an
+``infinitesimal'' in calculus where the expression
+$dx$ is manipulated informally as if $(dx)^2=0$.
+(Compare wth the dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
 
 \section{Divided differences}
 \label{sec:divided-differences}
@@ -656,7 +840,8 @@ Note that $\m{d}^2=\m{0}$.
   differences.
 \end{itemize}
 
-DFA for $a^\ast1b^\ast$.
+Consider now the DFA for the regular expression $a^\ast1b^\ast$.
+The corresponding diagram is
 \dan{Diagram}
 \[ \m{T} =
 \begin{bmatrix}
@@ -664,19 +849,16 @@ DFA for $a^\ast1b^\ast$.
   |0| & |b|
 \end{bmatrix}
 \]
-Suppose a functor \dan{?} is a product of two functors
+Just as when we considered derivatives, suppose a functor \dan{?} is a
+product of two functors
 \[
-F = G \times H
+F = G \times H.
 \]
-\dan{
-This is just placeholder really. I need to work out precisely what is a function
-of what.
-}
 Then
 \[
 F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
 \]
-$G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
+As before, $G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
 But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
 So $F_{00} = F_{00}\times G_{00}$.
 As before, $F_{00}$ is structures whose leaves take the DFA from state 0 to state 0 and so whose
@@ -693,7 +875,8 @@ F_{01}(a,b) = F(a)\times G_{01}(a,b)+F_{01}(a,b)\times G(b)
 \]
 This is the modified Leibniz rule described in \cite{dissection}.
 \dan{Do other operations}
-We have already argued above \dan{xref} that the regular expression $a^\ast1b^\ast$
+We have already argued above in section~\ref{sec:zippers-and-dissections}
+that the regular expression $a^\ast1b^\ast$
 gives rise to dissections. We have now also shown how the algebraic rules for
 dissections are actually statements about the transition matrices for the
 corresponding DFA.
@@ -701,32 +884,32 @@ corresponding DFA.
 There is a more familiar interpretation of the dissection operation.
 Given a function of a single real variable $f$,
 the divided difference is the function of two variables mapping $x_0$, $x_1$ to $(f(x_0)-f(x_1)/(x_0-x_1))$ which is sometimes also written as $[x_0, x_1]f$.
-\dan{Terrible notation.}
 \begin{multline*}
-[x_0,x_1]fg = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
+[x_0,x_1](fg) = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
 = (f(x_0)g(x_0)-f(x_0)g(x_1)+f(x_0)g(x_1)-f(x_1)g(x_1))/(x_0-x_1)\\
 = f(x_0)[x_0,x_1]g+[x_0,x_1]fg(x_1)
 \end{multline*}
-This is McBride's modified Leibniz rule above.
-For polynomial types it appears that dissection is the divided difference.
-There is an important caveat: divided differences are defined using
-subtraction which isn't meaningful for types.
+This is McBride's modified Leibniz rule.
+For polynomial types, dissection is the divided difference.
+There is an important caveat: in the usual context of numerical
+methods, divided differences are usually defined using
+subtraction. Subtraction isn't meaningful for types.
 But the Leibniz law above shows that for polynomials divided differences
 could have been defined without making reference to subtraction and that
 this definition carries over to types.
-Notice how in the limit as $x_0\rightarrow x_1$ we recover the derivative.
+Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
-\dan{I'd like to point out
-\begin{itemize}
-\item we can generalise to higher divided differences
-\item the transition matrix (and its generalisation) corresponds to Opitz formula, but this
-might be too much information
-\end{itemize}
-}
+\section{Discussion}
+Technique for constructing types with constraints. Ad hoc rules formalized.
+In some sense we've given an explanation for derivatives and dissections.
+Hope they can find new applications eg. trees with constraints in the style of
+2-3/red-black trees (though maybe it's not the same kind of thing actually).
 
 \acks
 
 Acknowledgments.
+
+\todo{should cite our blog posts on the topic}
 
 % We recommend abbrvnat bibliography style.
 
