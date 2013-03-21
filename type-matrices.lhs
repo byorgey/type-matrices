@@ -152,7 +152,7 @@ followed recursively by another |AList a b|.
 In fact, we can think of |AList a b| as containing values whose
 \term{shape} corresponds to the original |List| type, but whose
 sequence of element types corresponds to the \term{regular expression}
-$(ab)^\ast$.
+$(ab)^\ast$, that is, any number of repetitions of the sequence $ab$.
 
 We can easily generalize this idea to regular expressions other than
 $(ab)^\ast$. What's more, we can also generalize to algebraic data
