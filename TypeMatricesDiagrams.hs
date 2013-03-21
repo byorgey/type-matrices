@@ -7,7 +7,7 @@ import           Diagrams.TwoD.Layout.Tree
 
 data Type = A | B | H
 
-drawType A = text "a" # italic <> square 2 # fc blue
+drawType A = text "a" # italic <> square 2 # fc yellow
 drawType B = text "b" # italic <> circle 1 # fc red
 drawType H = text "1" <> circle 1 # fc white # dashing [0.1,0.1] 0
 

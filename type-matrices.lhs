@@ -340,7 +340,8 @@ matching $(ab)^\ast$ into two substrings, and used this to find
 corresponding types for the subtrees. One might wonder whether there
 is any simpler solution, or how well this sort of reasoning will extend
 to more complicated structures or regular expressions.  Our goal is to
-derive a more principled approach which \todo{finish this sentence}.
+derive a more principled way to do this analysis for any regular
+language and any data type.
 
 % There's a detail whose importance I'm not 100\% sure of. There are
 % multiple solutions to the problem of 'lifting' a type to be
@@ -362,23 +363,21 @@ derive a more principled approach which \todo{finish this sentence}.
 % leaves with regular expressions. We're getting the best such type, in
 % some sense. Or at least I hope we are.
 
-It's worth mentioning that for certain regular expressions, the
-problem of \todo{XXX} has already been solved in the literature,
-without the problem having been phrased in this form.  \dan{Is there a
-  better word than `lift'. It is a lift in the sense that there is a
-  homomorphism back down to the unlifted type.}  For example, consider
-the regular language $a^\ast1a^\ast$. It matches sequences of $a$s
-with precisely one occurrence of $1$ somewhere in the middle, where
-$1$ represents the unit type (written |()| in Haskell). Data
-structures whose inorder sequence of element types matches
-$a^\ast1a^\ast$ have all elements of type |a|, except for one which
-has the fixed value |()|. In other words, imposing this regular
-expression corresponds to finding the \term{derivative} of the orginal
-type \cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
+It's worth mentioning that for certain regular languages, this problem
+has already been solved in the literature, though without being
+phrased in terms of regular languages.  For example, consider the
+regular language $a^\ast1a^\ast$. It matches sequences of $a$s with
+precisely one occurrence of $1$ somewhere in the middle, where $1$
+represents the unit type (written |()| in Haskell). Data structures
+whose inorder sequence of element types matches $a^\ast1a^\ast$ have
+all elements of type |a|, except for one which has the fixed value
+|()|. In other words, imposing this regular expression corresponds to
+finding the \term{derivative} of the orginal type
+\cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
 Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
-zipper type \cite{huet} with elements of type $b$ at the `focus', and
-the regular language $a^\ast1b^\ast$ corresponds to \term{dissection
-  types} \cite{dissection}.
+zipper type \cite{Huet_zipper} with elements of type $b$ at the
+`focus', and the regular language $a^\ast1b^\ast$ corresponds to
+\term{dissection types} \cite{dissection}.
 
 \begin{figure}
   \centering
