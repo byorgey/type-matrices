@@ -184,9 +184,10 @@ sequence of element types corresponds to the \term{regular expression}
 $(ab)^\ast$, that is, any number of repetitions of the sequence $ab$.
 
 We can easily generalize this idea to regular expressions other than
-$(ab)^\ast$. What's more, we can also generalize to algebraic data
-types other than |List|, by considering the sequence of element types
-encountered by an \term{inorder traversal} of each data structure.
+$(ab)^\ast$ (though constructing the corresponding types may be
+complicated). We can also generalize to algebraic data types other
+than |List|, by considering the sequence of element types encountered
+by an \term{inorder traversal} of each data structure.
 
 %format TreeAB = Tree "_{AB}"
 %format TreeAA = Tree "_{AA}"
@@ -215,13 +216,11 @@ encountered by an \term{inorder traversal} of each data structure.
 
 For example, consider the following type |Tree| of nonempty binary
 trees with data stored in the leaves:
-
 > data Tree a  =  Leaf a
 >              |  Fork (Tree a) (Tree a)
 %if False
 >                 deriving Show
 %endif
-
 Consider again the problem of writing down a type whose values have
 the same shape as values of type |Tree a|, but where the data elements
 alternate between two types |a| and |b| (when listed according to an
@@ -270,39 +269,33 @@ with |b|, in which case the right subtree must also start with |a| and
 end with |b|.  Or the left subtree could start with |a| and end with
 |a|, in which case the right subtree must start with |b| and end with
 |b|. So we are led to define
-
 > data TreeAB a b  =  ForkAB  (TreeAB a b)  (TreeAB a b)
 >                  |  ForkAB' (TreeAA a b)  (TreeBB a b)
 %if False
 >                     deriving Show
 %endif
-
 where |TreeAA a b| represents alternating trees with left and
 rightmost elements both of type |a|, and similarly for |TreeBB|.
 
 Similar reasoning about the subtree types leads to the remainder of
 the mutually recursive definition:
-
 > data TreeAA a b  =  LeafAA a
 >                  |  ForkAA  (TreeAB a b)  (TreeAA a b)
 >                  |  ForkAA' (TreeAA a b)  (TreeBA a b)
 %if False
 >                     deriving Show
 %endif
-
 > data TreeBB a b  =  LeafBB b
 >                  |  ForkBB  (TreeBB a b)  (TreeAB a b)
 >                  |  ForkBB' (TreeBA a b)  (TreeBB a b)
 %if False
 >                     deriving Show
 %endif
-
 > data TreeBA a b  =  ForkBA  (TreeBB a b)  (TreeAA a b)
 >                  |  ForkBA' (TreeBA a b)  (TreeBA a b)
 %if False
 >                     deriving Show
 %endif
-
 Any tree of type |TreeAB a b| is now constrained to have alternating
 leaf node types.  For example, here are two values of type |TreeAB Int
 Char|:
@@ -335,13 +328,13 @@ Char|:
 \end{figure}
 
 While this works, the procedure was somewhat {\it ad hoc}. We reasoned
-about the properties of the pieces we get when we split a string
-matching $(ab)^\ast$ into two substrings, and used this to find
+about the properties of the pieces that result when a string matching
+$(ab)^\ast$ is split into two substrings, and used this to find
 corresponding types for the subtrees. One might wonder whether there
-is any simpler solution, or how well this sort of reasoning will extend
-to more complicated structures or regular expressions.  Our goal is to
-derive a more principled way to do this analysis for any regular
-language and any data type.
+is any simpler solution, or how well this sort of reasoning will
+extend to more complicated structures or regular expressions.  Our
+goal will be to derive a more principled way to do this analysis for any
+regular language and any data type.
 
 % There's a detail whose importance I'm not 100\% sure of. There are
 % multiple solutions to the problem of 'lifting' a type to be
