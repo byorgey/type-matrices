@@ -411,18 +411,79 @@ dia = renderT t # lw 0.1 # centerXY # pad 1.1
 
 Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
 
-\todo{should quickly define somewhere what we mean by ``regular
-  expression'', just to be explicit about the sorts of things we will
-  consier.}
-
 \todo{should insert somewhere around here a list of
   contributions/outline of the rest of the paper.}
 
 \section{Regular expressions and DFAs}
 \label{sec:dfas}
-A {\it deterministic finite state automaton} (DFA) $D$ is a triple $(Q, \Sigma, \delta)$ consisting of a set of states $Q$ and a set of input symbols $\Sigma$ along with a transition function $\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be considered to be in one of the states in $Q$, say $q$. Whenever it receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA is started in a particular state called its {\it start} state, say $q_0$. Some subset of states $F\subset S$ are considered to be {\it accept} states.
 
-If we have a string of symbols from the set $\Sigma$, we can feed them one by one to a DFA and at the end of the string it will be left in some state. If the DFA starts in the start state $q_0$ and ends in an accept state then it is said to {\it accept} the string.
+We begin with a quick review of the basic theory of regular
+languages and deterministic finite automata.  Readers already
+familiar with this theory may safely skip this section.
+
+\subsection{Regular expressions}
+\label{sec:regexps}
+
+A \term{regular expression} over an alphabet $\Sigma$ is a term of the
+following grammar:
+\[ \begin{array}{rrl}
+  R & ::= & \varnothing \\
+  & \mid & \varepsilon \\
+  & \mid & a \qquad (a \in \Sigma) \\
+  & \mid & R \union R \\
+  & \mid & RR \\
+  & \mid & R^*
+\end{array}
+\]
+
+\newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+
+When writing regular expressions, we also allow parentheses for
+disambiguation, and also adopt the common convention that Kleene star
+($R^*$) has higher precedence than concatenation ($RR$), which has
+higher precedence than alternation ($R \union R$).
+
+Semantically, we can interpret each regular expression $R$ as a set of
+strings $\sem R \subseteq \Sigma^*$, where $\Sigma^*$ denotes the set
+of all finite sequences built from elements of $\Sigma$.  In
+particular,
+\begin{itemize}
+\item $\sem \varnothing = \varnothing$ denotes the empty set of strings.
+\item $\sem \varepsilon = \{\varepsilon\}$ denotes the singleton set
+  containing the empty string.
+\item $\sem a = \{a\}$ denotes the singleton set containing the
+  length-$1$ sequence $a$.
+\item $\sem{R_1 \union R_2} = \sem{R_1} \union \sem{R_2}$.
+\item $\sem{R_1 R_2} = \sem{R_1} \sem{R_2}$, where $L_1 L_2$ denotes
+  concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in L_1,
+  s_2 \in L_2 \}. \]
+\item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least solution
+  of \[ L^* = \{\varepsilon\} \union LL^*. \]
+\end{itemize}
+
+\todo{add an example here?}
+
+Finally, a \term{regular language} over the alphabet $\Sigma$ is a set
+$L \subseteq \Sigma^*$ which is the interpretation $L = \sem R$ of
+some regular expression $R$.
+
+\subsection{DFAs}
+\label{sec:dfas}
+
+A {\it deterministic finite automaton} (DFA) $D$ is a triple
+$(Q, \Sigma, \delta)$ consisting of a set of states $Q$ and a set of
+input symbols $\Sigma$ along with a transition function
+$\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be
+considered to be in one of the states in $Q$, say $q$. Whenever it
+receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA
+is started in a particular state called its {\it start} state, say
+$q_0$. Some subset of states $F\subseteq S$ are considered to be {\it
+  accept} states.
+
+If we have a string of symbols from the set $\Sigma$, we can feed them
+one by one to a DFA and at the end of the string it will be left in
+some state. If the DFA starts in the start state $q_0$ and ends in an
+accept state then it is said to {\it accept} the string.
 
 We can draw a DFA as a directed multigraph where each graph edge is labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever $\delta(q_1,s)=q_2$. We can think of the state of the DFA as ``walking'' through the graph each time it receives an input.
 
