@@ -463,34 +463,59 @@ some regular expression $R$.
 \subsection{DFAs}
 \label{sec:dfas}
 
-A {\it deterministic finite automaton} (DFA) $D$ is a triple
-$(Q, \Sigma, \delta)$ consisting of a set of states $Q$ and a set of
-input symbols $\Sigma$ along with a transition function
-$\delta:Q\times\Sigma\rightarrow Q$. At any time the automaton can be
-considered to be in one of the states in $Q$, say $q$. Whenever it
-receives an input symbol $s$ it changes to state $\delta(q,s)$. A DFA
-is started in a particular state called its {\it start} state, say
-$q_0$. Some subset of states $F\subseteq S$ are considered to be {\it
-  accept} states.
+A {\it deterministic finite automaton} (DFA) $D$ is a quintuple $(Q,
+\Sigma, \delta, q_0, F)$ consisting of
+\begin{itemize}
+\item a nonempty set of states $Q$,
+\item a set of input symbols $\Sigma$,
+\item a \term{transition function} $\delta : Q\times\Sigma \to Q$,
+\item a distinguished \term{start state} $q_0 \in Q$, and
+\item a set $F \subseteq Q$ of \term{accept states}.
+\end{itemize}
 
-If we have a string of symbols from the set $\Sigma$, we can feed them
-one by one to a DFA and at the end of the string it will be left in
-some state. If the DFA starts in the start state $q_0$ and ends in an
-accept state then it is said to {\it accept} the string.
+We can ``run'' a DFA on an input string by feeding it symbols from the
+string one by one.  When encountering the symbol $s$ in state $q$, the
+DFA changes to state $\delta(q,s)$.  If a DFA beginning in its start
+state $q_0$ ends in state $q_F$ after being fed a string in this way,
+we say the DFA \term{accepts} the string if $q_F \in F$, and
+\term{rejects} the string otherwise.  Thus, a DFA $D$ can be seen as
+defining a subset $L_D \subseteq \Sigma^*$ of the set of all possible
+strings, namely, those strings which it accepts.
 
-We can draw a DFA as a directed multigraph where each graph edge is labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever $\delta(q_1,s)=q_2$. We can think of the state of the DFA as ``walking'' through the graph each time it receives an input.
+We can draw a DFA as a directed multigraph where each graph edge is
+labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge
+is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever
+$\delta(q_1,s)=q_2$. We can think of the state of the DFA as
+``walking'' through the graph each time it receives an input.
 
-The main property of DFAs we will be interested in are what strings it accepts. Now suppose that at some stage in reading in a string we know that it is impossible for the DFA to ever reach an accept state. Then we may as well switch off the DFA there and then. So let's allow $\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the DFA stops if it receives input $s$ when in state $q$ and the string isn't accepted. This allows us to simplfy the multigraph we draw: we can simply leave out edges leaving state $q$ with symbol $s$ when $\delta(q,s)$ isn't defined.
+The main property of DFAs we will be interested in are what strings it
+accepts. Now suppose that at some stage in reading in a string we know
+that it is impossible for the DFA to ever reach an accept state. Then
+we may as well switch off the DFA there and then. So let's allow
+$\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the
+DFA stops if it receives input $s$ when in state $q$ and the string
+isn't accepted. This allows us to simplfy the multigraph we draw: we
+can simply leave out edges leaving state $q$ with symbol $s$ when
+$\delta(q,s)$ isn't defined.
 
-Kleene's Theorem says that the set of strings accepted by a DFA is a regular language, ie. it corresponds to strings that match a regular expression.
+Kleene's Theorem says that the set of strings accepted by a DFA is a
+regular language, ie. it corresponds to strings that match a regular
+expression.
 
-\dan{
-I'm implicitly defining the notion of "taking a DFA from state $q_0$ to $q_1$". Is there a better word for this?
-}
-Given any pair of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings that, when input to the DFA, would take it from state $q_1$ to state $q_2$. Call this $D(q_0,q_1)$.
-The set of strings taking the DFA from $q_0$ to a state in $F$ is the set of strings accepted by the DFA. We consider the empty string to take the DFA from state $q$ to $q$ for any $q$.
+\dan{ I'm implicitly defining the notion of "taking a DFA from state
+  $q_0$ to $q_1$". Is there a better word for this?  } Given any pair
+of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
+that, when input to the DFA, would take it from state $q_1$ to state
+$q_2$. Call this $D(q_0,q_1)$.  The set of strings taking the DFA from
+$q_0$ to a state in $F$ is the set of strings accepted by the DFA. We
+consider the empty string to take the DFA from state $q$ to $q$ for
+any $q$.
 
-Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose also that we break up our string into two pieces $S=S_1S_2$. Then $S_1$ must take the DFA from $q_1$ to some intermediate state $r$ and $S_2$ must take it from state $r$ to $q_2$. In other words $D(q_1,q_2) = \bigcup_{r\in Q}\{ST || S \in D(q_1,r), T \in D(r,q_2)\}$.
+Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose also
+that we break up our string into two pieces $S=S_1S_2$. Then $S_1$
+must take the DFA from $q_1$ to some intermediate state $r$ and $S_2$
+must take it from state $r$ to $q_2$. In other words $D(q_1,q_2) =
+\bigcup_{r\in Q}\{ST || S \in D(q_1,r), T \in D(r,q_2)\}$.
 
 \section{Types and DFAs}
 \label{sec:types-and-dfas}
