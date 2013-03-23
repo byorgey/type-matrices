@@ -463,7 +463,7 @@ some regular expression $R$.
 \subsection{DFAs}
 \label{sec:dfas}
 
-A {\it deterministic finite automaton} (DFA) $D$ is a quintuple $(Q,
+A {\it deterministic finite automaton} (DFA) is a quintuple $(Q,
 \Sigma, \delta, q_0, F)$ consisting of
 \begin{itemize}
 \item a nonempty set of states $Q$,
@@ -476,8 +476,8 @@ A {\it deterministic finite automaton} (DFA) $D$ is a quintuple $(Q,
 We can ``run'' a DFA on an input string by feeding it symbols from the
 string one by one.  When encountering the symbol $s$ in state $q$, the
 DFA changes to state $\delta(q,s)$.  If a DFA beginning in its start
-state $q_0$ ends in state $q_F$ after being fed a string in this way,
-we say the DFA \term{accepts} the string if $q_F \in F$, and
+state $q_0$ ends in state $q'$ after being fed a string in this way,
+we say the DFA \term{accepts} the string if $q' \in F$, and
 \term{rejects} the string otherwise.  Thus, a DFA $D$ can be seen as
 defining a subset $L_D \subseteq \Sigma^*$ of the set of all possible
 strings, namely, those strings which it accepts.
@@ -498,10 +498,6 @@ isn't accepted. This allows us to simplfy the multigraph we draw: we
 can simply leave out edges leaving state $q$ with symbol $s$ when
 $\delta(q,s)$ isn't defined.
 
-Kleene's Theorem says that the set of strings accepted by a DFA is a
-regular language, ie. it corresponds to strings that match a regular
-expression.
-
 \dan{ I'm implicitly defining the notion of "taking a DFA from state
   $q_0$ to $q_1$". Is there a better word for this?  } Given any pair
 of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
@@ -516,6 +512,18 @@ that we break up our string into two pieces $S=S_1S_2$. Then $S_1$
 must take the DFA from $q_1$ to some intermediate state $r$ and $S_2$
 must take it from state $r$ to $q_2$. In other words $D(q_1,q_2) =
 \bigcup_{r\in Q}\{ST || S \in D(q_1,r), T \in D(r,q_2)\}$.
+
+\subsection{Kleene's Theorem}
+\label{sec:kleenes-theorem}
+
+The punchline is \emph{Kleene's Theorem}, which says that the theory
+of regular expressions and the theory of DFAs are really ``about the
+same thing''.  In particular, the set of strings accepted by a DFA is
+always a regular language, and conversely, for every regular language
+there exists a DFA which accepts it.  Moreover, the proof of the
+theorem is effective: given a regular expression, we may
+algorithmically construct a corresponding DFA (and vice versa).  For
+example, \todo{put a few examples here}.
 
 \section{Types and DFAs}
 \label{sec:types-and-dfas}
