@@ -330,11 +330,15 @@ Char|:
 While this works, the procedure was somewhat {\it ad hoc}. We reasoned
 about the properties of the pieces that result when a string matching
 $(ab)^\ast$ is split into two substrings, and used this to find
-corresponding types for the subtrees. One might wonder whether there
-is any simpler solution, or how well this sort of reasoning will
-extend to more complicated structures or regular expressions.  Our
-goal will be to derive a more principled way to do this analysis for any
-regular language and any data type.
+corresponding types for the subtrees. One might wonder why we ended up
+with four mutually recursive types---is there is any simpler solution?
+And how well will this sort of reasoning extend to more complicated
+structures or regular expressions?  Our goal will be to derive a more
+principled way to do this analysis for any regular language and any
+data type.\bay{actually only for \emph{polynomial} types, but we
+  haven't defined that yet... is there something we can say to be more
+  accurate without using technical terms which haven't yet been
+  introduced?}
 
 % There's a detail whose importance I'm not 100\% sure of. There are
 % multiple solutions to the problem of 'lifting' a type to be
@@ -402,7 +406,10 @@ dia = renderT t # lw 0.1 # centerXY # pad 1.1
   \label{fig:derivative}
 \end{figure}
 
-Zippers, derivatives and dissections are usually described using Leibniz rules and their generalizations. We'll show how these rules can be placed in a more general framework applying to any regular language.
+Zippers, derivatives and dissections are usually described using
+Leibniz rules and their generalizations. We'll show how these rules
+can be placed in a more general framework applying to any regular
+language.
 
 \todo{should insert somewhere around here a list of
   contributions/outline of the rest of the paper.}
@@ -488,6 +495,10 @@ is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever
 $\delta(q_1,s)=q_2$. We can think of the state of the DFA as
 ``walking'' through the graph each time it receives an input.
 
+\todo{draw an example DFA}
+
+\todo{edit this section}
+
 The main property of DFAs we will be interested in are what strings it
 accepts. Now suppose that at some stage in reading in a string we know
 that it is impossible for the DFA to ever reach an accept state. Then
@@ -528,28 +539,18 @@ example, \todo{put a few examples here}.
 \section{Types and DFAs}
 \label{sec:types-and-dfas}
 
-Consider again the regular expression $(ab)^\ast$, whose corresponding
-DFA is shown in Figure~\ref{fig:ab-star-dfa}.  Again, our goal will be
-to construct a type with the same shape as
-
-%format Tij = T "_{ij}"
-%format T11
-%format T12
-%format T21
-%format T22
-
-> data T a b =  Apple a | Banana b | Fork (T a) (T a)
-
-%options ghci
-%if False
-
->                 deriving Show
-
-%endif
-
-\noindent but whose inorder sequences of leaf types always match $(ab)^\ast$---that is,
-whose sequences of leaf types, considered as a string, take the DFA
-from state $1$ to itself.
+Viewing regular expressions via the lens of DFAs gives us exactly the
+tools we need to generalize our \emph{ad hoc} analysis from the
+introduction.   Consider again the task of encoding a type with the
+same shape as
+\begin{spec}
+data Tree a  =  Leaf a
+             |  Fork (Tree a) (Tree a)
+\end{spec}
+whose sequence of element types matches the regular expression
+$(ab)^\ast$, as in the introduction.  This time, however, we will
+think about it from the point of view of the corresponding DFA, shown
+in \pref{fig:ab-star-dfa}.
 
 \begin{figure}
   \centering
@@ -564,17 +565,23 @@ from state $1$ to itself.
   \label{fig:ab-star-dfa}
 \end{figure}
 
-Generalizing a bit, let |Tij a b| denote the type of binary trees
-whose leaf sequences take the DFA from state $i$ to state $j$.  Since
-the DFA has two states, there are four such types:
+%format Tij = T "_{ij}"
+%format T11
+%format T12
+%format T21
+%format T22
+
+Let |Tij a b| denote the type of binary trees whose element type
+sequences take the DFA from state $i$ to state $j$.  Since the DFA has
+two states, there are four such types:
 \begin{itemize}
 \item |T11 a b| --- this is the type of trees we are primarily
-  interested in constructing, whose leaf sequences match $(ab)^\ast$.
+  interested in constructing, whose leaf sequences match $(ab)^*$.
 \item |T12 a b| --- trees of this type have leaf sequences which
   take the DFA from state $1$ to state $2$; that is, they match the
-  regular expression $a(ba)^\ast$ (or, equivalently, $(ab)^\ast{}a$).
-\item |T21 a b| --- trees matching $b(ab)^\ast$.
-\item |T22 a b| --- trees matching $(ba)^\ast$.
+  regular expression $a(ba)^*$ (or, equivalently, $(ab)^{*}a$).
+\item |T21 a b| --- trees matching $b(ab)^*$.
+\item |T22 a b| --- trees matching $(ba)^*$.
 \end{itemize}
 
 What does a tree of type |T11| look like?  It cannot be a leaf,
@@ -583,14 +590,27 @@ It must be a pair of trees, which together take the DFA from state 1
 to state 1.  There are two ways for that to happen: both trees could
 themselves begin and end in state 1; or the first tree could take the
 DFA from state 1 to state 2, and the second from state 2 to state 1.
-In fact, we have already carried out this analysis in
-\pref{sec:alt-tree}; the only difference is that we now have a DFA as
-a less ad-hoc framework in which to do the analysis.
+We can carry out a similar analysis for the other three types.  In
+fact, we have already carried out this exact analysis in the
+introduction, but it is now a bit less ad hoc.  In particular, we can
+now see that we end up with four mutually recursive types precisely
+because the DFA for $(ab)^*$ has two states (and $4 = 2^2$).
+
+% \footnote{In general, we can imagine ending up with \emph{fewer}
+%  than $n^2$ mutually recursive types for a DFA of $n$ states---if some
+%  of the combinations are impossible or irrelevant---but we will
+%  certainly
 
 \section{Matrices of types}
 \label{sec:matrices-of-types}
 
-In what follows, we abstract away from the particular details of
+Though shifting our point of view to DFAs has given us a better
+framework for determining which types we must define, we still had to
+reason on a case-by-case basis to determine the definitions of these
+types.  It turns out that we can concisely and elegantly formalize
+this process in terms of \emph{matrices}.
+
+At this point, we abstract away from the particular details of
 Haskell data types and work in terms of \term{polynomial
   functors}. \todo{explain this better? Shouldn't have to know any CT
   to understand it\dots do we actually make use of functoriality, or
@@ -621,8 +641,12 @@ example, the Haskell type
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
 corresponds to the two-argument functor $S = {}_2X_1 + {}_2X_2 + S
-\times S$.  Usually we omit the pre-subscript on $X$ and just write
-$X_1$, $X_2$ and so on when the arity $n$ is clear from the context.
+\times S$.  \todo{need to say something about recursion here.  e.g.,
+  note $S$ is defined recursively; typically we would define a least
+  fixed-point operation, etc., and we could do that here to make
+  things completely formal, but the details will just distract.}
+Usually we omit the pre-subscript on $X$ and just write $X_1$, $X_2$
+and so on when the arity $n$ is clear from the context.
 
 \todo{formally define ``sequence of leaf types''?}
 
@@ -645,7 +669,7 @@ of a multi-argument functor, $F$ as follows:
 % $\leafseq{F \times G} = \leafseq{F} \cdot \leafseq{G}$
 
 Suppose we have a one-argument functor $F$ and some DFA $D =
-(Q,\Sigma,\delta)$ with $n$ states (that is, $||Q|| = n$).  Let
+(Q,\Sigma,\delta,q_o,F)$ with $n$ states (that is, $||Q|| = n$).  Let
 $F_{ij}$ denote the type with the same shape as $F$
   \brent{should we
   define this ``have the same shape as'' thing formally?  I guess the
@@ -783,7 +807,7 @@ the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 %format L21
 %format L22
 
-To make things concrete can revisit some familiar types from this viewpoint. For example consider the resular expression $(aa)^\ast$. This corresponds to the DFA:
+To make things concrete can revisit some familiar types from this viewpoint. For example consider the resular expression $(aa)^*$. This corresponds to the DFA:
 \todo{draw it}
 Now apply our homomorphism to the defining equation for lists and we get
 \[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where $\m{X}_D$.
@@ -834,7 +858,7 @@ The transition matrix in this case is
   where the usual Leibniz equation comes from.)
 \end{itemize}
 Now we'll return to the derivative example of section~\ref{sec:zippers-and-dissections}.
-We require the DFA for the regular expression $a^\ast1a^\ast$.
+We require the DFA for the regular expression $a^*1a^*$.
 
 \dan{Diagram goes here}
 
@@ -859,7 +883,7 @@ But there are no such strings. So $G_{10}$ is the uninhabited type $0$ and
 $F_{00} = F_{00}\times G_{00}$.
 In fact, $F_{00}$ is simply the type of structures whose leaves take the
 DFA from state 0 to state 0 and so whose
-leaves match the regular expression $a^\ast$.
+leaves match the regular expression $a^*$.
 So we have $F_{00} = F$.
 Similarly $F_{11} = F$.
 We also have
@@ -882,7 +906,7 @@ X_{01} = 1
 \dan{Make sure $1$ isn't ambiguous}
 These are precisely the rules for differentiating polynomials.
 So $F_{01}$ is the derivative of $F$.
-We described above how $a^\ast1a^\ast$ gives rise to zipper types.
+We described above how $a^*1a^*$ gives rise to zipper types.
 We have now shown how these can be computed as derivatives.
   \dan{
   Need to do sums and fixed points.
@@ -926,7 +950,7 @@ $dx$ is manipulated informally as if $(dx)^2=0$.
   differences.
 \end{itemize}
 
-Consider now the DFA for the regular expression $a^\ast1b^\ast$.
+Consider now the DFA for the regular expression $a^*1b^*$.
 The corresponding diagram is
 \dan{Diagram}
 \[ \m{T} =
@@ -948,7 +972,7 @@ As before, $G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $
 But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
 So $F_{00} = F_{00}\times G_{00}$.
 As before, $F_{00}$ is structures whose leaves take the DFA from state 0 to state 0 and so whose
-leaves match the regular expression $a^\ast$.
+leaves match the regular expression $a^*$.
 So we have simply that $F_{00}(a,b) = F(a)$.
 However, we now have that $F_{11}(a,b) = F(b)$.
 We also have
@@ -962,7 +986,7 @@ F_{01}(a,b) = F(a)\times G_{01}(a,b)+F_{01}(a,b)\times G(b)
 This is the modified Leibniz rule described in \cite{dissection}.
 \dan{Do other operations}
 We have already argued above in section~\ref{sec:zippers-and-dissections}
-that the regular expression $a^\ast1b^\ast$
+that the regular expression $a^*1b^*$
 gives rise to dissections. We have now also shown how the algebraic rules for
 dissections are actually statements about the transition matrices for the
 corresponding DFA.
