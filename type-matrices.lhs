@@ -335,7 +335,7 @@ with four mutually recursive types---is there is any simpler solution?
 And how well will this sort of reasoning extend to more complicated
 structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
-data type.\bay{actually only for \emph{polynomial} types, but we
+data type.\brent{actually only for \emph{polynomial} types, but we
   haven't defined that yet... is there something we can say to be more
   accurate without using technical terms which haven't yet been
   introduced?}
