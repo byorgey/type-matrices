@@ -616,33 +616,41 @@ reason on a case-by-case basis to determine the definitions of these
 types.  It turns out that we can concisely and elegantly formalize
 this process in terms of \emph{matrices}.
 
-We now abstract away from the particular details of
-Haskell data types and work in terms of \term{polynomial
+We now abstract away from the particular details of Haskell data types
+and work in terms of a simple language of \term{polynomial
   functors}. \todo{explain this better? Shouldn't have to know any CT
   to understand it\dots do we actually make use of functoriality, or
-  should we just say ``polynomial type constructors''?}
-  \dan{We can try to use what's in https://personal.cis.strath.ac.uk/conor.mcbride/Dissect.pdf
-  as a lead, though we have n-ary functors and so we shouldn't get bogged down implementung |bimap| etc.}
+  should we just say ``polynomial type constructors''?}  \dan{We can
+  try to use what's in
+  https://personal.cis.strath.ac.uk/conor.mcbride/Dissect.pdf as a
+  lead, though we have n-ary functors and so we shouldn't get bogged
+  down implementung |bimap| etc.}
 \begin{itemize}
-\item $1$ denotes the constantly unit functor $1\ A = 1$ (whether $1$
+\item $1$ denotes the constantly unit functor $1\ a = 1$ (whether $1$
 denotes the constantly unit functor or the unit value should be clear
 from the context).
-\item $X$ denotes the identity functor $X\ A = A$.
+\item $X$ denotes the identity functor $X\ a = a$.
 \item Given two functors $F$ and $G$, we can form their sum, $(F + G)\
-  A = F\ A + G\ A$.
-\item We can also form products of functors, $(F \times G)\ A = F\ A
-  \times G\ A$.  We will often abbreviate $F \times G$ as $FG$.
+  a = F\ a + G\ a$.
+\item We can also form products of functors, $(F \times G)\ a = F\ a
+  \times G\ a$.  We will often abbreviate $F \times G$ as $FG$.
 \end{itemize}
 
-The above also generalizes naturally to multi-argument functors:
+We also allow functors to be defined by recursive equations $F = \dots
+F \dots$, and interpret them using a standard least fixed point
+construction.  For example, \todo{finish example: lists}
+
+This also generalizes naturally to multi-argument functors:
 \begin{itemize}
-\item $1\ A_1\ \dots\ A_n = 1$;
-\item $(F + G)\ A_1\ \dots\ A_n = F\ A_1\ \dots\ A_n + G\ A_1\ \dots\
-  A_n$;
+\item $1\ a_1\ \dots\ a_n = 1$;
+\item $(F + G)\ a_1\ \dots\ a_n = F\ a_1\ \dots\ a_n + G\ a_1\ \dots\
+  a_n$;
+\item $(F \times G)\ a_1\ \dots\ a_n = F\ a_1\ \dots\ a_n \times G\
+  a_1\ \dots\ a_n$.
 \end{itemize}
-and similarly for products.  The identity functor $X$ generalizes to
-the family of projections ${}_nX_i$, where \[ {}_nX_i\ A_1\ \dots\ A_n = A_i. \]  For
-example, the Haskell type
+The identity functor $X$ generalizes to the family of projections
+${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \] For example,
+the Haskell type
 \begin{spec}
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
@@ -712,9 +720,9 @@ building blocks above in turn.
 \item The identity functor $X$ creates structures containing a single
   leaf element.  So an $X$ structure containing a single value of type
   $A$ takes the DFA from state $i$ to state $j$ precisely when the DFA
-  contains a transition from $i$ to $j$ labeled with $A$.   For
+  contains a transition from $i$ to $j$ labeled with $a$.   For
   example, \todo{give example?}
-  \[ X_{ij} = \sum_{\substack{A \in \Sigma \\ \delta(i,A) = j}} X_A \]
+  \[ X_{ij} = \sum_{\substack{A \in \Sigma \\ \delta(i,A) = j}} X_a \]
   \todo{need to figure out the right way to present the above}
 
 \item A value of type $F + G$ is either a value of type $F$ or a value of
