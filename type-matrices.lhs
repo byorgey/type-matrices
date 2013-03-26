@@ -554,13 +554,19 @@ in \pref{fig:ab-star-dfa}.
 
 \begin{figure}
   \centering
-  \todo{draw a DFA}
-%    ---A->--
-%   /        \
-% (1)        (2)
-%   \        /
-%    --<-B---
+  \begin{diagram}[width=100]
+import TypeMatricesDiagrams
 
+abStar = dfa
+  [ 1 --> (True, origin)
+  , 2 --> (False, 5 & 0)
+  ]
+  [ 1 >-- txt "a" --> 2
+  , 2 >-- txt "b" --> 1
+  ]
+
+dia = drawDFA abStar # centerXY # pad 1.1
+  \end{diagram}
   \caption{A DFA for $(ab)^\ast$}
   \label{fig:ab-star-dfa}
 \end{figure}
@@ -610,7 +616,7 @@ reason on a case-by-case basis to determine the definitions of these
 types.  It turns out that we can concisely and elegantly formalize
 this process in terms of \emph{matrices}.
 
-At this point, we abstract away from the particular details of
+We now abstract away from the particular details of
 Haskell data types and work in terms of \term{polynomial
   functors}. \todo{explain this better? Shouldn't have to know any CT
   to understand it\dots do we actually make use of functoriality, or
@@ -807,8 +813,28 @@ the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 %format L21
 %format L22
 
-To make things concrete can revisit some familiar types from this viewpoint. For example consider the resular expression $(aa)^*$. This corresponds to the DFA:
-\todo{draw it}
+To make things concrete can revisit some familiar types from this
+viewpoint. For example consider the resular expression $(aa)^*$. This
+corresponds to the DFA shown in \pref{fig:dfa-aa}.
+
+\begin{figure}
+  \centering
+  \begin{diagram}[width=100]
+import TypeMatricesDiagrams
+
+aaStar = dfa
+  [ 1 --> (True, origin)
+  , 2 --> (False, 5 & 0)
+  ]
+  [ 1 >-- txt "a" --> 2
+  , 2 >-- txt "a" --> 1
+  ]
+
+dia = drawDFA aaStar # centerXY # pad 1.1
+  \end{diagram}
+  \caption{A DFA for $(aa)^*$}
+  \label{fig:dfa-aa}
+\end{figure}
 Now apply our homomorphism to the defining equation for lists and we get
 \[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where $\m{X}_D$.
 The transition matrix in this case is
