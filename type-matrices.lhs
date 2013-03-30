@@ -497,32 +497,31 @@ $\delta(q_1,s)=q_2$. We can think of the state of the DFA as
 
 \todo{draw an example DFA}
 
-\todo{edit this section}
-
-The main property of DFAs we will be interested in are what strings it
-accepts. Now suppose that at some stage in reading in a string we know
-that it is impossible for the DFA to ever reach an accept state. Then
-we may as well switch off the DFA there and then. So let's allow
-$\delta$ to be a partial function. If $\delta(q,s)$ isn't defined, the
-DFA stops if it receives input $s$ when in state $q$ and the string
-isn't accepted. This allows us to simplfy the multigraph we draw: we
-can simply leave out edges leaving state $q$ with symbol $s$ when
-$\delta(q,s)$ isn't defined.
+It is convenient to allow the transition function $\delta$ to be
+partial.  Operationally, encountering a state $q$ and input $s$ for
+which $\delta(q,s)$ is undefined corresponds to the DFA
+\emph{rejecting} its input.  This often simplifies matters, since we
+may omit ``sink states'' from which there is no path to any accepting
+state, making $\delta$ undefined whenever it would
+have otherwise yielded such a sink state.
 
 \dan{ I'm implicitly defining the notion of "taking a DFA from state
-  $q_0$ to $q_1$". Is there a better word for this?  } Given any pair
-of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
-that, when input to the DFA, would take it from state $q_1$ to state
-$q_2$. Call this $D(q_0,q_1)$.  The set of strings taking the DFA from
-$q_0$ to a state in $F$ is the set of strings accepted by the DFA. We
-consider the empty string to take the DFA from state $q$ to $q$ for
-any $q$.
+  $q_0$ to $q_1$". Is there a better word for this?  } \brent{I'm not
+  sure.  In any case, do we even need these paragraphs? Do we use this
+  later?}
+% Given any pair
+% of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
+% that, when input to the DFA, would take it from state $q_1$ to state
+% $q_2$. Call this $D(q_0,q_1)$.  The set of strings taking the DFA from
+% $q_0$ to a state in $F$ is the set of strings accepted by the DFA. We
+% consider the empty string to take the DFA from state $q$ to $q$ for
+% any $q$.
 
-Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose also
-that we break up our string into two pieces $S=S_1S_2$. Then $S_1$
-must take the DFA from $q_1$ to some intermediate state $r$ and $S_2$
-must take it from state $r$ to $q_2$. In other words $D(q_1,q_2) =
-\bigcup_{r\in Q}\{ST || S \in D(q_1,r), T \in D(r,q_2)\}$.
+% Suppose a string $S$ takes the DFA from $q_1$ to $q_2$. Suppose also
+% that we break up our string into two pieces $S=S_1S_2$. Then $S_1$
+% must take the DFA from $q_1$ to some intermediate state $r$ and $S_2$
+% must take it from state $r$ to $q_2$. In other words $D(q_1,q_2) =
+% \bigcup_{r\in Q}\{ST || S \in D(q_1,r), T \in D(r,q_2)\}$.
 
 \subsection{Kleene's Theorem}
 \label{sec:kleenes-theorem}
