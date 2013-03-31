@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeSynonymInstances      #-}
 {-# LANGUAGE ViewPatterns              #-}
 
 module TypeMatricesDiagrams where
@@ -35,7 +37,7 @@ arcArrow :: Renderable (Path R2) b => P2 -> P2 -> Double -> Double -> Diagram b 
 arcArrow p1 p2 ht offs label
     =  aDia
     <> label
-       # moveTo (alerp p1 p2 0.5 .+^ ((h + envelopeS (negateV (perp v)) label) *^ normalized (perp v)))
+       # moveTo (alerp p1 p2 0.5 .+^ (signum ht *^ ((abs ht + envelopeS ((-signum ht) *^ perp v) label) *^ normalized (perp v))))
   where
     perp (coords -> x :& y) = (-y) & x
     h = abs ht
@@ -69,7 +71,19 @@ arcArrow p1 p2 ht offs label
         # rotateBy (direction v)
         # moveTo p1
 
-data DFA a = DFA (M.Map Int (Bool,P2)) (M.Map (Int,Int) a)
+data DFA e = DFA (M.Map Int (Bool,P2)) (M.Map (Int,Int) e)
+
+class DrawableEdge b e where
+  drawEdge :: M.Map Int (Bool,P2) -> (Int,Int) -> e -> Diagram b R2
+
+instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2, Bool) where
+  drawEdge states (i,j) (label,flp)
+    = arcArrow (stPos i) (stPos j) (if flp then (-1) else 1) 1.4 label
+    where
+      stPos i = fromMaybe (1000 & 1000) $ snd <$> M.lookup i states
+
+instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2) where
+  drawEdge states e label = drawEdge states e (label, False)
 
 infixr 3 >--
 infixr 3 -->
@@ -78,8 +92,8 @@ i >-- (a,j) = ((i,j),a)
 
 dfa states edges = DFA (M.fromList states) (M.fromList edges)
 
-drawDFA :: (Renderable Text b, Renderable (Path R2) b)
-        => DFA (Diagram b R2) -> Diagram b R2
+drawDFA :: (Renderable Text b, Renderable (Path R2) b, DrawableEdge b e)
+        => DFA e -> Diagram b R2
 drawDFA (DFA states edges) =
   drawEdges states (M.assocs edges) <> drawStates (M.assocs states)
 
@@ -89,10 +103,7 @@ drawStates = mconcat . map drawState
       = (text (show n) <> circle 1 <> (if final then circle 1.2 else mempty))
       # moveTo pos
 
-drawEdges states = mconcat . map drawEdge
-  where
-    drawEdge ((i,j),label) = arcArrow (stPos i) (stPos j) 1 1.4 label
-    stPos i = fromMaybe (1000 & 1000) $ snd <$> M.lookup i states
+drawEdges states = mconcat . map (uncurry (drawEdge states))
 
 testDFA = dfa
   [ 1 --> (True, origin)
@@ -104,5 +115,5 @@ testDFA = dfa
 
 txt s = text s <> square 1 # lw 0
 
-main = defaultMain $ drawDFA testDFA
+-- main = defaultMain $ drawDFA testDFA
 

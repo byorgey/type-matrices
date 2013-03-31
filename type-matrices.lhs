@@ -492,18 +492,77 @@ strings, namely, those strings which it accepts.
 We can draw a DFA as a directed multigraph where each graph edge is
 labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge
 is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever
-$\delta(q_1,s)=q_2$. We can think of the state of the DFA as
-``walking'' through the graph each time it receives an input.
+$\delta(q_1,s)=q_2$. In addition, we indicate accept states with a
+double circle, and always label the start state as $1$.  We can think
+of the state of the DFA as ``walking'' through the graph each time it
+receives an input.  \pref{fig:dfa-example} shows an example.
 
-\todo{draw an example DFA}
+\begin{figure}
+  \centering
+  \begin{diagram}[width=200]
+import TypeMatricesDiagrams
 
+exampleDFA :: DFA (Diagram Postscript R2, Bool)
+exampleDFA = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 & 0)
+  , 3 --> (True,  10 & 0)
+  , 4 --> (False, 5 & (-5))
+  ]
+  [ 1 >-- txtN "a" --> 2
+  , 2 >-- txtN "b" --> 1
+
+  , 2 >-- txtN "a" --> 3
+  , 3 >-- txtN "b" --> 2
+
+  , 1 >-- (txt "b", True) --> 4
+  , 3 >-- txtN "a" --> 4
+
+  , 4 >-- txtN "a,b" --> 4
+
+  -- XXX todo: draw self-loop 4->4 labeled with "a,b"
+  ]
+
+txtN s = (txt s, False)
+
+dia = drawDFA exampleDFA # centerXY # pad 1.1
+  \end{diagram}
+  \caption{An example DFA}
+  \label{fig:dfa-example}
+\end{figure}
 It is convenient to allow the transition function $\delta$ to be
 partial.  Operationally, encountering a state $q$ and input $s$ for
 which $\delta(q,s)$ is undefined corresponds to the DFA
 \emph{rejecting} its input.  This often simplifies matters, since we
 may omit ``sink states'' from which there is no path to any accepting
-state, making $\delta$ undefined whenever it would
-have otherwise yielded such a sink state.
+state, making $\delta$ undefined whenever it would have otherwise
+yielded such a sink state.  For example, the DFA from
+\pref{fig:dfa-example} may be simplified to the one shown in
+\pref{fig:dfa-example-simpl}, by dropping state $4$.
+
+\begin{figure}
+  \centering
+  \begin{diagram}[width=200]
+import TypeMatricesDiagrams
+
+exampleDFA :: DFA (Diagram Postscript R2)
+exampleDFA = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 & 0)
+  , 3 --> (True,  10 & 0)
+  ]
+  [ 1 >-- txt "a" --> 2
+  , 2 >-- txt "b" --> 1
+
+  , 2 >-- txt "a" --> 3
+  , 3 >-- txt "b" --> 2
+  ]
+
+dia = drawDFA exampleDFA # centerXY # pad 1.1
+  \end{diagram}
+  \caption{Example DFA, simplified}
+  \label{fig:dfa-example-simpl}
+\end{figure}
 
 \dan{ I'm implicitly defining the notion of "taking a DFA from state
   $q_0$ to $q_1$". Is there a better word for this?  } \brent{I'm not
@@ -556,6 +615,7 @@ in \pref{fig:ab-star-dfa}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
+abStar :: DFA (Diagram Postscript R2)
 abStar = dfa
   [ 1 --> (True, origin)
   , 2 --> (False, 5 & 0)
@@ -829,6 +889,7 @@ corresponds to the DFA shown in \pref{fig:dfa-aa}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
+aaStar :: DFA (Diagram Postscript R2)
 aaStar = dfa
   [ 1 --> (True, origin)
   , 2 --> (False, 5 & 0)
