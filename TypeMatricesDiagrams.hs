@@ -78,9 +78,20 @@ class DrawableEdge b e where
 
 instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2, Bool) where
   drawEdge states (i,j) (label,flp)
-    = arcArrow (stPos i) (stPos j) (if flp then (-1) else 1) 1.4 label
+    | i == j
+    = arcArrow
+        (pti # translateY (-1.4) # rotateAbout pti (-theta))
+        (pti # translateY (-1.4) # rotateAbout pti theta)
+        (-1.3)
+        0
+        label
+    | otherwise
+    = arcArrow pti ptj (if flp then (-1) else 1) 1.4 label
     where
-      stPos i = fromMaybe (1000 & 1000) $ snd <$> M.lookup i states
+      theta = 20 :: Deg
+      stPos ix = fromMaybe (1000 & 1000) $ snd <$> M.lookup ix states
+      pti = stPos i
+      ptj = stPos j
 
 instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2) where
   drawEdge states e label = drawEdge states e (label, False)
