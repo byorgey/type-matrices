@@ -692,34 +692,37 @@ from the context).
 \item Given two functors $F$ and $G$, we can form their sum, $(F + G)\
   a = F\ a + G\ a$.
 \item We can also form products of functors, $(F \times G)\ a = F\ a
-  \times G\ a$.  We will often abbreviate $F \times G$ as $FG$.
+  \times G\ a$.  We often abbreviate $F \times G$ as $FG$.
+\item We also allow functors to be defined by mutually recursive
+  systems of equations $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$,
+  and interpret them using a standard least fixed point construction.
+  For example, $L = 1 + X\times L$ denotes the standard type of
+  polymorphic lists.\todo{explain better.  Note this is only
+    \emph{finite} lists, unlike in Haskell.  Or maybe it doesn't
+    matter?  Depends on the categories involved.}
 \end{itemize}
 
-We also allow functors to be defined by recursive equations $F = \dots
-F \dots$, and interpret them using a standard least fixed point
-construction.  For example, \todo{finish example: lists}
-
-This also generalizes naturally to multi-argument functors:
+All of this also generalizes naturally to multi-argument functors:
 \begin{itemize}
 \item $1\ a_1\ \dots\ a_n = 1$;
-\item $(F + G)\ a_1\ \dots\ a_n = F\ a_1\ \dots\ a_n + G\ a_1\ \dots\
-  a_n$;
-\item $(F \times G)\ a_1\ \dots\ a_n = F\ a_1\ \dots\ a_n \times G\
-  a_1\ \dots\ a_n$.
+\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
+  a_n$);
+\item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
+  a_1\ \dots\ a_n)$.
+\item The identity functor $X$ generalizes to the family of
+  projections ${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \]
 \end{itemize}
-The identity functor $X$ generalizes to the family of projections
-${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \] For example,
-the Haskell type
+For example, the Haskell type
 \begin{spec}
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
 corresponds to the two-argument functor $S = {}_2X_1 + {}_2X_2 + S
-\times S$.  \todo{need to say something about recursion here.  e.g.,
-  note $S$ is defined recursively; typically we would define a least
-  fixed-point operation, etc., and we could do that here to make
-  things completely formal, but the details will just distract.}
-Usually we omit the pre-subscript on $X$ and just write $X_1$, $X_2$
-and so on when the arity $n$ is clear from the context.
+\times S$.  Usually we omit the pre-subscript on $X$ and just write
+$X_1$, $X_2$ and so on when the arity $n$ can be inferred from the
+context.
+
+\todo{Also translate one of the examples from the introduction into
+  this notation, to show the use of mutually recursive systems?}
 
 \todo{formally define ``sequence of leaf types''?}
 
@@ -727,19 +730,19 @@ and so on when the arity $n$ is clear from the context.
 We can define $S(F)$, the language of possible sequences of leaf types
 of a multi-argument functor, $F$ as follows:
 
-\begin{itemize}
-\item $S(1) = \empty$, the empty sequence
-\item $S(F+G) = S(F)+S(G)$
-\item $S(F\times G) = S(F)S(G)$
-\item \dan{Fixed point???}
-\end{itemize}
+\newcommand{\leafseq}[1]{S(#1)}
 
-% \newcommand{\leafseq}[1]{\llbracket #1 \rrbracket}
+\begin{align*}
+\leafseq{1} &= \{\varepsilon\} \\
+\leafseq{X_i} &= \{ i \} \\
+\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
+\leafseq{F \times G} &= \leafseq{F} \cdot \leafseq{G}
+\end{align*}
+Finally, given $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$ we set
+\[ \overline{\leafseq{F_i} = \leafseq{\Phi_i(F_1, \dots, F_n)}}^n \]
+and take the least fixed point \todo{according to what ordering?}.
 
-% $\leafseq{1} = \emptyset$
-% $\leafseq{X_i} = \{ i \}$
-% $\leafseq{F + G} = \leafseq{F} \union \leafseq{G}$
-% $\leafseq{F \times G} = \leafseq{F} \cdot \leafseq{G}$
+For example, \todo{add some examples}
 
 Suppose we have a one-argument functor $F$ and some DFA $D =
 (Q,\Sigma,\delta,q_o,F)$ with $n$ states (that is, $||Q|| = n$).  Let
@@ -830,7 +833,7 @@ As an example, consider again the recursive tree type given by $T = X
   |T21| & |T22|
 \end{bmatrix}
 \]
-and we have already determined previously what is represented by each
+We have already determined previously what is represented by each
 $T_{ij}$.  The punchline is that we can take the recursive equation
 for $T$ and simply apply the homomorphism to both sides, resulting in
 the matrix equation
@@ -1102,6 +1105,12 @@ But the Leibniz law above shows that for polynomials divided differences
 could have been defined without making reference to subtraction and that
 this definition carries over to types.
 Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
+
+\section{Composition}
+\label{sec:composition}
+
+\todo{Composition of functors.  Can't extend the homomorphism but we
+  can say something about it.}
 
 \section{Discussion}
 Technique for constructing types with constraints. Ad hoc rules formalized.
