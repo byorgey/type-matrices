@@ -747,9 +747,11 @@ context.
 \todo{Also translate one of the examples from the introduction into
   this notation, to show the use of mutually recursive systems?}
 
-\todo{formally define ``sequence of leaf types''?}
+\todo{From here on, we choose $\{1, \dots, n\}$ as canonical elements
+  of $\Sigma$ --- cf arguments to functors identified positionally}
 
-\dan{Don't know if we want this}
+\todo{this should probably be moved later, to some section where we
+  formally prove some stuff}
 We can define $S(F)$, the language of possible sequences of leaf types
 of a multi-argument functor, $F$ as follows:
 
@@ -807,8 +809,7 @@ building blocks above in turn.
   $A$ takes the DFA from state $i$ to state $j$ precisely when the DFA
   contains a transition from $i$ to $j$ labeled with $a$.   For
   example, \todo{give example?}
-  \[ X_{ij} = \sum_{\substack{A \in \Sigma \\ \delta(i,A) = j}} X_a \]
-  \todo{need to figure out the right way to present the above}
+  \[ X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k \]
 
 \item A value of type $F + G$ is either a value of type $F$ or a value of
 type $G$; so
