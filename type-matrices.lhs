@@ -519,8 +519,6 @@ exampleDFA = dfa
   , 3 >-- txtN "a" --> 4
 
   , 4 >-- txtN "a,b" --> 4
-
-  -- XXX todo: draw self-loop 4->4 labeled with "a,b"
   ]
 
 txtN s = (txt s, False)
@@ -592,7 +590,32 @@ always a regular language, and conversely, for every regular language
 there exists a DFA which accepts it.  Moreover, the proof of the
 theorem is effective: given a regular expression, we may
 algorithmically construct a corresponding DFA (and vice versa).  For
-example, \todo{put a few examples here}.
+example, the regular expression $a^*1b^*$ corresponds to the DFA shown
+in \pref{fig:astar-1-bstar}.  It is not hard to verify that strings
+taking the DFA from state $1$ to state $2$ (the accept state) are
+precisely those matching the regular expression $a^*1b^*$.
+
+\begin{figure}
+  \centering
+  \begin{diagram}[width=100]
+import TypeMatricesDiagrams
+
+astar1bstar :: DFA (Diagram Postscript R2)
+astar1bstar = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (True, 5 & 0)
+  ]
+  [ 1 >-- txt "1" --> 2
+
+  , 1 >-- txt "a" --> 1
+  , 2 >-- txt "b" --> 2
+  ]
+
+dia = drawDFA astar1bstar # centerXY # pad 1.1
+  \end{diagram}
+  \caption{A DFA for $a^*1b^*$}
+  \label{fig:astar-1-bstar}
+\end{figure}
 
 \section{Types and DFAs}
 \label{sec:types-and-dfas}
