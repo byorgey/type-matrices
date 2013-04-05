@@ -706,7 +706,7 @@ and work in terms of a simple language of \term{polynomial
   try to use what's in
   https://personal.cis.strath.ac.uk/conor.mcbride/Dissect.pdf as a
   lead, though we have n-ary functors and so we shouldn't get bogged
-  down implementung |bimap| etc.}
+  down implementung |bimap| etc.} \todo{cite something? Algebra of Programming?}
 \begin{itemize}
 \item $1$ denotes the constantly unit functor $1\ a = 1$ (whether $1$
 denotes the constantly unit functor or the unit value should be clear
@@ -747,49 +747,47 @@ context.
 \todo{Also translate one of the examples from the introduction into
   this notation, to show the use of mutually recursive systems?}
 
-\todo{From here on, we choose $\{1, \dots, n\}$ as canonical elements
-  of $\Sigma$ --- cf arguments to functors identified positionally}
+From this point onwards, as a practical matter, we will assume the
+canonical alphabet $\Sigma = \{1, \dots, n\}$.  This is because
+functor arguments correspond to alphabet elements, and functor
+arguments are identified positionally.
 
 \todo{this should probably be moved later, to some section where we
   formally prove some stuff}
 We can define $S(F)$, the language of possible sequences of leaf types
 of a multi-argument functor, $F$ as follows:
 
-\newcommand{\leafseq}[1]{S(#1)}
+\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
 
 \begin{align*}
 \leafseq{1} &= \{\varepsilon\} \\
 \leafseq{X_i} &= \{ i \} \\
 \leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
-\leafseq{F \times G} &= \leafseq{F} \cdot \leafseq{G}
+\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
 \end{align*}
 Finally, given $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$ we set
 \[ \overline{\leafseq{F_i} = \leafseq{\Phi_i(F_1, \dots, F_n)}}^n \]
-and take the least fixed point \todo{according to what ordering?}.
-
-For example, \todo{add some examples}
+and take the least fixed point (ordering sets by inclusion).  For
+example, given the list functor $L = 1 + XL$, we obtain \[ \leafseq{L}
+= \{ \varepsilon \} \union \{ 1\sigma \mid \sigma \in \leafseq{L}
+\} \] whose least fixed point is the infinite set $\{ \varepsilon, 1,
+11, 111, \dots \}$ as expected.
 
 Suppose we have a one-argument functor $F$ and some DFA $D =
-(Q,\Sigma,\delta,q_o,F)$ with $n$ states (that is, $||Q|| = n$).  Let
-$F_{ij}$ denote the type with the same shape as $F$
-  \brent{should we
-  define this ``have the same shape as'' thing formally?  I guess the
-  idea would be that $F$ and $G$ have the same shape iff $F\ 1\ \dots\
-  1 \cong G\ 1\ \dots\ 1$ (where $F$ and $G$ could have different
-  arities).}
-  \dan{
-  Should that be $F$ and $G$ have the same shape iff $F\ a\ \dots\
-  a \cong G\ a\ \dots\ a$?
+(Q,\Sigma,\delta,q_o,F)$.  Let $F_{ij}$ denote the type with the same
+shape as $F$ \brent{should we define this ``have the same shape as''
+  thing formally?  I guess the idea would be that $F$ and $G$ have the
+  same shape iff $F\ 1\ \dots\ 1 \cong G\ 1\ \dots\ 1$ (where $F$ and
+  $G$ could have different arities).}  \dan{ Should that be $F$ and
+  $G$ have the same shape iff $F\ a\ \dots\ a \cong G\ a\ \dots\ a$?
   Your definition gives the usual notion of shape: ie. the branching
-  structure without regard to what the elements are. But I'm
-  talking about the shape as a container with elements.
-  I'm also not sure we need to make this formal.
-  }
-but whose sequence of leaf types takes $D$ from state $i$
-to state $j$.  In particular $F_{ij}$ has arity $||\Sigma||$, since
-there is a leaf type corresponding to each alphabet symbol of $D$.  We
-can deduce $F_{ij}$ compositionally by considering each of the functor
-building blocks above in turn.
+  structure without regard to what the elements are. But I'm talking
+  about the shape as a container with elements.  I'm also not sure we
+  need to make this formal.  } but whose sequence of leaf types takes
+$D$ from state $i$ to state $j$.  Note that $F_{ij}$ has arity
+$||\Sigma||$, that is, there is a leaf type corresponding to each
+alphabet symbol of $D$.  We can deduce $F_{ij}$ compositionally by
+considering each of the functor building blocks above in turn.
 
 \begin{itemize}
 \item The constant functor $1$ creates structures containing no
@@ -806,25 +804,31 @@ building blocks above in turn.
 
 \item The identity functor $X$ creates structures containing a single
   leaf element.  So an $X$ structure containing a single value of type
-  $A$ takes the DFA from state $i$ to state $j$ precisely when the DFA
-  contains a transition from $i$ to $j$ labeled with $a$.   For
-  example, \todo{give example?}
-  \[ X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k \]
+  $a$ takes the DFA from state $i$ to state $j$ precisely when the DFA
+  contains a transition from $i$ to $j$ labeled with $a$. Since there
+  may be multiple edges from $i$ to $j$, $X_{ij}$ is therefore the
+  \emph{sum} of all the labels on edges from $i$ to $j$.  Formally,
 
-\item A value of type $F + G$ is either a value of type $F$ or a value of
-type $G$; so
+  \[ X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k. \]
+
+  For example, \todo{give example?} \brent{Not sure if we need an
+    example here?  What example would we give?}
+
+\item A value with shape $F + G$ is either a value with shape $F$ or a
+  value with shape $G$; so the set of $F + G$ shapes taking the DFA
+  from state $i$ to state $j$ is just the sum of the corresponding $F$
+  and $G$ shapes:
 
 \[ (F + G)_{ij} = F_{ij} + G_{ij}. \]
 
 \item Products are more interesting.  An $FG$-structure consists of an
-  $F$-structure paired with a $G$-structure, which drive the DFA in
-  sequence.
-  \dan{Should the matrix be transposed?}
-  Hence, in order to take the DFA from state $i$ to state
-  $j$ overall, the $F$-structure must take the DFA from state $i$ to
-  some state $k$, and then the $G$-structure must take it from $k$ to
-  $j$.  This works for any state $k$, and $(FG)_{ij}$ is the sum over
-  all such possibilities.  Thus,
+  $F$-structure paired with a $G$-structure, whose leaf types drive
+  the DFA in sequence.  \dan{Should the matrix be transposed?}  Hence,
+  in order to take the DFA from state $i$ to state $j$ overall, the
+  $F$-structure must take the DFA from state $i$ to some state $k$,
+  and then the $G$-structure must take it from $k$ to $j$.  This works
+  for any state $k$, and $(FG)_{ij}$ is the sum over all such
+  possibilities.  Thus,
 
 \[ \label{eq:product-of-functors} (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
 \end{itemize}
@@ -842,6 +846,12 @@ And what about $X$?  Recall that $X_{ij}$ is the sum of the labels on
 all transitions from state $i$ to state $j$ in the DFA.  Hence, the
 matrix $\m{X}_D$ is the \emph{transition matrix} for $D$.
 
+\todo{Say something about implicits/fixed points.  Just do the same
+  construction again -- take LFP of implicit matrix equation?  What's
+  the order relation?  Actually, I guess it doesn't matter: we're
+  really just using matrices as a way to organize systems of type
+  equations.}
+
 In other words, given a DFA $D$, we have a \emph{semiring
   homomorphism} from arity-$1$ functors to $||Q|| \times ||Q||$
 matrices of arity-$||\Sigma||$ functors---that is, a mapping from
@@ -857,10 +867,9 @@ As an example, consider again the recursive tree type given by $T = X
   |T21| & |T22|
 \end{bmatrix}
 \]
-We have already determined previously what is represented by each
-$T_{ij}$.  The punchline is that we can take the recursive equation
-for $T$ and simply apply the homomorphism to both sides, resulting in
-the matrix equation
+where the meanings of the types $T_{ij}$ \todo{finish}.  The punchline
+is that we can take the recursive equation for $T$ and simply apply
+the homomorphism to both sides, resulting in the matrix equation
 \[ \m{T} = \m{X}_D + \m{T}^2, \] where $\m{X}_D$ is the transition
 matrix for $D$, namely
 \[ \m{X}_D =
@@ -896,7 +905,7 @@ operations yields
   \end{bmatrix}.
 \end{multline*}
 Equating the left- and right-hand sides elementwise yields precisely
-the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
+the definitions for $T_{ij}$ we derived in \pref{sec:introduction}.
 
 \todo{include a bunch more examples here.  Both other DFAs and other
   types \dots}
@@ -907,7 +916,7 @@ the definitions for $T_{ij}$ we derived in \pref{sec:alt-tree}.
 %format L21
 %format L22
 
-To make things concrete can revisit some familiar types from this
+To make things concrete, we can revisit some familiar types from this
 viewpoint. For example consider the resular expression $(aa)^*$. This
 corresponds to the DFA shown in \pref{fig:dfa-aa}.
 
@@ -930,15 +939,16 @@ dia = drawDFA aaStar # centerXY # pad 1.1
   \caption{A DFA for $(aa)^*$}
   \label{fig:dfa-aa}
 \end{figure}
-Now apply our homomorphism to the defining equation for lists and we get
-\[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where $\m{X}_D$.
-The transition matrix in this case is
+We now apply the homomorphism to the defining equation for lists,
+\[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where trhe transition matrix in
+this case is
 \[ \m{X}_D =
 \begin{bmatrix}
   |0| & |a| \\
   |a| & |0|
-\end{bmatrix}
+\end{bmatrix}.
 \]
+This yields
 \begin{multline*}
   \begin{bmatrix}
     |L11| & |L12| \\
@@ -962,14 +972,45 @@ The transition matrix in this case is
   =
   \begin{bmatrix}
     1+a |L21| & a |L22| \\
-    a | L12| & 1+a |L21|
+    a |L11| & 1+a |L21|
   \end{bmatrix}.
 \end{multline*}
 
-|L11| and |L22| are isomorphic types as are the pair of types |L12| and |L21|. We can recognise |L11| as a list with odd length and |L12| as a list with even length. More familarly:
+We can see that |L11| and |L22| are isomorphic, as are |L12| and
+|L21|. Thinking about the meaning of paths through the DFA, we see
+that |L11| is the type of lists with even length, and |L12|, lists with
+odd length. More familarly:
 
 > data EvenList a = EvenNil | EvenList a (OddList a)
 > data OddList a = OddList a (EvenList a)
+
+
+As another example, consider constructing a type of binary trees with
+data of two different types, $a$ and $b$, at internal nodes---but with
+the restriction that two values of type $a$ may never occur
+consecutively in an inorder traversal.  This restriction corresponds
+to the DFA shown in \pref{fig:DFA-no-consec-a}.
+
+\begin{figure}
+  \centering
+  \begin{diagram}[width=100]
+import TypeMatricesDiagrams
+
+noAA :: DFA (Diagram Postscript R2)
+noAA = dfa
+  [ 1 --> (True, origin)
+  , 2 --> (True, 5 & 0)
+  ]
+  [ 1 >-- txt "b" --> 1
+  , 1 >-- txt "a" --> 2
+  , 2 >-- txt "b" --> 1
+  ]
+
+dia = drawDFA noAA # centerXY # pad 1.1
+  \end{diagram}
+  \caption{DFA for avoiding consecutive $a$'s}
+  \label{fig:DFA-no-consec-a}
+\end{figure}
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
@@ -1135,6 +1176,11 @@ Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
 \todo{Composition of functors.  Can't extend the homomorphism but we
   can say something about it.}
+
+
+\todo{Write something about associativity/commutativity?  Holds for
+  types up to isomorphism but we might want something a bit stronger
+  at times.}
 
 \section{Discussion}
 Technique for constructing types with constraints. Ad hoc rules formalized.
