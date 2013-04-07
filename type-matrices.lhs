@@ -940,7 +940,7 @@ dia = drawDFA aaStar # centerXY # pad 1.1
   \label{fig:dfa-aa}
 \end{figure}
 We now apply the homomorphism to the defining equation for lists,
-\[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where trhe transition matrix in
+\[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where the transition matrix in
 this case is
 \[ \m{X}_D =
 \begin{bmatrix}
@@ -979,17 +979,30 @@ This yields
 We can see that |L11| and |L22| are isomorphic, as are |L12| and
 |L21|. Thinking about the meaning of paths through the DFA, we see
 that |L11| is the type of lists with even length, and |L12|, lists with
-odd length. More familarly:
+odd length. More familiarly:
 
 > data EvenList a = EvenNil | EvenList a (OddList a)
 > data OddList a = OddList a (EvenList a)
 
 
+%format Bij = B "_{ij}"
+%format B11
+%format B12
+%format B21
+%format B22
+
 As another example, consider constructing a type of binary trees with
 data of two different types, $a$ and $b$, at internal nodes---but with
 the restriction that two values of type $a$ may never occur
 consecutively in an inorder traversal.  This restriction corresponds
-to the DFA shown in \pref{fig:DFA-no-consec-a}.
+to the DFA shown in \pref{fig:DFA-no-consec-a}, with the transition
+matrix
+\[ \m{X}_D =
+\begin{bmatrix}
+  |b| & |a| \\
+  |b| & 0
+\end{bmatrix}.
+\]
 
 \begin{figure}
   \centering
@@ -1008,9 +1021,76 @@ noAA = dfa
 
 dia = drawDFA noAA # centerXY # pad 1.1
   \end{diagram}
-  \caption{DFA for avoiding consecutive $a$'s}
+  \caption{A DFA for avoiding consecutive $a$'s}
   \label{fig:DFA-no-consec-a}
 \end{figure}
+
+Beginning with $B = 1 + BXB$ and applying the homomorphism, we obtain
+\begin{multline*}
+  \begin{bmatrix}
+    |B11| & |B12| \\
+    |B21| & |B22|
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    |B11| & |B12| \\
+    |B21| & |B22|
+  \end{bmatrix}
+  \begin{bmatrix}
+    b & a \\
+    b & 0
+  \end{bmatrix}
+  \begin{bmatrix}
+    |B11| & |B12| \\
+    |B21| & |B22|
+  \end{bmatrix}
+  \\
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    (|B11| + |B12|)b & |B11|a \\
+    (|B21| + |B22|)b & |B21|a
+  \end{bmatrix}
+  \begin{bmatrix}
+    |B11| & |B12| \\
+    |B21| & |B22|
+  \end{bmatrix}
+  \\
+  =
+  \begin{bmatrix}
+    1 + (|B11| + |B12|)b|B11| + |B11|a|B21| & (|B11| + |B12|)b|B12| + |B11|a|B22| \\
+    (|B21| + |B22|)b|B11| + |B21|a|B21| & 1 + (|B21| + |B22|)b|B12| + |B21|a|B22|
+  \end{bmatrix}
+\end{multline*}
+
+> data B11 a b 
+>   =  B11_Empty 
+>   |  B11_B (Either (B11 a b) (B12 a b)) b (B11 a b)
+>   |  B11_A (B11 a b) a (B21 a b)
+>
+> data B12 a b
+>   =  B12_B (Either (B11 a b) (B12 a b)) b (B12 a b)
+>   |  B12_A (B11 a b) a (B22 a b)
+>
+> data B21 a b
+>   =  B21_B (Either (B21 a b) (B22 a b)) b (B11 a b)
+>
+> data B22 a b
+>   =  B22_Empty
+>   |  B22_B (Either (B21 a b) (B22 a b)) b (B12 a b)
+>   |  B22_A (B21 a b) a (B22 a b)
+
+\todo{show example? discuss remaining issues: (1) inconvenient to use.
+  Can ameliorate this with helper functions (?).}
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
