@@ -731,8 +731,8 @@ All of this also generalizes naturally to multi-argument functors:
 \item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
   a_n$);
 \item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
-  a_1\ \dots\ a_n)$.
-\item The identity functor $X$ generalizes to the family of
+  a_1\ \dots\ a_n)$;
+\item the identity functor $X$ generalizes to the family of
   projections ${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \]
 \end{itemize}
 For example, the Haskell type
@@ -981,8 +981,8 @@ We can see that |L11| and |L22| are isomorphic, as are |L12| and
 that |L11| is the type of lists with even length, and |L12|, lists with
 odd length. More familiarly:
 
-> data EvenList a = EvenNil | EvenList a (OddList a)
-> data OddList a = OddList a (EvenList a)
+> data EvenList a  = EvenNil | EvenCons a (OddList a)
+> data OddList a   = OddCons a (EvenList a)
 
 
 %format Bij = B "_{ij}"
@@ -1025,11 +1025,11 @@ dia = drawDFA noAA # centerXY # pad 1.1
   \label{fig:DFA-no-consec-a}
 \end{figure}
 
-Beginning with $B = 1 + BXB$ and applying the homomorphism, we obtain
+Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
 \begin{multline*}
   \begin{bmatrix}
-    |B11| & |B12| \\
-    |B21| & |B22|
+    |T11| & |T12| \\
+    |T21| & |T22|
   \end{bmatrix}
   =
   \begin{bmatrix}
@@ -1038,59 +1038,73 @@ Beginning with $B = 1 + BXB$ and applying the homomorphism, we obtain
   \end{bmatrix}
   +
   \begin{bmatrix}
-    |B11| & |B12| \\
-    |B21| & |B22|
+    |T11| & |T12| \\
+    |T21| & |T22|
   \end{bmatrix}
   \begin{bmatrix}
     b & a \\
     b & 0
   \end{bmatrix}
   \begin{bmatrix}
-    |B11| & |B12| \\
-    |B21| & |B22|
-  \end{bmatrix}
-  \\
-  =
-  \begin{bmatrix}
-    1 & 0 \\
-    0 & 1
-  \end{bmatrix}
-  +
-  \begin{bmatrix}
-    (|B11| + |B12|)b & |B11|a \\
-    (|B21| + |B22|)b & |B21|a
-  \end{bmatrix}
-  \begin{bmatrix}
-    |B11| & |B12| \\
-    |B21| & |B22|
-  \end{bmatrix}
-  \\
-  =
-  \begin{bmatrix}
-    1 + (|B11| + |B12|)b|B11| + |B11|a|B21| & (|B11| + |B12|)b|B12| + |B11|a|B22| \\
-    (|B21| + |B22|)b|B11| + |B21|a|B21| & 1 + (|B21| + |B22|)b|B12| + |B21|a|B22|
+    |T11| & |T12| \\
+    |T21| & |T22|.
   \end{bmatrix}
 \end{multline*}
+Expanding the right-hand side and equating elementwise yields
+\begin{align*}
+  |T11| &= 1 + (|T11| + |T12|)b|T11| + |T11|a|T21| \\
+  |T12| &=     (|T11| + |T12|)b|T12| + |T11|a|T22| \\
+  |T21| &=     (|T21| + |T22|)b|T11| + |T21|a|T21| \\
+  |T22| &= 1 + (|T21| + |T22|)b|T12| + |T21|a|T22|,
+\end{align*}
+or in Haskell notation,
 
-> data B11 a b 
->   =  B11_Empty 
->   |  B11_B (Either (B11 a b) (B12 a b)) b (B11 a b)
->   |  B11_A (B11 a b) a (B21 a b)
+%format Empty11
+%format B11
+%format A11
+%format B12
+%format A12
+%format B21
+%format A21
+%format Empty22
+%format B22
+%format A22
+
+> data T11 a b
+>   =  Empty11
+>   |  B11 (Either (T11 a b) (T12 a b)) b (T11 a b)
+>   |  A11 (T11 a b) a (T21 a b)
 >
-> data B12 a b
->   =  B12_B (Either (B11 a b) (B12 a b)) b (B12 a b)
->   |  B12_A (B11 a b) a (B22 a b)
+> data T12 a b
+>   =  B12 (Either (T11 a b) (T12 a b)) b (T12 a b)
+>   |  A12 (T11 a b) a (T22 a b)
 >
-> data B21 a b
->   =  B21_B (Either (B21 a b) (B22 a b)) b (B11 a b)
+> data T21 a b
+>   =  B21 (Either (T21 a b) (T22 a b)) b (T11 a b)
+>   |  A21 (T21 a b) a (T21 a b)
 >
-> data B22 a b
->   =  B22_Empty
->   |  B22_B (Either (B21 a b) (B22 a b)) b (B12 a b)
->   |  B22_A (B21 a b) a (B22 a b)
+> data T22 a b
+>   =  Empty22
+>   |  B22 (Either (T21 a b) (T22 a b)) b (T12 a b)
+>   |  A22 (T21 a b) a (T22 a b)
+
+(We could also equivalently distribute out products such as $(|T11| +
+|T12|)b|T11| = |T11| b |T11| + |T12| b |T11|$ and end up with more
+constructors for each data type.) Since both states in the DFA are
+accept states, we are actually looking for the sum type
+
+> type T a b = Either (T11 a b) (T12 a b)
+
+\todo{show some example values?}
 
 \todo{show example? discuss remaining issues: (1) inconvenient to use.
   Can ameliorate this with helper functions (?).}
+
+\todo{Can we come up with a nice generic way to hide stuff under
+  suitable existential wrappers, exposing an API similar to that of
+  the original type but with some additional occurrences of |Maybe|,
+  and dynamic type checks?  Could even code this up as a Haskell
+  library perhaps\dots}
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
@@ -1136,6 +1150,12 @@ So
 \[
 F_{01} = F\times G_{01}+F_{01}\times G
 \]
+
+\todo{note that $F_{10}$ ``should be'' zero but if we expand things
+  out it doesn't look like it!  Have to do some fixpoint analysis to
+  see that it is isomorphic to void.  What does it mean that if we
+  take the greatest fixpoint we don't get void? (right?) seems odd.}
+
 This looks suspiciously like the Leibniz law.
 We also know that
 \[
