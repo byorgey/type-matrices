@@ -1295,6 +1295,10 @@ Acknowledgments.
 
 \todo{should cite our blog posts on the topic}
 
+\todo{should cite Duchon, Flajolet, Louchard, Schaeffer, ``Boltzmann
+  Samplers for Random Generation'' --- they hint at something related
+  to this idea on p. 590.}
+
 % We recommend abbrvnat bibliography style.
 
 \bibliography{type-matrices}{}
