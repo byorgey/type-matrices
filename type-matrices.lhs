@@ -994,9 +994,10 @@ odd length. More familiarly:
 As another example, consider constructing a type of binary trees with
 data of two different types, $a$ and $b$, at internal nodes---but with
 the restriction that two values of type $a$ may never occur
-consecutively in an inorder traversal.  This restriction corresponds
-to the DFA shown in \pref{fig:DFA-no-consec-a}, with the transition
-matrix
+consecutively in an inorder traversal.  \todo{mention RE's closed
+  under negation, Aho-Corasick construction (Efficient String
+  Matching, 1975)?} This restriction corresponds to the DFA shown in
+\pref{fig:DFA-no-consec-a}, with the transition matrix
 \[ \m{X}_D =
 \begin{bmatrix}
   |b| & |a| \\
