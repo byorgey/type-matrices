@@ -489,6 +489,15 @@ we say the DFA \term{accepts} the string if $q' \in F$, and
 defining a subset $L_D \subseteq \Sigma^*$ of the set of all possible
 strings, namely, those strings which it accepts.
 
+\todo{We need a better story about finite vs. infinite.  The above
+  gives the standard presentation of DFAs for finite strings, but
+  Haskell types can include infinite values.  So we want to do
+  something like use the \emph{greatest} fixed point of $\Sigma^* =
+  \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
+  is in the language recognized by a DFA if it never causes the DFA to
+  reject.  I'm not quite sure how this relates to the fact that
+  least+greatest fixedpoints coincide in Haskell.}
+
 We can draw a DFA as a directed multigraph where each graph edge is
 labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge
 is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever
