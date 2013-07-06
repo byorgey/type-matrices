@@ -803,13 +803,14 @@ considering each of the functor building blocks above in turn.
   elements, \emph{i.e.} which do not cause the DFA to transition at
   all.  So the only way a $1$ structure can take the DFA from state
   $i$ to state $j$ is if $i = j$:
-
-\[ 1_{ij} =
-\begin{cases}
-  1 & i = j \\
-  0 & i \neq j
-\end{cases}
-\]
+\begin{equation}
+  \label{eq:unit-functor}
+  1_{ij} =
+  \begin{cases}
+    1 & i = j \\
+    0 & i \neq j
+  \end{cases}
+\end{equation}
 
 \item The identity functor $X$ creates structures containing a single
   leaf element.  So an $X$ structure containing a single value of type
@@ -817,9 +818,10 @@ considering each of the functor building blocks above in turn.
   contains a transition from $i$ to $j$ labeled with $a$. Since there
   may be multiple edges from $i$ to $j$, $X_{ij}$ is therefore the
   \emph{sum} of all the labels on edges from $i$ to $j$.  Formally,
-
-  \[ X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k. \]
-
+  \begin{equation}
+    \label{eq:x-functor}
+    X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k.
+  \end{equation}
   For example, \todo{give example?} \brent{Not sure if we need an
     example here?  What example would we give?}
 
@@ -827,8 +829,10 @@ considering each of the functor building blocks above in turn.
   value with shape $G$; so the set of $F + G$ shapes taking the DFA
   from state $i$ to state $j$ is just the sum of the corresponding $F$
   and $G$ shapes:
-
-\[ (F + G)_{ij} = F_{ij} + G_{ij}. \]
+  \begin{equation}
+    \label{eq:sum-of-functors}
+    (F + G)_{ij} = F_{ij} + G_{ij}.
+  \end{equation}
 
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, whose leaf types drive
@@ -838,8 +842,10 @@ considering each of the functor building blocks above in turn.
   and then the $G$-structure must take it from $k$ to $j$.  This works
   for any state $k$, and $(FG)_{ij}$ is the sum over all such
   possibilities.  Thus,
-
-\[ \label{eq:product-of-functors} (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}. \]
+  \begin{equation}
+    \label{eq:product-of-functors}
+    (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}.
+  \end{equation}
 \end{itemize}
 
 The above rules for $1$, sums, and products might look familiar.  In
@@ -1118,66 +1124,96 @@ accept states, we are actually looking for the sum type
 
 \section{Derivatives, again}
 \label{sec:derivatives-again}
-\begin{itemize}
-\item Circle back round and discuss derivatives, dissection, and
-  infinitesimals again from the new vantage point.  (e.g. discuss
-  where the usual Leibniz equation comes from.)
-\end{itemize}
-Now we'll return to the derivative example of section~\ref{sec:zippers-and-dissections}.
-We require the DFA for the regular expression $a^*1a^*$.
+Now that we have seen the general framework, let's return to the
+specific application of computing \emph{derivatives} of data types.
+In order to compute a derivative, we need the DFA for the regular
+expression $a^*1a^*$, shown in~\pref{fig:DFA-deriv}.
 
-\dan{Diagram goes here}
+\begin{figure}
+  \centering
+  \begin{diagram}[width=100]
+import TypeMatricesDiagrams
 
-The corresponding transition matrix is:
+deriv :: DFA (Diagram Postscript R2)
+deriv = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (True , 5 & 0)
+  ]
+  [ 1 >-- txt "a" --> 1
+  , 1 >-- txt "1" --> 2
+  , 2 >-- txt "a" --> 2
+  ]
+
+dia = drawDFA deriv # centerXY # pad 1.1
+  \end{diagram}
+  \caption{A DFA for derivatives}
+  \label{fig:DFA-deriv}
+\end{figure}
+
+The corresponding transition matrix is
 \[ \m{X} =
 \begin{bmatrix}
   |a| & |1| \\
   |0| & |a|
-\end{bmatrix}
-\]
-Now consider using the procedure described in section~\ref{sec:matrices-of-types} to lift
-the product of two functors:
-\[
-F = G \times H
-\]
-From equation\~ref{eq:product-of-functors} we see that
-\[
-F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
-\]
-$G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
-But there are no such strings. So $G_{10}$ is the uninhabited type $0$ and
-$F_{00} = F_{00}\times G_{00}$.
-In fact, $F_{00}$ is simply the type of structures whose leaves take the
-DFA from state 0 to state 0 and so whose
-leaves match the regular expression $a^*$.
-So we have $F_{00} = F$.
-Similarly $F_{11} = F$.
-We also have
-\[
-F_{01} = F_{00}\times G_{01}+F_{01}\times G_{11}
-\]
-So
-\[
-F_{01} = F\times G_{01}+F_{01}\times G
+\end{bmatrix}.
 \]
 
-\todo{note that $F_{10}$ ``should be'' zero but if we expand things
+Suppose we start with a functor defined as a product:
+\[ F = G \times H \]
+Expanding via the homomorphism to type matrices (using $2 \times 2$
+matrices since our DFA has two states), we obtain
+\[
+\begin{bmatrix}
+  F_{11} & F_{12} \\
+  F_{21} & F_{22}
+\end{bmatrix}
+=
+\begin{bmatrix}
+  G_{11} & G_{12} \\
+  G_{21} & G_{22}
+\end{bmatrix}
+\begin{bmatrix}
+  H_{11} & H_{12} \\
+  H_{21} & H_{22}
+\end{bmatrix}
+\]
+Let's consider each of the $F_{ij}$ in turn.  First, we have
+\[
+F_{11} = G_{11} \times H_{11} + G_{12}\times H_{21}
+\]
+$H_{21}$ is a type whose sequences of leaves take the DFA from state
+$2$ to state $1$---but there are no such sequences, since the DFA has
+no paths from state $2$ to state $1$. So $H_{21}$ is the uninhabited
+type $0$, and $F_{11} = G_{11}\times H_{11}$.  In fact, $F_{11}$ is
+simply the type of structures whose leaves take the DFA from state $1$
+to itself and so whose leaves match the regular expression $a^*$.  So
+we have $F_{11} = F$ (and $G_{11} = G$ and $H_{11} = H$).  Similarly,
+$F_{22} = F$.  We also have
+\[
+F_{12} = G_{11}\times H_{12}+G_{12}\times H_{22}
+\]
+and thus
+\[
+F_{12} = G\times H_{12}+G_{12}\times H.
+\]
+
+\todo{note that $F_{21}$ ``should be'' zero but if we expand things
   out it doesn't look like it!  Have to do some fixpoint analysis to
   see that it is isomorphic to void.  What does it mean that if we
   take the greatest fixpoint we don't get void? (right?) seems odd.}
 
-This looks suspiciously like the Leibniz law.
-We also know that
+This looks suspiciously like the usual Leibniz law for the derivative
+of a product. We also know that
 \[
-1_{01} = 0
+1_{12} = 0
 \]
 and
 \[
-X_{01} = 1
+X_{12} = 1
 \]
 \dan{Make sure $1$ isn't ambiguous}
 These are precisely the rules for differentiating polynomials.
-So $F_{01}$ is the derivative of $F$.
+So $F_{12}$ is the derivative of $F$.
 We described above how $a^*1a^*$ gives rise to zipper types.
 We have now shown how these can be computed as derivatives.
   \dan{
@@ -1238,22 +1274,22 @@ F = G \times H.
 \]
 Then
 \[
-F_{00} = F_{00}\times G_{00}+F_{01}\times G_{10}
+F_{11} = G_{11}\times H_{11}+G_{12}\times H_{21}
 \]
-As before, $G_{10}$ is the type of trees whose leaves take our DFA from $1$ to $0$.
-But there are no such strings. So $G_{10}$ is the uninhabited type $0$.
-So $F_{00} = F_{00}\times G_{00}$.
-As before, $F_{00}$ is structures whose leaves take the DFA from state 0 to state 0 and so whose
+As before, $H_{21}$ contains sequences of leaves which take the DFA
+from state $2$ to state $1$; but there are no such strings. So $H_{21}$ is the uninhabited type $0$.
+So $F_{11} = G_{11}\times H_{11}$.
+As before, $F_{11}$ is structures whose leaves take the DFA from state $1$ to itself and so whose
 leaves match the regular expression $a^*$.
-So we have simply that $F_{00}(a,b) = F(a)$.
-However, we now have that $F_{11}(a,b) = F(b)$.
+So we have simply that $F_{11}(a,b) = F(a)$.
+However, we now have that $F_{22}(a,b) = F(b)$.
 We also have
 \[
-F_{01} = F_{00}\times G_{01}+F_{01}\times G_{11}
+F_{12} = G_{11}\times H_{12}+G_{12}\times H_{22}
 \]
 So
 \[
-F_{01}(a,b) = F(a)\times G_{01}(a,b)+F_{01}(a,b)\times G(b)
+F_{12}(a,b) = G(a)\times H_{12}(a,b)+G_{12}(a,b)\times H(b)
 \]
 This is the modified Leibniz rule described in \cite{dissection}.
 \dan{Do other operations}
