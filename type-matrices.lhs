@@ -597,7 +597,7 @@ of regular expressions and the theory of DFAs are really ``about the
 same thing''.  In particular, the set of strings accepted by a DFA is
 always a regular language, and conversely, for every regular language
 there exists a DFA which accepts it.  Moreover, the proof of the
-theorem is effective: given a regular expression, we may
+theorem is constructive: given a regular expression, we may
 algorithmically construct a corresponding DFA (and vice versa).  For
 example, the regular expression $a^*1b^*$ corresponds to the DFA shown
 in \pref{fig:astar-1-bstar}.  It is not hard to verify that strings
@@ -629,7 +629,7 @@ dia = drawDFA astar1bstar # centerXY # pad 1.1
 \section{Types and DFAs}
 \label{sec:types-and-dfas}
 
-Viewing regular expressions via the lens of DFAs gives us exactly the
+Viewing regular expressions through the lens of DFAs gives us exactly the
 tools we need to generalize our \emph{ad hoc} analysis from the
 introduction.   Consider again the task of encoding a type with the
 same shape as
@@ -986,13 +986,13 @@ This yields
 \end{multline*}
 
 We can see that |L11| and |L22| are isomorphic, as are |L12| and
-|L21|. Thinking about the meaning of paths through the DFA, we see
+|L21|. \brent{Note this sort of thing arises from automorphisms of the
+  DFA?} Thinking about the meaning of paths through the DFA, we see
 that |L11| is the type of lists with even length, and |L12|, lists with
 odd length. More familiarly:
 
 > data EvenList a  = EvenNil | EvenCons a (OddList a)
 > data OddList a   = OddCons a (EvenList a)
-
 
 %format Bij = B "_{ij}"
 %format B11
