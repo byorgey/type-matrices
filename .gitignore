@@ -39,3 +39,4 @@ diagrams/*.hs
 diagrams/*.eps
 TAGS
 *_flymake.*
+*.agdai
