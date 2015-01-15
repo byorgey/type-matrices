@@ -172,8 +172,7 @@ alternating list is with a pair of mutually recursive types, as follows:
 >
 > data BList a b  =  BCons b (AList a b)
 
-(Another way would be to use a single GADT with a phantom type
-parameter.) \brent{Include this parenthetical?} The required type is
+The required type is
 |AList a b|: a value of type |AList a b| must be either empty (|ANil|)
 or contain a value of type |a|, followed by a value of type |b|,
 followed recursively by another |AList a b|.
@@ -335,10 +334,10 @@ with four mutually recursive types---is there is any simpler solution?
 And how well will this sort of reasoning extend to more complicated
 structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
-data type.\brent{actually only for \emph{polynomial} types, but we
-  haven't defined that yet... is there something we can say to be more
-  accurate without using technical terms which haven't yet been
-  introduced?}
+suitable (\term{polynomial}) data type.\brent{actually only for
+  \emph{polynomial} types, but we haven't defined that yet... is there
+  something we can say to be more accurate without using technical
+  terms which haven't yet been introduced?}
 
 % There's a detail whose importance I'm not 100\% sure of. There are
 % multiple solutions to the problem of 'lifting' a type to be
@@ -438,8 +437,8 @@ following grammar:
 
 \newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
 
-When writing regular expressions, we also allow parentheses for
-disambiguation, and also adopt the common convention that Kleene star
+When writing regular expressions, we allow parentheses for
+disambiguation, and adopt the common convention that Kleene star
 ($R^*$) has higher precedence than concatenation ($RR$), which has
 higher precedence than alternation ($R \union R$).
 
@@ -457,8 +456,12 @@ particular,
 \item $\sem{R_1 R_2} = \sem{R_1} \sem{R_2}$, where $L_1 L_2$ denotes
   concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in L_1,
   s_2 \in L_2 \}. \]
-\item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least solution
-  of \[ L^* = \{\varepsilon\} \union LL^*. \]
+\item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least fixed
+  point solution of \[ L^* = \{\varepsilon\} \union LL^*. \] (Such a
+  least fixed point exists by the Knaster-Tarski
+  theorem~\cite{tarski1955}, since the mapping $\varphi(S) = \{
+  \varepsilon \} \union L S$ is monotone, that is, if $S \subseteq T$
+  then $\varphi(S) \subseteq \varphi(T)$.)
 \end{itemize}
 
 \todo{add an example here?}
@@ -691,7 +694,8 @@ We can carry out a similar analysis for the other three types.  In
 fact, we have already carried out this exact analysis in the
 introduction, but it is now a bit less ad hoc.  In particular, we can
 now see that we end up with four mutually recursive types precisely
-because the DFA for $(ab)^*$ has two states (and $4 = 2^2$).
+because the DFA for $(ab)^*$ has two states, and we need one type for
+each ordered pair of states.
 
 % \footnote{In general, we can imagine ending up with \emph{fewer}
 %  than $n^2$ mutually recursive types for a DFA of $n$ states---if some
@@ -1327,6 +1331,12 @@ Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 \todo{Write something about associativity/commutativity?  Holds for
   types up to isomorphism but we might want something a bit stronger
   at times.}
+
+\section{Encoding in Haskell}
+
+\brent{Maybe something should go here about encoding some of this
+  automatically in Haskell with type-level computation.  Or maybe in
+  Agda.  Needs to be fleshed out.}
 
 \section{Discussion}
 Technique for constructing types with constraints. Ad hoc rules formalized.
