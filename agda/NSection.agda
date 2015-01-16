@@ -10,7 +10,19 @@ open import Data.Vec     hiding (map)
 
 open import Function
 
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality hiding ( [_] )
+
+-- Some utilities.
+
+data SnocVecView {τ : Set₁} : {n : ℕ} → Vec τ n → Set₁ where
+  NilV  : SnocVecView []
+  SnocV : {n : ℕ} → (xs : Vec τ n) → (x : τ) → SnocVecView (xs ++ [ x ])
+
+view : {τ : Set₁} {n : ℕ} → (v : Vec τ n) → SnocVecView v
+view [] = NilV
+view (x ∷ v)                with view v
+view (x ∷ .[])              | NilV = SnocV [] x
+view (x₁ ∷ .(xs ++ x ∷ [])) | SnocV xs x = SnocV (x₁ ∷ xs) x
 
 -- Universe/algebra of n-ary functors.
 data F : ℕ → Set₁ where
@@ -19,9 +31,15 @@ data F : ℕ → Set₁ where
   X    : {n : ℕ} → Fin n → F n        -- projection, i.e. Id
   _⊕_  : {n : ℕ} → F n → F n → F n    -- sum
   _⊗_  : {n : ℕ} → F n → F n → F n    -- product
+  L    : {n : ℕ} → F 1 → F (suc n)    -- "all clowns", i.e. (C F) A_0 ... A_n = F A_0
+  R    : {n : ℕ} → F 1 → F (suc n)    -- "all jokers", i.e. (J F) A_0 ... A_n = F A_n
 
   -- Can't do least fixed point because it makes Agda unhappy, and I don't
   -- want to move to full-fledged containers right now
+  -- μ    : {n : ℕ} → Fin (suc n) → F n
+
+infixl 6 _⊕_
+infixl 7 _⊗_
 
 -- One is a synonym for the constantly ⊤ functor
 One : ∀ {n} → F n
@@ -46,6 +64,10 @@ Curry {suc n} f A = Curry (f ∘ _∷_ A)
 ⟦_⟧ (X (suc i)) As = ⟦ X i ⟧ (tail As)
 ⟦_⟧ (f ⊕ g) As = ⟦ f ⟧ As ⊎ ⟦ g ⟧ As
 ⟦_⟧ (f ⊗ g) As = ⟦ f ⟧ As × ⟦ g ⟧ As
+⟦_⟧ (L f) As = ⟦ f ⟧ [ head As ]
+⟦_⟧ (R f) (A ∷ As) with view As
+⟦_⟧ (R f) (A ∷ .[]) | NilV = ⟦ f ⟧ [ A ]
+⟦_⟧ (R f) (A ∷ .(As′ ++ A′ ∷ [])) | SnocV As′ A′ = ⟦ f ⟧ [ A′ ]
 
 -- Interpretation as Set → ... → Set
 ⟦_⟧′ : {n : ℕ} → F n → Sets n
@@ -75,6 +97,11 @@ map {As = _ ∷ _} {_ ∷ _} (X zero) (A→B , _) fAs = A→B fAs
 map {As = _ ∷ _} {_ ∷ _} (X (suc i)) (_ , m) fAs = map (X i) m fAs
 map (f ⊕ g) m fAs = Data.Sum.map (map f m) (map g m) fAs
 map (f ⊗ g) m fAs = Data.Product.map (map f m) (map g m) fAs
+map {As = A ∷ _} {B ∷ _} (L f) (A→B , _) fAs = map f (A→B , tt) fAs
+-- map {As = A ∷ As} {Bs = B ∷ Bs} (R f) m fAs with view As | view Bs
+-- map {.(suc 0)} {A ∷ .[]} {B ∷ .[]} (R f) m fAs | NilV | NilV = {!!}
+-- map {._} {A ∷ .(As′ ++ A′ ∷ [])} {B ∷ .(Bs′ ++ B′ ∷ [])} (R f) m fAs | SnocV As′ A′ | SnocV Bs′ B′ = {!!}
+map (R f) = {!!}
 
 -- Functor law: preservation of identity
 pres-id : ∀ {n : ℕ} {As : Vec Set n} → (f : F n) → {fAs : ⟦ f ⟧ As}
@@ -86,6 +113,10 @@ pres-id {As = _ ∷ _} (X (suc i)) = pres-id (X i)
 pres-id (f ⊕ g) {inj₁ fAs} = cong inj₁ (pres-id f)
 pres-id (f ⊕ g) {inj₂ gAs} = cong inj₂ (pres-id g)
 pres-id (f ⊗ g) {fAs , gAs} = cong₂ _,_ (pres-id f) (pres-id g)
+pres-id {As = A ∷ _} (L f) = pres-id f
+-- pres-id {As = A ∷ As} (R f) with view As
+-- ... | q = ?
+pres-id (R f) = {!!}
 
 postulate ext : ∀ {A B : Set} {f g : A → B} → ({x : A} → f x ≡ g x) → f ≡ g
 
@@ -103,6 +134,8 @@ pres-∘ {As = _ ∷ _} {Bs = _ ∷ _} {Cs = _ ∷ _} (X (suc i)) = pres-∘ (X 
 pres-∘ (f ⊕ g) {fAs = inj₁ fAs} = cong inj₁ (pres-∘ f)
 pres-∘ (f ⊕ g) {fAs = inj₂ gAs} = cong inj₂ (pres-∘ g)
 pres-∘ (f ⊗ g) {fAs = fAs , gAs} = cong₂ _,_ (pres-∘ f) (pres-∘ g)
+pres-∘ {As = A ∷ _} {Bs = B ∷ _} {Cs = C ∷ _} (L f) = pres-∘ f
+pres-∘ (R f) = {!!}
 
 pres-∘-ext : ∀ {n : ℕ} {As Bs Cs : Vec Set n} → (f : F n)
        → {g : Map As Bs} → {h : Map Bs Cs} → {fAs : ⟦ f ⟧ As}
@@ -112,3 +145,54 @@ pres-∘-ext f = ext (pres-∘ f)
 ------------------------------------------------------------
 -- Dissection
 ------------------------------------------------------------
+
+-- Start with basic 2-dissection, as in Jokers & Clowns paper
+
+D₂ : F 1 → F 2
+D₂ Zero = Zero
+D₂ (K _) = Zero
+D₂ (X _) = One
+D₂ (f ⊕ g) = D₂ f ⊕ D₂ g
+D₂ (f ⊗ g) = (D₂ f ⊗ R g) ⊕ (L f ⊗ D₂ g)
+D₂ (L f) = D₂ f
+D₂ (R f) = D₂ f
+
+-- Should try redoing this with pointed things.  Also, seems like this is doing a lot of repeated work.
+
+right : (f : F 1) → {j c : Set} → (⟦ f ⟧′ j ⊎ (⟦ D₂ f ⟧′ c j × c)) → ((j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c)
+right Zero (inj₁ ())
+right Zero (inj₂ (() , _))
+right (K A) (inj₁ a) = inj₂ a
+right (K A) (inj₂ (() , _))
+right (X zero) (inj₁ j) = inj₁ (j , tt)
+right (X (suc ()))
+right (X zero) (inj₂ (tt , c)) = inj₂ c
+right (f ⊕ g) (inj₁ (inj₁ fj))       with right f (inj₁ fj)
+...                                  | inj₁ (j , f'cj)  = inj₁ (j , inj₁ f'cj)
+...                                  | inj₂ fc          = inj₂ (inj₁ fc)
+right (f ⊕ g) (inj₁ (inj₂ gj))       with right g (inj₁ gj)
+...                                  | inj₁ (j , g'cj)  = inj₁ (j , inj₂ g'cj)
+...                                  | inj₂ gc          = inj₂ (inj₂ gc)
+right (f ⊕ g) (inj₂ (inj₁ f'cj , c)) with right f (inj₂ (f'cj , c))
+...                                  | inj₁ (j , f'cj₂) = inj₁ (j , inj₁ f'cj₂)
+...                                  | inj₂ fc          = inj₂ (inj₁ fc)
+right (f ⊕ g) (inj₂ (inj₂ g'cj , c)) with right g (inj₂ (g'cj , c))
+...                                  | inj₁ (j , g'cj₂) = inj₁ (j , inj₂ g'cj₂)
+...                                  | inj₂ gc          = inj₂ (inj₂ gc)
+right (f ⊗ g) (inj₁ (fj , gj))       with right f (inj₁ fj)
+...                                  | inj₁ (j , f'cj)  = inj₁ (j , (inj₁ (f'cj , gj)))
+...                                  | inj₂ fc
+                                       with right g (inj₁ gj)
+...                                    | inj₁ (j , g'cj) = inj₁ (j , (inj₂ (fc , g'cj)))
+...                                    | inj₂ gc         = inj₂ (fc , gc)
+right (f ⊗ g) (inj₂ (inj₁ (f'cj , gj) , c)) with right f (inj₂ (f'cj , c))
+...                                         | inj₁ (j , f'cj₂)  = inj₁ (j , (inj₁ (f'cj₂ , gj)))
+...                                         | inj₂ fc
+                                              with right g (inj₁ gj)
+...                                           | inj₁ (j , g'cj) = inj₁ (j , (inj₂ (fc , g'cj)))
+...                                           | inj₂ gc         = inj₂ (fc , gc)
+right (f ⊗ g) (inj₂ (inj₂ (fc , g'cj) , c)) with right g (inj₂ (g'cj , c))
+...                                         | inj₁ (j , g'cj₂) = inj₁ (j , (inj₂ (fc , g'cj₂)))
+...                                         | inj₂ gc = inj₂ (fc , gc)
+right (L f) l = right f l
+right (R f) l = right f l
