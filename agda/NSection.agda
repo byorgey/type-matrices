@@ -159,40 +159,82 @@ D₂ (R f) = D₂ f
 
 -- Should try redoing this with pointed things.  Also, seems like this is doing a lot of repeated work.
 
-right : (f : F 1) → {j c : Set} → (⟦ f ⟧′ j ⊎ (⟦ D₂ f ⟧′ c j × c)) → ((j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c)
-right Zero (inj₁ ())
-right Zero (inj₂ (() , _))
-right (K A) (inj₁ a) = inj₂ a
-right (K A) (inj₂ (() , _))
-right (X zero) (inj₁ j) = inj₁ (j , tt)
-right (X (suc ()))
-right (X zero) (inj₂ (tt , c)) = inj₂ c
-right (f ⊕ g) (inj₁ (inj₁ fj))       with right f (inj₁ fj)
-...                                  | inj₁ (j , f'cj)  = inj₁ (j , inj₁ f'cj)
-...                                  | inj₂ fc          = inj₂ (inj₁ fc)
-right (f ⊕ g) (inj₁ (inj₂ gj))       with right g (inj₁ gj)
-...                                  | inj₁ (j , g'cj)  = inj₁ (j , inj₂ g'cj)
-...                                  | inj₂ gc          = inj₂ (inj₂ gc)
-right (f ⊕ g) (inj₂ (inj₁ f'cj , c)) with right f (inj₂ (f'cj , c))
-...                                  | inj₁ (j , f'cj₂) = inj₁ (j , inj₁ f'cj₂)
-...                                  | inj₂ fc          = inj₂ (inj₁ fc)
-right (f ⊕ g) (inj₂ (inj₂ g'cj , c)) with right g (inj₂ (g'cj , c))
-...                                  | inj₁ (j , g'cj₂) = inj₁ (j , inj₂ g'cj₂)
-...                                  | inj₂ gc          = inj₂ (inj₂ gc)
-right (f ⊗ g) (inj₁ (fj , gj))       with right f (inj₁ fj)
-...                                  | inj₁ (j , f'cj)  = inj₁ (j , (inj₁ (f'cj , gj)))
-...                                  | inj₂ fc
-                                       with right g (inj₁ gj)
-...                                    | inj₁ (j , g'cj) = inj₁ (j , (inj₂ (fc , g'cj)))
-...                                    | inj₂ gc         = inj₂ (fc , gc)
-right (f ⊗ g) (inj₂ (inj₁ (f'cj , gj) , c)) with right f (inj₂ (f'cj , c))
-...                                         | inj₁ (j , f'cj₂)  = inj₁ (j , (inj₁ (f'cj₂ , gj)))
-...                                         | inj₂ fc
-                                              with right g (inj₁ gj)
-...                                           | inj₁ (j , g'cj) = inj₁ (j , (inj₂ (fc , g'cj)))
-...                                           | inj₂ gc         = inj₂ (fc , gc)
-right (f ⊗ g) (inj₂ (inj₂ (fc , g'cj) , c)) with right g (inj₂ (g'cj , c))
-...                                         | inj₁ (j , g'cj₂) = inj₁ (j , (inj₂ (fc , g'cj₂)))
-...                                         | inj₂ gc = inj₂ (fc , gc)
-right (L f) l = right f l
-right (R f) l = right f l
+-- right : (f : F 1) → {j c : Set} → (⟦ f ⟧′ j ⊎ (⟦ D₂ f ⟧′ c j × c)) → ((j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c)
+-- right Zero (inj₁ ())
+-- right Zero (inj₂ (() , _))
+-- right (K A) (inj₁ a) = inj₂ a
+-- right (K A) (inj₂ (() , _))
+-- right (X zero) (inj₁ j) = inj₁ (j , tt)
+-- right (X (suc ()))
+-- right (X zero) (inj₂ (tt , c)) = inj₂ c
+-- right (f ⊕ g) (inj₁ (inj₁ fj))       with right f (inj₁ fj)
+-- ...                                  | inj₁ (j , f'cj)  = inj₁ (j , inj₁ f'cj)
+-- ...                                  | inj₂ fc          = inj₂ (inj₁ fc)
+-- right (f ⊕ g) (inj₁ (inj₂ gj))       with right g (inj₁ gj)
+-- ...                                  | inj₁ (j , g'cj)  = inj₁ (j , inj₂ g'cj)
+-- ...                                  | inj₂ gc          = inj₂ (inj₂ gc)
+-- right (f ⊕ g) (inj₂ (inj₁ f'cj , c)) with right f (inj₂ (f'cj , c))
+-- ...                                  | inj₁ (j , f'cj₂) = inj₁ (j , inj₁ f'cj₂)
+-- ...                                  | inj₂ fc          = inj₂ (inj₁ fc)
+-- right (f ⊕ g) (inj₂ (inj₂ g'cj , c)) with right g (inj₂ (g'cj , c))
+-- ...                                  | inj₁ (j , g'cj₂) = inj₁ (j , inj₂ g'cj₂)
+-- ...                                  | inj₂ gc          = inj₂ (inj₂ gc)
+-- right (f ⊗ g) (inj₁ (fj , gj))       with right f (inj₁ fj)
+-- ...                                  | inj₁ (j , f'cj)  = inj₁ (j , (inj₁ (f'cj , gj)))
+-- ...                                  | inj₂ fc
+--                                        with right g (inj₁ gj)
+-- ...                                    | inj₁ (j , g'cj) = inj₁ (j , (inj₂ (fc , g'cj)))
+-- ...                                    | inj₂ gc         = inj₂ (fc , gc)
+-- right (f ⊗ g) (inj₂ (inj₁ (f'cj , gj) , c)) with right f (inj₂ (f'cj , c))
+-- ...                                         | inj₁ (j , f'cj₂)  = inj₁ (j , (inj₁ (f'cj₂ , gj)))
+-- ...                                         | inj₂ fc
+--                                               with right g (inj₁ gj)
+-- ...                                           | inj₁ (j , g'cj) = inj₁ (j , (inj₂ (fc , g'cj)))
+-- ...                                           | inj₂ gc         = inj₂ (fc , gc)
+-- right (f ⊗ g) (inj₂ (inj₂ (fc , g'cj) , c)) with right g (inj₂ (g'cj , c))
+-- ...                                         | inj₁ (j , g'cj₂) = inj₁ (j , (inj₂ (fc , g'cj₂)))
+-- ...                                         | inj₂ gc = inj₂ (fc , gc)
+-- right (L f) l = right f l
+-- right (R f) l = right f l
+
+
+-- The below implementation more closely matches Conor's from "Jokers & Clowns"
+
+⊕f : (f g : F 1) {j c : Set} → (j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c → (j × ⟦ D₂ (f ⊕ g) ⟧′ c j) ⊎ ⟦ f ⊕ g ⟧′ c
+⊕f _ _ (inj₁ (j , f'cj)) = inj₁ (j , inj₁ f'cj)
+⊕f _ _ (inj₂ fc) = inj₂ (inj₁ fc)
+
+⊕g : (f g : F 1) {j c : Set} → (j × ⟦ D₂ g ⟧′ c j) ⊎ ⟦ g ⟧′ c → (j × ⟦ D₂ (f ⊕ g) ⟧′ c j) ⊎ ⟦ f ⊕ g ⟧′ c
+⊕g _ _ (inj₁ (j , g'cj)) = inj₁ (j , inj₂ g'cj)
+⊕g _ _ (inj₂ gc) = inj₂ (inj₂ gc)
+
+mutual
+  ⊗f : (f g : F 1) {j c : Set} → (j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c → ⟦ g ⟧′ j → (j × ⟦ D₂ (f ⊗ g) ⟧′ c j) ⊎ ⟦ f ⊗ g ⟧′ c
+  ⊗f f g (inj₁ (j , f'cj)) gj = inj₁ (j , (inj₁ (f'cj , gj)))
+  ⊗f f g (inj₂ fc) gj = ⊗g f g fc (right g (inj₁ gj))
+
+  ⊗g : (f g : F 1) {j c : Set} → ⟦ f ⟧′ c → (j × ⟦ D₂ g ⟧′ c j) ⊎ ⟦ g ⟧′ c → (j × ⟦ D₂ (f ⊗ g) ⟧′ c j) ⊎ ⟦ f ⊗ g ⟧′ c
+  ⊗g f g fc (inj₁ (j , g'cj)) = inj₁ (j , (inj₂ (fc , g'cj)))
+  ⊗g f g fc (inj₂ gc) = inj₂ (fc , gc)
+
+  right : (f : F 1) → {j c : Set} → (⟦ f ⟧′ j ⊎ (⟦ D₂ f ⟧′ c j × c)) → ((j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c)
+  right Zero (inj₁ ())
+  right Zero (inj₂ (() , _))
+  right (K A) (inj₁ a) = inj₂ a
+  right (K A) (inj₂ (() , _))
+  right (X zero) (inj₁ j) = inj₁ (j , tt)
+  right (X (suc ()))
+  right (X zero) (inj₂ (tt , c)) = inj₂ c
+  right (f ⊕ g) (inj₁ (inj₁ fj)) = ⊕f f g (right f (inj₁ fj))
+  right (f ⊕ g) (inj₁ (inj₂ gj)) = ⊕g f g (right g (inj₁ gj))
+  right (f ⊕ g) (inj₂ (inj₁ f'cj , c)) = ⊕f f g (right f (inj₂ (f'cj , c)))
+  right (f ⊕ g) (inj₂ (inj₂ g'cj , c)) = ⊕g f g (right g (inj₂ (g'cj , c)))
+  right (f ⊗ g) (inj₁ (fj , gj)) = ⊗f f g (right f (inj₁ fj)) gj
+  right (f ⊗ g) (inj₂ (inj₁ (f'cj , gj) , c)) = ⊗f f g (right f (inj₂ (f'cj , c))) gj
+  right (f ⊗ g) (inj₂ (inj₂ (fc , g'cj) , c)) = ⊗g f g fc (right g (inj₂ (g'cj , c)))
+  right (L f) x = right f x
+  right (R f) x = right f x
+
+-- Next: try making types for pointed dissections?  Or go ahead and try generalizing to n-section?
+
+
