@@ -1,5 +1,6 @@
 % -*- mode: LaTeX; compile-command: "runghc make" -*-
-\documentclass[authoryear,preprint]{sigplanconf}
+% \documentclass[authoryear,preprint]{sigplanconf}
+\documentclass{llncs}
 
 %vim: set makeprg=runghc make:
 
@@ -13,6 +14,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Package imports
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{makeidx}
 
 \usepackage{amsmath}
 \usepackage{tikz}
@@ -34,10 +37,9 @@
 % Prettyref
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newrefformat{fig}{Figure~\ref{#1}}
-\newrefformat{sec}{Section~\ref{#1}}
-\newrefformat{var}{Variation~\ref{#1}}
-\newrefformat{eq}{equation~\eqref{#1}}
+\newrefformat{fig}{Fig.~\ref{#1}}
+\newrefformat{sec}{Sect.~\ref{#1}}
+\newrefformat{eq}{Equation~\eqref{#1}}
 \newrefformat{prob}{Problem~\ref{#1}}
 \newrefformat{tab}{Table~\ref{#1}}
 \newrefformat{thm}{Theorem~\ref{#1}}
@@ -87,36 +89,53 @@
 
 \begin{document}
 
-%\conferenceinfo{WXYZ '05}{date, City.}
-%\copyrightyear{2005}
-%\copyrightdata{[to be supplied]}
+%% ACM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\titlebanner{banner above paper title}        % These are ignored unless
-%\preprintfooter{short description of paper}   % 'preprint' option specified.
+% %\conferenceinfo{WXYZ '05}{date, City.}
+% %\copyrightyear{2005}
+% %\copyrightdata{[to be supplied]}
 
-\title{Matrices! Of Types!}
-%\subtitle{Subtitle Text, if any}
+% %\titlebanner{banner above paper title}        % These are ignored unless
+% %\preprintfooter{short description of paper}   % 'preprint' option specified.
 
-\authorinfo{Dan Piponi}
-           {Google}
-           {dpiponi@@gmail.com}
-\authorinfo{Brent A. Yorgey}
-           {University of Pennsylvania}
-           {byorgey@@cis.upenn.edu}
+% \title{Matrices! Of Types!}
+% %\subtitle{Subtitle Text, if any}
+
+% \authorinfo{Dan Piponi}
+%            {Google}
+%            {dpiponi@@gmail.com}
+% \authorinfo{Brent A. Yorgey}
+%            {University of Pennsylvania}
+%            {byorgey@@cis.upenn.edu}
+
+% \maketitle
+
+% \begin{abstract}
+% Matrices of types are sweet
+% \end{abstract}
+
+% %\category{CR-number}{subcategory}{third-level}
+
+% %\terms
+% %term1, term2
+
+% %\keywords
+% %matrices, types
+
+%% LLNCS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Matrices of Types XXX}
+
+\author{Dan Piponi\inst{1} \and Brent A. Yorgey\inst{2}}
+\institute{Google \email{dpiponi@@gmail.com} \and Williams College \email{byorgey@@gmail.com}}
 
 \maketitle
 
 \begin{abstract}
-Matrices of types are sweet
+  Matrices of types are sweet
 \end{abstract}
 
-%\category{CR-number}{subcategory}{third-level}
-
-%\terms
-%term1, term2
-
-%\keywords
-%matrices, types
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Introduction}
 \label{sec:introduction}
@@ -1126,7 +1145,7 @@ accept states, we are actually looking for the sum type
   and dynamic type checks?  Could even code this up as a Haskell
   library perhaps\dots}
 
-\section{Derivatives, again}
+\section{Derivatives, Again}
 \label{sec:derivatives-again}
 Now that we have seen the general framework, let's return to the
 specific application of computing \emph{derivatives} of data types.
@@ -1254,7 +1273,7 @@ The matrix $\m{d}$ is playing a role similar to an
 $dx$ is manipulated informally as if $(dx)^2=0$.
 (Compare wth the dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
 
-\section{Divided differences}
+\section{Divided Differences}
 \label{sec:divided-differences}
 
 \begin{itemize}
@@ -1297,7 +1316,7 @@ F_{12}(a,b) = G(a)\times H_{12}(a,b)+G_{12}(a,b)\times H(b)
 \]
 This is the modified Leibniz rule described in \cite{dissection}.
 \dan{Do other operations}
-We have already argued above in section~\ref{sec:zippers-and-dissections}
+We have already argued above in \pref{sec:zippers-and-dissections}
 that the regular expression $a^*1b^*$
 gives rise to dissections. We have now also shown how the algebraic rules for
 dissections are actually statements about the transition matrices for the
@@ -1344,7 +1363,8 @@ In some sense we've given an explanation for derivatives and dissections.
 Hope they can find new applications eg. trees with constraints in the style of
 2-3/red-black trees (though maybe it's not the same kind of thing actually).
 
-\acks
+\section*{Acknowledgments}
+\label{sec:acknowledgments}
 
 Acknowledgments.
 
@@ -1353,8 +1373,6 @@ Acknowledgments.
 \todo{should cite Duchon, Flajolet, Louchard, Schaeffer, ``Boltzmann
   Samplers for Random Generation'' --- they hint at something related
   to this idea on p. 590.}
-
-% We recommend abbrvnat bibliography style.
 
 \bibliography{type-matrices}{}
 \bibliographystyle{abbrvnat}
