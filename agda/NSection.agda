@@ -12,6 +12,8 @@ open import Function
 
 open import Relation.Binary.PropositionalEquality hiding ( [_] )
 
+open import Level using (Level)
+
 -- Some utilities.
 
 data SnocVecView {τ : Set₁} : {n : ℕ} → Vec τ n → Set₁ where
@@ -238,3 +240,51 @@ mutual
 -- Next: try making types for pointed dissections?  Or go ahead and try generalizing to n-section?
 
 
+------------------------------------------------------------
+-- Generalized n-dissection
+------------------------------------------------------------
+
+record Semiring {ℓ : Level} (A : Set ℓ) : Set ℓ where
+  field _⊞_ : A → A → A
+  field id⊞ : A
+  field _⊡_ : A → A → A
+  field id⊡ : A
+
+open Semiring {{...}}
+
+-- instance 
+--   VecSemiring : {ℓ : Level} {A : Set ℓ} {n : ℕ} {{Semiring A}} → Semiring (Vec A n)
+--   VecSemiring = ?
+
+-- Matrices
+vecSum : {ℓ : Level} {n : ℕ} {A : Set ℓ} → (A → A → A) → Vec A n → Vec A n → Vec A n
+vecSum = zipWith
+
+dot : {ℓ : Level} {n : ℕ} {A : Set ℓ} → (A → A → A) → (A → A → A) → Vec A n → Vec A n → Vec A n
+dot _⊞_ _⊡_ v₁ v₂ = {!!} -- zipWith _⊡_ v₁ v₂
+
+-- M : {ℓ : Laevel} → ℕ → ℕ → Set ℓ → Set ℓ
+-- M m n A = Fin m → Fin n → A
+
+-- row : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → Fin m → M m n A → Vec A n
+-- row i m = m i
+
+-- col : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → Fin n → M m n A → Vec A m
+-- col j m = λ i → m i j
+
+-- matSum : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → (A → A → A) → M m n A → M m n A → M m n A
+-- matSum _⊞_ m₁ m₂ = λ i j → m₁ i j ⊞ m₂ i j
+
+-- matProd : {ℓ : Level} {m n p : ℕ} {A : Set ℓ} → (A → A → A) → (A → A → A)
+--         → M m n A → M n p A → M m p A
+-- matProd = {!!}
+
+-- D : {n : ℕ} → F 1 → F (suc (suc n))
+-- D Zero = Zero
+-- D (K _) = Zero
+-- D {zero} (X _) = One
+-- D {_} (X _) = Zero
+-- D (f ⊕ g) = D f ⊕ D g
+-- D (f ⊗ g) = {!!}  -- hmm, this is the hard/interesting case!
+-- D (L f) = D f
+-- D (R f) = D f
