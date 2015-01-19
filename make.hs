@@ -1,10 +1,12 @@
 import           Development.Shake
 import           Development.Shake.FilePath
 
+lhs2TeX, pdflatex, rubber :: String
 lhs2TeX  = "lhs2TeX"
 pdflatex = "pdflatex"
 rubber   = "rubber"
 
+main :: IO ()
 main = shake shakeOptions $ do
 
     want ["type-matrices.pdf"]
@@ -12,7 +14,7 @@ main = shake shakeOptions $ do
     "*.tex" *> \output -> do
         let input = replaceExtension output "lhs"
         need [input]
-        system' lhs2TeX $ ["-o", output] ++ [input]
+        cmd lhs2TeX $ ["-o", output] ++ [input]
 
     -- In general, running LaTeX enough times to resolve everything
     -- requires parsing the output of LaTeX.  A nice tool that can do
@@ -22,5 +24,5 @@ main = shake shakeOptions $ do
     "*.pdf" *> \output -> do
         let input = replaceExtension output "tex"
         need [input]
-        system' pdflatex $ ["--enable-write18", input]
-        system' rubber $ ["-f", "-d", input]
+        () <- cmd pdflatex $ ["--enable-write18", input]
+        cmd rubber $ ["-f", "-d", input]
