@@ -20,7 +20,7 @@ data Type = A | B | H
 
 drawType A = text "a" # italic # centerX <> square 2 # fc yellow
 drawType B = text "b" # italic # centerX <> circle 1 # fc red
-drawType H = text "1" # centerX <> circle 1 # fc white # dashing [0.2,0.2] 0
+drawType H = text "1" # centerX <> circle 1 # fc white # dashingG [0.2,0.2] 0
 
 renderT :: (Renderable Text b, Renderable (Path R2) b) => Tree (Maybe Type) -> Diagram b R2
 renderT
@@ -30,7 +30,7 @@ renderT
           Just t  -> drawType t
       )
       (~~)
-  . symmLayout' with { slHSep = 4, slVSep = 3 }
+  . symmLayout' (with & slHSep .~ 4 & slVSep .~ 3)
 
 arcArrow :: Renderable (Path R2) b => P2 -> P2 -> Double -> Double -> Diagram b R2 -> Diagram b R2
 arcArrow p1 p2 ht offs label
@@ -38,19 +38,19 @@ arcArrow p1 p2 ht offs label
     <> label
        # moveTo (alerp p1 p2 0.5 .+^ (signum ht *^ ((abs ht + envelopeS ((-signum ht) *^ perp v) label) *^ normalized (perp v))))
   where
-    perp (coords -> x :& y) = (-y) & x
+    perp (coords -> x :& y) = (-y) ^& x
     h = abs ht
     straight = h < 0.00001
     v  = p2 .-. p1
     d = magnitude (p2 .-. p1)
     th  = acos ((d*d - 4*h*h)/(d*d + 4*h*h))
     r = d/(2*sin th)
-    phi | straight = 0
-        | otherwise = Rad $ offs/r
-    mid | ht >= 0    = tau/4
-        | otherwise = 3*tau/4
-    st  = mid - Rad th + phi
-    end = mid + Rad th - phi
+    phi | straight = 0 @@ rad
+        | otherwise = (offs/r) @@ rad
+    mid | ht >= 0   = (tau/4) @@ rad
+        | otherwise = (3*tau/4) @@ rad
+    st  = mid ^-^ (th @@ rad) ^+^ phi
+    end = mid ^+^ (th @@ rad) ^-^ phi
     a | straight
       = hrule (d - 2*offs) # alignL # translateX offs
       | otherwise
@@ -59,15 +59,15 @@ arcArrow p1 p2 ht offs label
       # translateY ((if ht > 0 then negate else id) (r-h))
       # translateX (d/2)
       # (if ht > 0 then reversePath else id)
-    endPt = (\(p,t) -> p .+^ trailOffset t) . head . pathTrails $ a
+    endPt = atEnd . head . pathTrails $ a
     hd = triangle 0.4 # rotateBy (-1/4) # alignR # fc black # scaleY 0.7
-       # rotate (if ht >= 0 then st - Rad (tau/4) else Rad (3*tau/4) - st)
+       # rotate (if ht >= 0 then st ^-^ ((tau/4) @@ rad) else ((3*tau/4) @@ rad) ^-^ st)
     aDia
       = ( hd # moveTo endPt
         <>
           a  # stroke
         )
-        # rotateBy (direction v)
+        # rotate (direction v)
         # moveTo p1
 
 data DFA e = DFA (M.Map Int (Bool,P2)) (M.Map (Int,Int) e)
@@ -79,7 +79,7 @@ instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2, Bool) where
   drawEdge states (i,j) (label,flp)
     | i == j
     = arcArrow
-        (pti # translateY (-1.4) # rotateAbout pti (-theta))
+        (pti # translateY (-1.4) # rotateAbout pti (negateV theta))
         (pti # translateY (-1.4) # rotateAbout pti theta)
         (-1.3)
         0
@@ -87,8 +87,8 @@ instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2, Bool) where
     | otherwise
     = arcArrow pti ptj (if flp then (-1) else 1) 1.4 label
     where
-      theta = 20 :: Deg
-      stPos ix = fromMaybe (1000 & 1000) $ snd <$> M.lookup ix states
+      theta = 20 @@ deg
+      stPos ix = fromMaybe (1000 ^& 1000) $ snd <$> M.lookup ix states
       pti = stPos i
       ptj = stPos j
 
@@ -117,13 +117,13 @@ drawEdges states = mconcat . map (uncurry (drawEdge states))
 
 testDFA = dfa
   [ 1 --> (True, origin)
-  , 2 --> (False, 5 & 0)
+  , 2 --> (False, 5 ^& 0)
   ]
   [ 1 >-- txt "a" --> 2
   , 2 >-- txt "b" --> 1
   ]
 
-txt s = text s <> square 1 # lw 0
+txt s = text s <> square 1 # lw none
 
 -- main = defaultMain $ drawDFA testDFA
 

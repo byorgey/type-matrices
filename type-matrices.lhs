@@ -173,11 +173,11 @@ lst = withNameAll "elt" (\ds ->
         in
             beneath (start ~~ end)
       )
-    . hcat' with {sep=1}
+    . hcat' (with & sep .~ 1)
     . map (named "elt" . drawType)
     $ [A,B,A,B,A,B]
 
-dia = lst # lw 0.1 # centerXY # pad 1.1
+dia = lst # frame 0.5
 \end{diagram}
 %$
   \caption{A list with alternating types}
