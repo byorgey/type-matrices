@@ -18,6 +18,7 @@
 \usepackage{makeidx}
 
 \usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{tikz}
 \usepackage{prettyref}
 
@@ -554,7 +555,7 @@ exampleDFA = dfa
 
 txtN s = (txt s, False)
 
-dia = drawDFA exampleDFA # centerXY # pad 1.1
+dia = drawDFA exampleDFA # frame 0.5
   \end{diagram}
   \caption{An example DFA}
   \label{fig:dfa-example}
@@ -587,7 +588,7 @@ exampleDFA = dfa
   , 3 >-- txt "b" --> 2
   ]
 
-dia = drawDFA exampleDFA # centerXY # pad 1.1
+dia = drawDFA exampleDFA # frame 0.5
   \end{diagram}
   \caption{Example DFA, simplified}
   \label{fig:dfa-example-simpl}
@@ -642,7 +643,7 @@ astar1bstar = dfa
   , 2 >-- txt "b" --> 2
   ]
 
-dia = drawDFA astar1bstar # centerXY # pad 1.1
+dia = drawDFA astar1bstar # frame 0.5
   \end{diagram}
   \caption{A DFA for $a^*1b^*$}
   \label{fig:astar-1-bstar}
@@ -678,7 +679,7 @@ abStar = dfa
   , 2 >-- txt "b" --> 1
   ]
 
-dia = drawDFA abStar # centerXY # pad 1.1
+dia = drawDFA abStar # frame 0.5
   \end{diagram}
   \caption{A DFA for $(ab)^\ast$}
   \label{fig:ab-star-dfa}
@@ -972,7 +973,7 @@ aaStar = dfa
   , 2 >-- txt "a" --> 1
   ]
 
-dia = drawDFA aaStar # centerXY # pad 1.1
+dia = drawDFA aaStar # frame 0.5
   \end{diagram}
   \caption{A DFA for $(aa)^*$}
   \label{fig:dfa-aa}
@@ -1058,7 +1059,7 @@ noAA = dfa
   , 2 >-- txt "b" --> 1
   ]
 
-dia = drawDFA noAA # centerXY # pad 1.1
+dia = drawDFA noAA # frame 0.5
   \end{diagram}
   \caption{A DFA for avoiding consecutive $a$'s}
   \label{fig:DFA-no-consec-a}
@@ -1167,7 +1168,7 @@ deriv = dfa
   , 2 >-- txt "a" --> 2
   ]
 
-dia = drawDFA deriv # centerXY # pad 1.1
+dia = drawDFA deriv # frame 0.5
   \end{diagram}
   \caption{A DFA for derivatives}
   \label{fig:DFA-deriv}
@@ -1276,69 +1277,127 @@ $dx$ is manipulated informally as if $(dx)^2=0$.
 \section{Divided Differences}
 \label{sec:divided-differences}
 
-\begin{itemize}
-\item Use the new power to also generalize dissections to divided
-  differences.
-\end{itemize}
+Consider again the regular expression $a^*1b^*$.  Data structures with
+leaf sequences matching this pattern have a ``hole'' with values of
+ype $a$ to the left of the hole and values of type $b$ to the right
+(\pref{fig:divided-tree}).
+\begin{figure}
+  \centering
+\begin{diagram}[width=150]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
 
-Consider now the DFA for the regular expression $a^*1b^*$.
-The corresponding diagram is
-\dan{Diagram}
-\[ \m{T} =
-\begin{bmatrix}
-  |a| & |1| \\
-  |0| & |b|
-\end{bmatrix}
-\]
-Just as when we considered derivatives, suppose a functor \dan{?} is a
-product of two functors
-\[
-F = G \times H.
-\]
-Then
-\[
-F_{11} = G_{11}\times H_{11}+G_{12}\times H_{21}
-\]
-As before, $H_{21}$ contains sequences of leaves which take the DFA
-from state $2$ to state $1$; but there are no such strings. So $H_{21}$ is the uninhabited type $0$.
-So $F_{11} = G_{11}\times H_{11}$.
-As before, $F_{11}$ is structures whose leaves take the DFA from state $1$ to itself and so whose
-leaves match the regular expression $a^*$.
-So we have simply that $F_{11}(a,b) = F(a)$.
-However, we now have that $F_{22}(a,b) = F(b)$.
-We also have
-\[
-F_{12} = G_{11}\times H_{12}+G_{12}\times H_{22}
-\]
-So
-\[
-F_{12}(a,b) = G(a)\times H_{12}(a,b)+G_{12}(a,b)\times H(b)
-\]
-This is the modified Leibniz rule described in \cite{dissection}.
-\dan{Do other operations}
-We have already argued above in \pref{sec:zippers-and-dissections}
-that the regular expression $a^*1b^*$
-gives rise to dissections. We have now also shown how the algebraic rules for
-dissections are actually statements about the transition matrices for the
-corresponding DFA.
+t = nd
+    [ nd
+      [ nd $
+          leaves [A, A]
+      , lf A
+      ]
+    , nd
+      [ nd
+        [ lf H
+        , nd $ leaves [B, B]
+        ]
+      , nd $ leaves [B, B]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
 
-There is a more familiar interpretation of the dissection operation.
-Given a function of a single real variable $f$,
-the divided difference is the function of two variables mapping $x_0$, $x_1$ to $(f(x_0)-f(x_1)/(x_0-x_1))$ which is sometimes also written as $[x_0, x_1]f$.
-\begin{multline*}
-[x_0,x_1](fg) = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
-= (f(x_0)g(x_0)-f(x_0)g(x_1)+f(x_0)g(x_1)-f(x_1)g(x_1))/(x_0-x_1)\\
-= f(x_0)[x_0,x_1]g+[x_0,x_1]fg(x_1)
-\end{multline*}
-This is McBride's modified Leibniz rule.
-For polynomial types, dissection is the divided difference.
-There is an important caveat: in the usual context of numerical
-methods, divided differences are usually defined using
-subtraction. Subtraction isn't meaningful for types.
-But the Leibniz law above shows that for polynomials divided differences
-could have been defined without making reference to subtraction and that
-this definition carries over to types.
-Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
+dia = renderT t # frame 0.5
+\end{diagram}
+%$
+  \caption{A tree with leaf sequence matching $a^*1b^*$}
+  \label{fig:divided-tree}
+\end{figure}
+Such structures have been considered by McBride (XXX cite), who refers
+to them as ``dissections'', and derives operations for manipulating
+them.
+
+%% XXX FIX THESE SYMBOLS
+\newcommand{\dissect}{\triangle}
+\newcommand{\clowns}{\mathord{\langle}}
+\newcommand{\jokers}{\mathord{\rangle}}
+
+Given a functor $p$, McBride uses $\dissect p$ to denote the bifunctor
+which is the dissection of $p$, and also defines bifunctors $(\clowns
+p)\ a\ b = p\ a$ and $(\jokers p)\ a\ b = p\ b$.  The central
+construction is the Leibniz rule \[ \dissect (p \times q) =
+\clowns p \times \dissect q + \dissect p \times \jokers q. \]
+\todo{Say something more about this?}
+
+The DFA recognizing $a^*1b^*$ is illustrated in
+\pref{fig:astar-1-bstar}, and has transition matrix
+\[ \begin{bmatrix} a & 1 \\ 0 & b \end{bmatrix}. \] Under the
+homomorphism induced by this DFA, the functor $p$ maps to the matrix
+of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p \\ 0 &
+  \jokers p \end{bmatrix}. \]  Taking the product of two such matrices
+indeed gives us \[ \begin{bmatrix} \clowns p & \dissect p \\ 0 &
+  \jokers p \end{bmatrix} \begin{bmatrix} \clowns q & \dissect q \\ 0 &
+  \jokers q \end{bmatrix} = \begin{bmatrix} \clowns p \times \clowns q
+  & \clowns p \times \dissect q + \dissect p + \jokers q \\ 0 &
+  \jokers p \times \jokers q \end{bmatrix}. \] \todo{explain a bit more.}
+
+%% Consider now the DFA for the regular expression $a^*1b^*$.
+%% The corresponding diagram is
+%% \dan{Diagram}
+%% \[ \m{T} =
+%% \begin{bmatrix}
+%%   |a| & |1| \\
+%%   |0| & |b|
+%% \end{bmatrix}
+%% \]
+%% Just as when we considered derivatives, suppose a functor \dan{?} is a
+%% product of two functors
+%% \[
+%% F = G \times H.
+%% \]
+%% Then
+%% \[
+%% F_{11} = G_{11}\times H_{11}+G_{12}\times H_{21}
+%% \]
+%% As before, $H_{21}$ contains sequences of leaves which take the DFA
+%% from state $2$ to state $1$; but there are no such strings. So $H_{21}$ is the uninhabited type $0$.
+%% So $F_{11} = G_{11}\times H_{11}$.
+%% As before, $F_{11}$ is structures whose leaves take the DFA from state $1$ to itself and so whose
+%% leaves match the regular expression $a^*$.
+%% So we have simply that $F_{11}(a,b) = F(a)$.
+%% However, we now have that $F_{22}(a,b) = F(b)$.
+%% We also have
+%% \[
+%% F_{12} = G_{11}\times H_{12}+G_{12}\times H_{22}
+%% \]
+%% So
+%% \[
+%% F_{12}(a,b) = G(a)\times H_{12}(a,b)+G_{12}(a,b)\times H(b)
+%% \]
+%% This is the modified Leibniz rule described in \cite{dissection}.
+%% \dan{Do other operations}
+%% We have already argued above in \pref{sec:zippers-and-dissections}
+%% that the regular expression $a^*1b^*$
+%% gives rise to dissections. We have now also shown how the algebraic rules for
+%% dissections are actually statements about the transition matrices for the
+%% corresponding DFA.
+
+%% There is a more familiar interpretation of the dissection operation.
+%% Given a function of a single real variable $f$,
+%% the divided difference is the function of two variables mapping $x_0$, $x_1$ to $(f(x_0)-f(x_1)/(x_0-x_1))$ which is sometimes also written as $[x_0, x_1]f$.
+%% \begin{multline*}
+%% [x_0,x_1](fg) = (f(x_0)g(x_0)-f(x_1)g(x_1))/(x_0-x_1)\\
+%% = (f(x_0)g(x_0)-f(x_0)g(x_1)+f(x_0)g(x_1)-f(x_1)g(x_1))/(x_0-x_1)\\
+%% = f(x_0)[x_0,x_1]g+[x_0,x_1]fg(x_1)
+%% \end{multline*}
+%% This is McBride's modified Leibniz rule.
+%% For polynomial types, dissection is the divided difference.
+%% There is an important caveat: in the usual context of numerical
+%% methods, divided differences are usually defined using
+%% subtraction. Subtraction isn't meaningful for types.
+%% But the Leibniz law above shows that for polynomials divided differences
+%% could have been defined without making reference to subtraction and that
+%% this definition carries over to types.
+%% Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
 \section{Composition}
 \label{sec:composition}
@@ -1350,12 +1409,6 @@ Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 \todo{Write something about associativity/commutativity?  Holds for
   types up to isomorphism but we might want something a bit stronger
   at times.}
-
-\section{Encoding in Haskell}
-
-\brent{Maybe something should go here about encoding some of this
-  automatically in Haskell with type-level computation.  Or maybe in
-  Agda.  Needs to be fleshed out.}
 
 \section{Discussion}
 Technique for constructing types with constraints. Ad hoc rules formalized.
