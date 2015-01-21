@@ -10,7 +10,7 @@ module TypeMatricesDiagrams where
 import qualified Data.Map                       as M
 import           Data.Maybe                     (fromMaybe)
 import           Data.Tree
-import           Diagrams.Backend.Postscript
+import           Diagrams.Backend.Cairo
 import           Diagrams.Core.Envelope
 import           Diagrams.Prelude
 import           Diagrams.TwoD.Layout.Tree

@@ -21,7 +21,7 @@
 \usepackage{tikz}
 \usepackage{prettyref}
 
-\usepackage[outputdir=diagrams/,backend=ps,extension=eps]{diagrams-latex}
+\usepackage[outputdir=diagrams/,backend=cairo,extension=pdf]{diagrams-latex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Semantic markup
@@ -253,25 +253,25 @@ import Diagrams.TwoD.Layout.Tree
 import Data.Tree
 import TypeMatricesDiagrams
 
-t = Nothing ##
-    [ Nothing ##
-      [ Nothing ##
-          leaves [ Just A, Just B ]
-      , leaf $ Just A
+t = nd
+    [ nd
+      [ nd $
+          leaves [A, B]
+      , lf A
       ]
-    , Nothing ##
-      [ Nothing ##
-        [ leaf $ Just B
-        , Nothing ## leaves [Just A, Just B]
+    , nd
+      [ nd
+        [ lf B
+        , nd $ leaves [A, B]
         ]
-      , Nothing ## leaves [Just A, Just B]
+      , nd $ leaves [A, B]
       ]
     ]
-  where (##)   = Node
-        leaf x = Node x []
-        leaves = map leaf
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
 
-dia = renderT t # lw 0.1 # centerXY # pad 1.1
+dia = renderT t # frame 0.5
 \end{diagram}
 %$
   \caption{A tree with alternating leaf types}
@@ -418,7 +418,7 @@ t = Nothing ##
         leaf x = Node x []
         leaves = map leaf
 
-dia = renderT t # lw 0.1 # centerXY # pad 1.1
+dia = renderT t # frame 0.5
   \end{diagram}
   \caption{A tree corresponding to the regular language $a^\ast1a^\ast$}
   \label{fig:derivative}
@@ -533,12 +533,12 @@ receives an input.  \pref{fig:dfa-example} shows an example.
   \begin{diagram}[width=200]
 import TypeMatricesDiagrams
 
-exampleDFA :: DFA (Diagram Postscript R2, Bool)
+exampleDFA :: DFA (Diagram B R2, Bool)
 exampleDFA = dfa
   [ 1 --> (False, origin)
-  , 2 --> (False, 5 & 0)
-  , 3 --> (True,  10 & 0)
-  , 4 --> (False, 5 & (-5))
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True,  10 ^& 0)
+  , 4 --> (False, 5 ^& (-5))
   ]
   [ 1 >-- txtN "a" --> 2
   , 2 >-- txtN "b" --> 1
@@ -574,11 +574,11 @@ yielded such a sink state.  For example, the DFA from
   \begin{diagram}[width=200]
 import TypeMatricesDiagrams
 
-exampleDFA :: DFA (Diagram Postscript R2)
+exampleDFA :: DFA (Diagram B R2)
 exampleDFA = dfa
   [ 1 --> (False, origin)
-  , 2 --> (False, 5 & 0)
-  , 3 --> (True,  10 & 0)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True,  10 ^& 0)
   ]
   [ 1 >-- txt "a" --> 2
   , 2 >-- txt "b" --> 1
@@ -631,10 +631,10 @@ precisely those matching the regular expression $a^*1b^*$.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-astar1bstar :: DFA (Diagram Postscript R2)
+astar1bstar :: DFA (Diagram B R2)
 astar1bstar = dfa
   [ 1 --> (False, origin)
-  , 2 --> (True, 5 & 0)
+  , 2 --> (True, 5 ^& 0)
   ]
   [ 1 >-- txt "1" --> 2
 
@@ -669,10 +669,10 @@ in \pref{fig:ab-star-dfa}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-abStar :: DFA (Diagram Postscript R2)
+abStar :: DFA (Diagram B R2)
 abStar = dfa
   [ 1 --> (True, origin)
-  , 2 --> (False, 5 & 0)
+  , 2 --> (False, 5 ^& 0)
   ]
   [ 1 >-- txt "a" --> 2
   , 2 >-- txt "b" --> 1
@@ -963,10 +963,10 @@ corresponds to the DFA shown in \pref{fig:dfa-aa}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-aaStar :: DFA (Diagram Postscript R2)
+aaStar :: DFA (Diagram B R2)
 aaStar = dfa
   [ 1 --> (True, origin)
-  , 2 --> (False, 5 & 0)
+  , 2 --> (False, 5 ^& 0)
   ]
   [ 1 >-- txt "a" --> 2
   , 2 >-- txt "a" --> 1
@@ -1048,10 +1048,10 @@ consecutively in an inorder traversal.  \todo{mention RE's closed
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-noAA :: DFA (Diagram Postscript R2)
+noAA :: DFA (Diagram B R2)
 noAA = dfa
   [ 1 --> (True, origin)
-  , 2 --> (True, 5 & 0)
+  , 2 --> (True, 5 ^& 0)
   ]
   [ 1 >-- txt "b" --> 1
   , 1 >-- txt "a" --> 2
@@ -1157,10 +1157,10 @@ expression $a^*1a^*$, shown in~\pref{fig:DFA-deriv}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-deriv :: DFA (Diagram Postscript R2)
+deriv :: DFA (Diagram B R2)
 deriv = dfa
   [ 1 --> (False, origin)
-  , 2 --> (True , 5 & 0)
+  , 2 --> (True , 5 ^& 0)
   ]
   [ 1 >-- txt "a" --> 1
   , 1 >-- txt "1" --> 2
@@ -1372,7 +1372,7 @@ Acknowledgments.
 
 \todo{should cite Duchon, Flajolet, Louchard, Schaeffer, ``Boltzmann
   Samplers for Random Generation'' --- they hint at something related
-  to this idea on p. 590.}
+  to this idea on p. 590}.
 
 \bibliography{type-matrices}{}
 \bibliographystyle{abbrvnat}
