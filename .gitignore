@@ -29,6 +29,7 @@
 *.pdf
 *.tex
 *.ptb
+*.fls
 
 *.o
 *.hi
