@@ -24,6 +24,8 @@
 
 \usepackage[outputdir=diagrams/,backend=cairo,extension=pdf]{diagrams-latex}
 
+\graphicspath{{symbols/}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Semantic markup
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,6 +85,10 @@
 \newcommand{\union}{\cup}
 
 \newcommand{\m}[1]{\mathbf{#1}}
+
+\newcommand{\dissect}{\includegraphics{Dissect}}
+\newcommand{\clowns}{\includegraphics{Clowns}}
+\newcommand{\jokers}{\includegraphics{Jokers}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -622,31 +628,31 @@ always a regular language, and conversely, for every regular language
 there exists a DFA which accepts it.  Moreover, the proof of the
 theorem is constructive: given a regular expression, we may
 algorithmically construct a corresponding DFA (and vice versa).  For
-example, the regular expression $a^*1b^*$ corresponds to the DFA shown
-in \pref{fig:astar-1-bstar}.  It is not hard to verify that strings
+example, the regular expression $b^*1a^*$ corresponds to the DFA shown
+in \pref{fig:bstar-1-astar}.  It is not hard to verify that strings
 taking the DFA from state $1$ to state $2$ (the accept state) are
-precisely those matching the regular expression $a^*1b^*$.
+precisely those matching the regular expression $b^*1a^*$.
 
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-astar1bstar :: DFA (Diagram B R2)
-astar1bstar = dfa
+bstar1astar :: DFA (Diagram B R2)
+bstar1astar = dfa
   [ 1 --> (False, origin)
   , 2 --> (True, 5 ^& 0)
   ]
   [ 1 >-- txt "1" --> 2
 
-  , 1 >-- txt "a" --> 1
-  , 2 >-- txt "b" --> 2
+  , 1 >-- txt "b" --> 1
+  , 2 >-- txt "a" --> 2
   ]
 
-dia = drawDFA astar1bstar # frame 0.5
+dia = drawDFA bstar1astar # frame 0.5
   \end{diagram}
-  \caption{A DFA for $a^*1b^*$}
-  \label{fig:astar-1-bstar}
+  \caption{A DFA for $b^*1a^*$}
+  \label{fig:bstar-1-astar}
 \end{figure}
 
 \section{Types and DFAs}
@@ -1277,9 +1283,9 @@ $dx$ is manipulated informally as if $(dx)^2=0$.
 \section{Divided Differences}
 \label{sec:divided-differences}
 
-Consider again the regular expression $a^*1b^*$.  Data structures with
+Consider again the regular expression $b^*1a^*$.  Data structures with
 leaf sequences matching this pattern have a ``hole'' with values of
-ype $a$ to the left of the hole and values of type $b$ to the right
+type $b$ to the left of the hole and values of type $a$ to the right
 (\pref{fig:divided-tree}).
 \begin{figure}
   \centering
@@ -1291,15 +1297,15 @@ import TypeMatricesDiagrams
 t = nd
     [ nd
       [ nd $
-          leaves [A, A]
-      , lf A
+          leaves [B, B]
+      , lf B
       ]
     , nd
       [ nd
         [ lf H
-        , nd $ leaves [B, B]
+        , nd $ leaves [A, A]
         ]
-      , nd $ leaves [B, B]
+      , nd $ leaves [A, A]
       ]
     ]
   where nd     = Node Nothing
@@ -1309,36 +1315,74 @@ t = nd
 dia = renderT t # frame 0.5
 \end{diagram}
 %$
-  \caption{A tree with leaf sequence matching $a^*1b^*$}
+  \caption{A tree with leaf sequence matching $b^*1a^*$}
   \label{fig:divided-tree}
 \end{figure}
 Such structures have been considered by McBride (XXX cite), who refers
-to them as ``dissections'', and derives operations for manipulating
-them.
-
-%% XXX FIX THESE SYMBOLS
-\newcommand{\dissect}{\triangle}
-\newcommand{\clowns}{\mathord{\langle}}
-\newcommand{\jokers}{\mathord{\rangle}}
+to them as ``dissections'' and shows how they can be used, for
+example, to generically derive tail-recursive maps and folds.
 
 Given a functor $p$, McBride uses $\dissect p$ to denote the bifunctor
 which is the dissection of $p$, and also defines bifunctors $(\clowns
-p)\ a\ b = p\ a$ and $(\jokers p)\ a\ b = p\ b$.  The central
-construction is the Leibniz rule \[ \dissect (p \times q) =
-\clowns p \times \dissect q + \dissect p \times \jokers q. \]
-\todo{Say something more about this?}
+p)\ b\ a = p\ b$ and $(\jokers p)\ b\ a = p\ a$.  The central
+construction is the Leibniz rule for dissection of a product, \[
+\dissect (p \times q) = \clowns p \times \dissect q + \dissect p
+\times \jokers q. \] That is, a dissection of a $(p \times
+q)$-structure consists either of a $p$-structure containing only
+elements of the first type paired with a $q$-dissection, or a
+$p$-dissection paired with a $q$-structure containing only elements of
+the second type.
 
-The DFA recognizing $a^*1b^*$ is illustrated in
-\pref{fig:astar-1-bstar}, and has transition matrix
-\[ \begin{bmatrix} a & 1 \\ 0 & b \end{bmatrix}. \] Under the
-homomorphism induced by this DFA, the functor $p$ maps to the matrix
-of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p \\ 0 &
-  \jokers p \end{bmatrix}. \]  Taking the product of two such matrices
-indeed gives us \[ \begin{bmatrix} \clowns p & \dissect p \\ 0 &
-  \jokers p \end{bmatrix} \begin{bmatrix} \clowns q & \dissect q \\ 0 &
-  \jokers q \end{bmatrix} = \begin{bmatrix} \clowns p \times \clowns q
-  & \clowns p \times \dissect q + \dissect p + \jokers q \\ 0 &
-  \jokers p \times \jokers q \end{bmatrix}. \] \todo{explain a bit more.}
+The DFA recognizing $b^*1a^*$ is illustrated in
+\pref{fig:bstar-1-astar}, and has transition matrix
+\[ \begin{bmatrix} b & 1 \\ 0 & a \end{bmatrix}. \] There are clearly
+no leaf sequences taking this DFA from state $2$ to state $1$; leaf
+sequences matching $b^*$ or $a^*$ keep the
+DFA in state $1$ or state $2$, respectively; and leaf sequences
+matching $b^*1a^*$ take the DFA from state $1$ to state $2$.  That is,
+under the homomorphism induced by this DFA, the functor $p$ maps to
+the matrix of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p
+  \\ 0 & \jokers p \end{bmatrix}. \] Taking the product of two such
+matrices indeed gives us 
+\begingroup
+\setlength{\arraycolsep}{5pt}
+\[ \begin{bmatrix} \clowns p & \dissect p
+  \\ 0 & \jokers p \end{bmatrix} \begin{bmatrix} \clowns q & \dissect
+  q \\ 0 & \jokers q \end{bmatrix} = \begin{bmatrix} \clowns p \times
+  \clowns q & \clowns p \times \dissect q + \dissect p + \jokers q
+  \\ 0 & \jokers p \times \jokers q \end{bmatrix}. \]
+\endgroup
+as expected.  
+
+\todo{Explain divided differences a bit. Note we use ``backwards''
+  notation $f[b,a]$, to match up with left-right direction of leaves.}
+
+\[ f[b,a] = \frac{f(b) - f(a)}{b - a}. \]
+We cannot directly interpret subtraction and division of types in our
+framework.  However, if we multiply both sides by $(b - a)$ and
+rearrange a bit, we can derive an equivalent relationship in terms of 
+only addition and multiplication, namely,
+\[ f(a) + f[b,a] \times b = a \times f[b,a] + f(b). \]  In fact, this
+equation corresponds exactly to the isomorphism witnessed by McBride's
+function |right|,
+\[ |right :: p j + (| \dissect |p c j, c) -> (j,| \dissect |p c j) + p
+c| \] We can now understand why the letters |b| and |a| are ``backwards''.
+Intuitively, we can think of a dissection as a ``snapshot'' of a data
+structure in the midst of a traversal; values of type |a| are
+``unprocessed'' and values of type |b| are ``processed''.  The
+``current position'' moves from left to right through the structure,
+turning |a| values into |b| values.  This is exactly what is
+accomplished by |right|: \todo{Explain intuitively.  Draw some pictures.}
+
+We can generalize all of this to $n$-ary dissection, corresponding to
+higher divided differences.  $f[x_n, x_{n-1}, \dots, x_0]$ denotes the
+$(n+1)$-ary divided difference of $f$ over the variables $x_n, \dots,
+x_0$.  \todo{Show that it corresponds to regular expression
+  $x_n^*1x_{n-1}^*1\dots 1 x_0^*$.} \todo{Notation: write
+  $f_{n \dots 0}$ instead of $f[x_n, \dots, x_0]$.}
+
+We have the standard recurrence \[ f_{n\dots0} = \frac{f_{n\dots1} -
+  f_{n-1 \dots 0}}{x_n - x_0} \] \todo{prove this?}
 
 %% Consider now the DFA for the regular expression $a^*1b^*$.
 %% The corresponding diagram is

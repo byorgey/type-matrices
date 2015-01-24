@@ -11,13 +11,25 @@ main = shake shakeOptions $ do
 
     want ["type-matrices.pdf"]
 
-    "*.tex" *> \output -> do
+    "*.tex" %> \output -> do
         let input = replaceExtension output "lhs"
         need [input]
         cmd lhs2TeX $ ["-o", output] ++ [input]
 
-    "*.pdf" *> \output -> do
+    "*.pdf" %> \output -> do
         let input = replaceExtension output "tex"
         need [input]
+
+        symbols <- getDirectoryFiles "" ["symbols/*.hs"]
+        need (map (-<.> "pdf") symbols)
+
+        need ["TypeMatricesDiagrams.hs"]
+        
         () <- cmd pdflatex $ ["--enable-write18", input]
         cmd latexmk $ ["-pdf", input]
+
+    "symbols/*.pdf" %> \output -> do
+        let input = output -<.> "hs"
+        need [input]
+        () <- cmd "ghc" ["--make", input, "-o", input -<.> "exe"]
+        cmd (input -<.> "exe") ["-h", "10", "-o", output]
