@@ -131,15 +131,35 @@
 
 %% LLNCS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Matrices of Types XXX}
+\title{Polynomial Functors Constrained by Regular Expressions}
+%% ``Regular Types''?
+%% ``Regular Types with Regular Leaf Sequences''?
 
 \author{Dan Piponi\inst{1} \and Brent A. Yorgey\inst{2}}
-\institute{Google \email{dpiponi@@gmail.com} \and Williams College \email{byorgey@@gmail.com}}
+\institute{Google, \email{dpiponi@@gmail.com} \and Williams College, \email{byorgey@@gmail.com}}
 
 \maketitle
 
 \begin{abstract}
-  Matrices of types are sweet
+  We show that every regular language, via some DFA which accepts it,
+  gives rise to a homomorphism from the semiring of polynomial
+  functors to the semiring of $n \times n$ matrices over polynomial
+  functors.  Given some polynomial functor and a regular language,
+  this homomorphism can be used to automatically derive a functor
+  whose values have the same shape as those of the original functor,
+  but whose sequences of leaf types correspond to strings in the
+  language.
+
+  The primary interest of this result lies in the fact that certain
+  regular languages correspond to previously studied derivative-like
+  operations on polynomial functors.  For example, the regular
+  language $a^*1a^*$ yields the \emph{derivative} of a polynomial
+  functor, and $b^*1a^*$ its \emph{dissection}.  Using our framework,
+  we are able to unify and lend new perspective on this previous work.
+  For example, it turns out that dissection of polynomial functors
+  corresponds to taking \emph{divided differences} of real or complex
+  functions, and, guided by this parallel, we show how to generalize
+  binary dissection to $n$-ary dissection.
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -147,23 +167,19 @@
 \section{Introduction}
 \label{sec:introduction}
 
-\dan{I'm listing some elementary examples. We don't have to use all of
-  them.} \brent{I like these examples. I certainly don't think we
-  should have fewer.}
-
-Consider the standard singly-linked list type, which can be defined in
-Haskell \cite{haskell} as:
+Consider the standard polymorphic singly-linked list type, which can
+be defined in Haskell \cite{haskell} as:
 
 > data List a  =  Nil
 >              |  Cons a (List a)
 
-This type is \term{homogeneous} because each element in the list has
+This type is \term{homogeneous}, meaning that each element in the list has
 the same type as every other element.
 
-Suppose, however, that we wanted some other sort of list type with a
-different constraint on the types of its elements.  For example, we
-might want a list whose elements alternate between two types |a| and
-|b|, beginning with |a| and ending with |b|.
+Suppose, however, that we wanted lists with a different constraint on
+the types of its elements.  For example, we might want lists whose
+elements alternate between two types |a| and |b|, beginning with |a|
+and ending with |b|.
 
 \begin{figure}[h]
   \centering
@@ -212,7 +228,11 @@ We can easily generalize this idea to regular expressions other than
 $(ab)^\ast$ (though constructing the corresponding types may be
 complicated). We can also generalize to algebraic data types other
 than |List|, by considering the sequence of element types encountered
-by an \term{inorder traversal} of each data structure.
+by a canonical traversal \cite{traversable?} of each data structure.
+That is, in general, given some algebraic data type and a regular
+expression, we consider the problem of constructing a corresponding
+algebraic data type ``of the same shape'' but with sequences of
+element types matching the regular expression.
 
 %format TreeAB = Tree "_{AB}"
 %format TreeAA = Tree "_{AA}"
@@ -232,12 +252,6 @@ by an \term{inorder traversal} of each data structure.
 %format LeafAA = Leaf "_{AA}"
 %format LeafBB = Leaf "_{BB}"
 %format LeafBA = Leaf "_{BA}"
-
-\dan{Maybe nobody wants to see the gory details of this.}
-\brent{Actually, I think an example which is both understandable and
-  has lots of gory details (like this one) will serve well: it both
-  gives people some good intuition, and at the same time sets them up
-  to really appreciate the elegant, general solution in contrast.}
 
 For example, consider the following type |Tree| of nonempty binary
 trees with data stored in the leaves:
@@ -360,10 +374,10 @@ with four mutually recursive types---is there is any simpler solution?
 And how well will this sort of reasoning extend to more complicated
 structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
-suitable (\term{polynomial}) data type.\brent{actually only for
-  \emph{polynomial} types, but we haven't defined that yet... is there
-  something we can say to be more accurate without using technical
-  terms which haven't yet been introduced?}
+suitable (\term{polynomial}) data type.
+
+One point worth mentioning is that \todo{Write about uniqueness of
+  representation, see stuff in comments}
 
 % There's a detail whose importance I'm not 100\% sure of. There are
 % multiple solutions to the problem of 'lifting' a type to be
@@ -385,16 +399,16 @@ suitable (\term{polynomial}) data type.\brent{actually only for
 % leaves with regular expressions. We're getting the best such type, in
 % some sense. Or at least I hope we are.
 
-It's worth mentioning that for certain regular languages, this problem
-has already been solved in the literature, though without being
-phrased in terms of regular languages.  For example, consider the
-regular language $a^\ast1a^\ast$. It matches sequences of $a$s with
-precisely one occurrence of $1$ somewhere in the middle, where $1$
-represents the unit type (written |()| in Haskell). Data structures
-whose inorder sequence of element types matches $a^\ast1a^\ast$ have
-all elements of type |a|, except for one which has the fixed value
-|()|. In other words, imposing this regular expression corresponds to
-finding the \term{derivative} of the orginal type
+For certain regular languages, this problem has already been solved in
+the literature, though without being phrased in terms of regular
+languages.  For example, consider the regular language
+$a^\ast1a^\ast$. It matches sequences of $a$s with precisely one
+occurrence of $1$ somewhere in the middle, where $1$ represents the
+unit type (written |()| in Haskell). Data structures whose inorder
+sequence of element types matches $a^\ast1a^\ast$ have all elements of
+type |a|, except for one which has the fixed value |()|. In other
+words, imposing this regular expression corresponds to finding the
+\term{derivative} of the orginal type
 \cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
 Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
 zipper type \cite{Huet_zipper} with elements of type $b$ at the
@@ -1471,7 +1485,7 @@ Acknowledgments.
   Samplers for Random Generation'' --- they hint at something related
   to this idea on p. 590}.
 
-\bibliography{type-matrices}{}
 \bibliographystyle{abbrvnat}
+\bibliography{type-matrices}{}
 
 \end{document}
