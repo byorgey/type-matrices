@@ -23,6 +23,8 @@
 \usepackage{prettyref}
 
 \usepackage[outputdir=diagrams/,backend=cairo,extension=pdf]{diagrams-latex}
+% \usepackage{verbatim}
+% \newenvironment{diagram}[1]{\comment}{\endcomment}
 
 \graphicspath{{symbols/}}
 
@@ -35,6 +37,9 @@
 \newcommand{\pkg}[1]{\texttt{#1}}
 \newcommand{\ext}[1]{\texttt{#1}}
 \newcommand{\module}[1]{\texttt{#1}}
+
+\newcommand{\ie}{i.e.}
+\newcommand{\eg}{e.g.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Prettyref
@@ -228,7 +233,7 @@ We can easily generalize this idea to regular expressions other than
 $(ab)^\ast$ (though constructing the corresponding types may be
 complicated). We can also generalize to algebraic data types other
 than |List|, by considering the sequence of element types encountered
-by a canonical traversal \cite{traversable?} of each data structure.
+by a canonical traversal \cite{mcbride2008applicative} of each data structure.
 That is, in general, given some algebraic data type and a regular
 expression, we consider the problem of constructing a corresponding
 algebraic data type ``of the same shape'' but with sequences of
@@ -376,39 +381,15 @@ structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
 suitable (\term{polynomial}) data type.
 
-One point worth mentioning is that \todo{Write about uniqueness of
-  representation, see stuff in comments}
-
-% There's a detail whose importance I'm not 100\% sure of. There are
-% multiple solutions to the problem of 'lifting' a type to be
-% constrained by a regexp. Compare
-
-% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
-
-% vs.
-
-% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
-
-% Both will end up with the same regular language. (Basically because we
-% have idempotence in languages, x+x=x.) Is here anything you think that
-% needs to be said about this? Some solutions are nice in that every
-% string in the language is represented precisely once. I think the
-% matrix construction gives us these because it's coming from a DFA so
-% there's only one path you can take through it. Does that sound right?
-% So we're actually doing slightly better than just constraining the
-% leaves with regular expressions. We're getting the best such type, in
-% some sense. Or at least I hope we are.
-
 For certain regular languages, this problem has already been solved in
 the literature, though without being phrased in terms of regular
 languages.  For example, consider the regular language
 $a^\ast1a^\ast$. It matches sequences of $a$s with precisely one
-occurrence of $1$ somewhere in the middle, where $1$ represents the
-unit type (written |()| in Haskell). Data structures whose inorder
-sequence of element types matches $a^\ast1a^\ast$ have all elements of
-type |a|, except for one which has the fixed value |()|. In other
-words, imposing this regular expression corresponds to finding the
-\term{derivative} of the orginal type
+occurrence of $1$ somewhere in the middle.  Data structures whose
+inorder sequence of element types matches $a^\ast1a^\ast$ have all
+elements of type |a|, except for one which has type |1|, \ie\ the unit
+type. In other words, imposing this regular expression corresponds to
+finding the \term{derivative} of the orginal type
 \cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
 Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
 zipper type \cite{Huet_zipper} with elements of type $b$ at the
@@ -450,11 +431,17 @@ Leibniz rules and their generalizations. We'll show how these rules
 can be placed in a more general framework applying to any regular
 language.
 
-\todo{should insert somewhere around here a list of
-  contributions/outline of the rest of the paper.}
+In the remainder of the paper, we first review some standard results
+about regular languages and DFAs (\pref{sec:regexp-and-dfas}).  We
+describe our framework informally (\pref{sec:our-framework}) and give
+some examples of its application (\pref{sec:examples}).  We then give
+a more formal treatment of our results (\pref{sec:formalization}) and
+conclude with a discussion of derivatives
+(\pref{sec:derivatives-again}) and divided differences
+(\pref{sec:divided-differences}).
 
 \section{Regular expressions and DFAs}
-\label{sec:dfas}
+\label{sec:regexp-and-dfas}
 
 We begin with a quick review of the basic theory of regular
 languages and deterministic finite automata.  Readers already
@@ -465,15 +452,7 @@ familiar with this theory may safely skip this section.
 
 A \term{regular expression} over an alphabet $\Sigma$ is a term of the
 following grammar:
-\[ \begin{array}{rrl}
-  R & ::= & \varnothing \\
-  & \mid & \varepsilon \\
-  & \mid & a \qquad (a \in \Sigma) \\
-  & \mid & R \union R \\
-  & \mid & RR \\
-  & \mid & R^*
-\end{array}
-\]
+\[ R ::= \varnothing \mid \varepsilon \mid a \in \Sigma \mid R \union R \mid RR \mid R^* \]
 
 \newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
 
@@ -487,7 +466,7 @@ strings $\sem R \subseteq \Sigma^*$, where $\Sigma^*$ denotes the set
 of all finite sequences built from elements of $\Sigma$.  In
 particular,
 \begin{itemize}
-\item $\sem \varnothing = \varnothing$ denotes the empty set of strings.
+\item $\sem \varnothing = \varnothing$ denotes the empty set.
 \item $\sem \varepsilon = \{\varepsilon\}$ denotes the singleton set
   containing the empty string.
 \item $\sem a = \{a\}$ denotes the singleton set containing the
@@ -497,14 +476,12 @@ particular,
   concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in L_1,
   s_2 \in L_2 \}. \]
 \item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least fixed
-  point solution of \[ L^* = \{\varepsilon\} \union LL^*. \] (Such a
-  least fixed point exists by the Knaster-Tarski
+  point solution of \[ L^* = \{\varepsilon\} \union LL^*. \] Note that
+  such a least fixed point must exist by the Knaster-Tarski
   theorem~\cite{tarski1955}, since the mapping $\varphi(S) = \{
   \varepsilon \} \union L S$ is monotone, that is, if $S \subseteq T$
-  then $\varphi(S) \subseteq \varphi(T)$.)
+  then $\varphi(S) \subseteq \varphi(T)$.
 \end{itemize}
-
-\todo{add an example here?}
 
 Finally, a \term{regular language} over the alphabet $\Sigma$ is a set
 $L \subseteq \Sigma^*$ which is the interpretation $L = \sem R$ of
@@ -614,10 +591,19 @@ dia = drawDFA exampleDFA # frame 0.5
   \label{fig:dfa-example-simpl}
 \end{figure}
 
-\dan{ I'm implicitly defining the notion of "taking a DFA from state
-  $q_0$ to $q_1$". Is there a better word for this?  } \brent{I'm not
-  sure.  In any case, do we even need these paragraphs? Do we use this
-  later?}
+As is standard, we may define $\delta^* : Q \times \Sigma^* \to Q$ as
+an iterated version of $\delta$:
+\begin{align*}
+  \delta^*(q,\varepsilon) & = q \\
+  \delta^*(q, s \omega)   & = \delta^*(\delta(q,s), \omega)
+\end{align*}
+
+If $\delta^*(q_0, \omega) = q_1$, then we say informally that the
+string $\omega$ ``takes'' or ``drives'' the DFA from state $q_0$ to
+state $q_1$.
+
+\todo{Do we need any more here?}
+
 % Given any pair
 % of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
 % that, when input to the DFA, would take it from state $q_1$ to state
@@ -669,7 +655,12 @@ dia = drawDFA bstar1astar # frame 0.5
   \label{fig:bstar-1-astar}
 \end{figure}
 
-\section{Types and DFAs}
+\section{XXX}
+\label{sec:the-framework}
+
+\todo{Blah blah, some sort of intro here.}
+
+\subsection{Types and DFAs}
 \label{sec:types-and-dfas}
 
 Viewing regular expressions through the lens of DFAs gives us exactly the
@@ -742,7 +733,7 @@ each ordered pair of states.
 %  of the combinations are impossible or irrelevant---but we will
 %  certainly
 
-\section{Matrices of types}
+\subsection{Matrices of types}
 \label{sec:matrices-of-types}
 
 Though shifting our point of view to DFAs has given us a better
@@ -916,6 +907,9 @@ In other words, given a DFA $D$, we have a \emph{semiring
 matrices of arity-$||\Sigma||$ functors---that is, a mapping from
 functors to matrices which preserves sum and product. \todo{explain
   better what is meant by semiring homomorphism}
+
+\section{Examples}
+\label{sec:examples}
 
 As an example, consider again the recursive tree type given by $T = X
 + T \times T$, along with the two-state DFA for $(ab)^*$ shown in
@@ -1165,6 +1159,32 @@ accept states, we are actually looking for the sum type
   the original type but with some additional occurrences of |Maybe|,
   and dynamic type checks?  Could even code this up as a Haskell
   library perhaps\dots}
+
+\section{Formalization XXX}
+\label{sec:formalization}
+
+One point worth mentioning is that \todo{Write about uniqueness of
+  representation, see stuff in comments}
+
+% There's a detail whose importance I'm not 100\% sure of. There are
+% multiple solutions to the problem of 'lifting' a type to be
+% constrained by a regexp. Compare
+
+% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
+
+% vs.
+
+% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+
+% Both will end up with the same regular language. (Basically because we
+% have idempotence in languages, x+x=x.) Is here anything you think that
+% needs to be said about this? Some solutions are nice in that every
+% string in the language is represented precisely once. I think the
+% matrix construction gives us these because it's coming from a DFA so
+% there's only one path you can take through it. Does that sound right?
+% So we're actually doing slightly better than just constraining the
+% leaves with regular expressions. We're getting the best such type, in
+% some sense. Or at least I hope we are.
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}

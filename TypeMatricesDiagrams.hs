@@ -123,7 +123,7 @@ testDFA = dfa
   , 2 >-- txt "b" --> 1
   ]
 
-txt s = text s <> square 1 # lw none
+txt s = text s # scale 0.8 <> square 1 # lw none
 
 -- main = defaultMain $ drawDFA testDFA
 
