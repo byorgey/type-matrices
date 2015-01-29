@@ -509,15 +509,6 @@ we say the DFA \term{accepts} the string if $q' \in F$, and
 defining a subset $L_D \subseteq \Sigma^*$ of the set of all possible
 strings, namely, those strings which it accepts.
 
-\todo{We need a better story about finite vs. infinite.  The above
-  gives the standard presentation of DFAs for finite strings, but
-  Haskell types can include infinite values.  So we want to do
-  something like use the \emph{greatest} fixed point of $\Sigma^* =
-  \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
-  is in the language recognized by a DFA if it never causes the DFA to
-  reject.  I'm not quite sure how this relates to the fact that
-  least+greatest fixedpoints coincide in Haskell.}
-
 We can draw a DFA as a directed multigraph where each graph edge is
 labeled by a symbol from $\Sigma$. Each state is a vertex, and an edge
 is drawn from $q_1$ to $q_2$ and labeled with symbol $s$ whenever
@@ -598,11 +589,20 @@ an iterated version of $\delta$:
   \delta^*(q, s \omega)   & = \delta^*(\delta(q,s), \omega)
 \end{align*}
 
-If $\delta^*(q_0, \omega) = q_1$, then we say informally that the
-string $\omega$ ``takes'' or ``drives'' the DFA from state $q_0$ to
-state $q_1$.
+If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
+``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.
 
-\todo{Do we need any more here?}
+Given a DFA, we may form its \term{transition matrix}, a $||Q|| \times
+||Q||$ matrix whose component at $i,j$ is the label on the edge from
+state $i$ to state $j$ (or $0$ if there is no such edge).  If there is
+more than one such edge, we may take the $i,j$ entry to be the formal
+sum over the labels on all the edges from $i$ to $j$.  For example,
+the transition matrix for the DFA in \pref{fig:dfa-example-simpl}
+is \[ \setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & a & 0 \\ b & 0
+  & a \\ 0 & b & 0 \end{bmatrix} \] \todo{Write about $M^n$, $M^*$.
+  Talk about sets of strings above, concatenation and union, etc.
+  Point out that sets of strings form a semiring.
+  \cite{dolan2013fun}}
 
 % Given any pair
 % of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
@@ -658,7 +658,10 @@ dia = drawDFA bstar1astar # frame 0.5
 \section{XXX}
 \label{sec:the-framework}
 
-\todo{Blah blah, some sort of intro here.}
+We now revisit our {\it ad hoc} analysis from the introduction, and
+see how to reframe it in terms of DFAs and matrices of functors.
+
+\todo{Blah blah, finish some sort of intro here.}
 
 \subsection{Types and DFAs}
 \label{sec:types-and-dfas}
@@ -744,17 +747,13 @@ this process in terms of \emph{matrices}.
 
 We now abstract away from the particular details of Haskell data types
 and work in terms of a simple language of \term{polynomial
-  functors}. \todo{explain this better? Shouldn't have to know any CT
-  to understand it\dots do we actually make use of functoriality, or
-  should we just say ``polynomial type constructors''?}  \dan{We can
-  try to use what's in
-  https://personal.cis.strath.ac.uk/conor.mcbride/Dissect.pdf as a
-  lead, though we have n-ary functors and so we shouldn't get bogged
-  down implementung |bimap| etc.} \todo{cite something? Algebra of Programming?}
+  functors}.
 \begin{itemize}
 \item $1$ denotes the constantly unit functor $1\ a = 1$ (whether $1$
 denotes the constantly unit functor or the unit value should be clear
 from the context).
+\item $K_A$ denotes the constant functor $K_A\ a = A$ which ignores
+  its argument and yields $A$.
 \item $X$ denotes the identity functor $X\ a = a$.
 \item Given two functors $F$ and $G$, we can form their sum, $(F + G)\
   a = F\ a + G\ a$.
@@ -763,21 +762,29 @@ from the context).
 \item We also allow functors to be defined by mutually recursive
   systems of equations $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$,
   and interpret them using a standard least fixed point construction.
-  For example, $L = 1 + X\times L$ denotes the standard type of
-  polymorphic lists.\todo{explain better.  Note this is only
-    \emph{finite} lists, unlike in Haskell.  Or maybe it doesn't
-    matter?  Depends on the categories involved.}
+  For example, the single recursive equation $L = 1 + X\times L$
+  denotes the standard type of (finite) polymorphic lists.  As another
+  example, the pair of mutually recursive equations
+  \begin{align*}
+    F & = 
+    G & = 
+  \end{align*}
+  \todo{Finish.  Come up with good example.}
 \end{itemize}
 
-All of this also generalizes naturally to multi-argument functors:
+All of this also generalizes naturally from single-argument functors
+to $n$-ary functors:
 \begin{itemize}
 \item $1\ a_1\ \dots\ a_n = 1$;
+\item $K_A\ a_1\ \dots\ a_n = A$;
 \item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
   a_n$);
 \item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
   a_1\ \dots\ a_n)$;
 \item the identity functor $X$ generalizes to the family of
   projections ${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \]
+  That is, ${}_nX_i$ is the $n$-ary functor which yields its $i$th
+  argument.
 \end{itemize}
 For example, the Haskell type
 \begin{spec}
@@ -1185,6 +1192,15 @@ One point worth mentioning is that \todo{Write about uniqueness of
 % So we're actually doing slightly better than just constraining the
 % leaves with regular expressions. We're getting the best such type, in
 % some sense. Or at least I hope we are.
+
+\todo{We need a better story about finite vs. infinite.  The above
+  gives the standard presentation of DFAs for finite strings, but
+  Haskell types can include infinite values.  So we want to do
+  something like use the \emph{greatest} fixed point of $\Sigma^* =
+  \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
+  is in the language recognized by a DFA if it never causes the DFA to
+  reject.  I'm not quite sure how this relates to the fact that
+  least+greatest fixedpoints coincide in Haskell.}
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
