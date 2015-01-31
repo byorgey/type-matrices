@@ -15,7 +15,10 @@
 % Package imports
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage{makeidx}
+%% \usepackage[style=authoryear]{biblatex}
+%% \bibliography{type-matrices}
+
+\usepackage[authoryear]{natbib}
 
 \usepackage{amsmath}
 \usepackage{mathtools}
@@ -173,7 +176,7 @@
 \label{sec:introduction}
 
 Consider the standard polymorphic singly-linked list type, which can
-be defined in Haskell \cite{haskell} as:
+be defined in Haskell \citep{haskell} as:
 
 > data List a  =  Nil
 >              |  Cons a (List a)
@@ -233,7 +236,7 @@ We can easily generalize this idea to regular expressions other than
 $(ab)^\ast$ (though constructing the corresponding types may be
 complicated). We can also generalize to algebraic data types other
 than |List|, by considering the sequence of element types encountered
-by a canonical traversal \cite{mcbride2008applicative} of each data structure.
+by a canonical traversal \citep{mcbride2008applicative} of each data structure.
 That is, in general, given some algebraic data type and a regular
 expression, we consider the problem of constructing a corresponding
 algebraic data type ``of the same shape'' but with sequences of
@@ -390,11 +393,11 @@ inorder sequence of element types matches $a^\ast1a^\ast$ have all
 elements of type |a|, except for one which has type |1|, \ie\ the unit
 type. In other words, imposing this regular expression corresponds to
 finding the \term{derivative} of the orginal type
-\cite{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
+\citep{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
 Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
-zipper type \cite{Huet_zipper} with elements of type $b$ at the
+zipper type \citep{Huet_zipper} with elements of type $b$ at the
 `focus', and the regular language $a^\ast1b^\ast$ corresponds to
-\term{dissection types} \cite{dissection}.
+\term{dissection types} \citep{dissection}.
 
 \begin{figure}
   \centering
@@ -478,7 +481,7 @@ particular,
 \item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least fixed
   point solution of \[ L^* = \{\varepsilon\} \union LL^*. \] Note that
   such a least fixed point must exist by the Knaster-Tarski
-  theorem~\cite{tarski1955}, since the mapping $\varphi(S) = \{
+  theorem~\citep{tarski1955}, since the mapping $\varphi(S) = \{
   \varepsilon \} \union L S$ is monotone, that is, if $S \subseteq T$
   then $\varphi(S) \subseteq \varphi(T)$.
 \end{itemize}
@@ -1521,7 +1524,8 @@ Acknowledgments.
   Samplers for Random Generation'' --- they hint at something related
   to this idea on p. 590}.
 
-\bibliographystyle{abbrvnat}
-\bibliography{type-matrices}{}
+%% \printbibliography
+\bibliographystyle{plainnat}
+\bibliography{type-matrices}
 
 \end{document}
