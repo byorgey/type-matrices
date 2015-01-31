@@ -446,9 +446,10 @@ conclude with a discussion of derivatives
 \section{Regular expressions and DFAs}
 \label{sec:regexp-and-dfas}
 
-We begin with a quick review of the basic theory of regular
-languages and deterministic finite automata.  Readers already
-familiar with this theory may safely skip this section.
+We begin with a quick review of the basic theory of regular languages
+and deterministic finite automata.  Readers already familiar with this
+theory may safely skip this section. \todo{except section about
+  transition matrices and (star)-semirings?}
 
 \subsection{Regular expressions}
 \label{sec:regexps}
@@ -595,18 +596,6 @@ an iterated version of $\delta$:
 If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
 ``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.
 
-Given a DFA, we may form its \term{transition matrix}, a $||Q|| \times
-||Q||$ matrix whose component at $i,j$ is the label on the edge from
-state $i$ to state $j$ (or $0$ if there is no such edge).  If there is
-more than one such edge, we may take the $i,j$ entry to be the formal
-sum over the labels on all the edges from $i$ to $j$.  For example,
-the transition matrix for the DFA in \pref{fig:dfa-example-simpl}
-is \[ \setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & a & 0 \\ b & 0
-  & a \\ 0 & b & 0 \end{bmatrix} \] \todo{Write about $M^n$, $M^*$.
-  Talk about sets of strings above, concatenation and union, etc.
-  Point out that sets of strings form a semiring.
-  \cite{dolan2013fun}}
-
 % Given any pair
 % of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
 % that, when input to the DFA, would take it from state $q_1$ to state
@@ -657,6 +646,64 @@ dia = drawDFA bstar1astar # frame 0.5
   \caption{A DFA for $b^*1a^*$}
   \label{fig:bstar-1-astar}
 \end{figure}
+
+The precise details of these constructions are not important for the
+purposes of this paper; interested readers should consult a reference
+such as \citet{sipser2012introduction}.
+
+\subsection{Semirings}
+\label{sec:semirings}
+
+A \term{semiring} is a set $R$ equipped with two binary operations,
+$+$ and $\cdot$, and two distinguished elements, $0, 1 \in R$, such
+that
+\begin{itemize}
+  \item $(+,0)$ is a commutative monoid (that is, $0$ is an identity for
+$+$, and $+$ is commutative and associative),
+  \item $(\cdot,1)$ is a monoid,
+  \item $\cdot$ distributes over $+$ from both the left and the right, and
+  \item $0$ is an annihilator for $\cdot$, that is $r \cdot 0 = 0
+    \cdot r = 0$ for all $r \in R$.
+\end{itemize}
+
+Note in particular that regular languages form a semiring under the
+operations of union and concatenation.
+
+A \term{star semiring} or \term{closed semiring}
+\citep{lehmann1977algebraic} has an additional operation, $(-)^*$,
+satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r. \]
+Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$ (although such infinite
+sums do not necessarily make sense in all semirings).  The semiring of
+regular languages is closed, via Kleene star.
+
+\subsection{Transition matrices}
+\label{sec:transition-matrices}
+
+Given a DFA $D$, a semiring $R$, and a function $\Sigma \to R$
+assigning an element of $R$ to each alphabet symbol, we may form a
+\term{transition matrix}\footnote{Textbooks on automata often define
+  the \term{transition matrix} for a DFA as something else, namely,
+  the $||Q|| \times ||\Sigma||$ matrix with the $q,s$ entry equal to
+  $\delta(q,s)$.  This is just a particular representation of the
+  function $\delta$, and quite uninteresting, so we steal the term
+  \term{transition matrix} to refer to something worthwhile.} for
+$D$. The transition matrix is the $||Q|| \times ||Q||$ matrix over $R$
+whose component at $i,j$ is the sum, over all edges from $i$ to $j$,
+of the $R$-values corresponding to their labels.
+
+For example, consider the DFA in \pref{fig:dfa-example-simpl}, and the
+semiring of regular languages.  If we send each edge label (\ie
+alphabet symbol) to the singleton language containing only that symbol
+as a length-$1$ string, we obtain the transition matrix \[
+\setlength{\arraycolsep}{5pt} \begin{bmatrix} \varnothing & \{a\} &
+  \varnothing \\ \{b\} & \varnothing & \{a\} \\ \varnothing & \{b\} &
+  \varnothing \end{bmatrix}. \]
+
+\todo{Write about $M^n$, $M^*$, etc. \citep{dolan2013fun}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{XXX}
 \label{sec:the-framework}
@@ -769,8 +816,8 @@ from the context).
   denotes the standard type of (finite) polymorphic lists.  As another
   example, the pair of mutually recursive equations
   \begin{align*}
-    F & = 
-    G & = 
+    F & =
+    G & =
   \end{align*}
   \todo{Finish.  Come up with good example.}
 \end{itemize}
@@ -1396,7 +1443,7 @@ matching $b^*1a^*$ take the DFA from state $1$ to state $2$.  That is,
 under the homomorphism induced by this DFA, the functor $p$ maps to
 the matrix of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p
   \\ 0 & \jokers p \end{bmatrix}. \] Taking the product of two such
-matrices indeed gives us 
+matrices indeed gives us
 \begingroup
 \setlength{\arraycolsep}{5pt}
 \[ \begin{bmatrix} \clowns p & \dissect p
@@ -1405,7 +1452,7 @@ matrices indeed gives us
   \clowns q & \clowns p \times \dissect q + \dissect p + \jokers q
   \\ 0 & \jokers p \times \jokers q \end{bmatrix}. \]
 \endgroup
-as expected.  
+as expected.
 
 \todo{Explain divided differences a bit. Note we use ``backwards''
   notation $f[b,a]$, to match up with left-right direction of leaves.}
@@ -1413,7 +1460,7 @@ as expected.
 \[ f[b,a] = \frac{f(b) - f(a)}{b - a}. \]
 We cannot directly interpret subtraction and division of types in our
 framework.  However, if we multiply both sides by $(b - a)$ and
-rearrange a bit, we can derive an equivalent relationship in terms of 
+rearrange a bit, we can derive an equivalent relationship in terms of
 only addition and multiplication, namely,
 \[ f(a) + f[b,a] \times b = a \times f[b,a] + f(b). \]  In fact, this
 equation corresponds exactly to the isomorphism witnessed by McBride's
