@@ -162,6 +162,9 @@
   but whose sequences of leaf types correspond to strings in the
   language.
 
+  \todo{Don't use $1$ in the middle of regular expressions, it's
+    distracting and confusing.}
+
   The primary interest of this result lies in the fact that certain
   regular languages correspond to previously studied derivative-like
   operations on polynomial functors.  For example, the regular
@@ -451,9 +454,12 @@ conclude with a discussion of derivatives
 \label{sec:regexp-and-dfas}
 
 We begin with a quick review of the basic theory of regular languages
-and deterministic finite automata.  Readers already familiar with this
-theory may safely skip this section. \todo{except section about
-  transition matrices and (star)-semirings?}
+and deterministic finite automata in
+\pref{sec:regexps}--\pref{sec:kleenes-theorem}.  Readers already
+familiar with this theory may safely skip these sections.  In
+\pref{sec:semirings} and \pref{sec:transition-matrices} we introduce
+some preliminary material on star semirings and transition matrices
+for DFAs which, though not novel, may not be as familiar to readers.
 
 \subsection{Regular expressions}
 \label{sec:regexps}
