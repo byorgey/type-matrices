@@ -24,6 +24,7 @@
 \usepackage{mathtools}
 \usepackage{tikz}
 \usepackage{prettyref}
+\usepackage{xspace}
 
 \usepackage[outputdir=diagrams/,backend=cairo,extension=pdf]{diagrams-latex}
 % \usepackage{verbatim}
@@ -41,8 +42,8 @@
 \newcommand{\ext}[1]{\texttt{#1}}
 \newcommand{\module}[1]{\texttt{#1}}
 
-\newcommand{\ie}{i.e.}
-\newcommand{\eg}{e.g.}
+\newcommand{\ie}{i.e.\xspace}
+\newcommand{\eg}{e.g.\xspace}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Prettyref
@@ -97,6 +98,9 @@
 \newcommand{\dissect}{\includegraphics{Dissect}}
 \newcommand{\clowns}{\includegraphics{Clowns}}
 \newcommand{\jokers}{\includegraphics{Jokers}}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -676,30 +680,86 @@ Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$ (although such infinite
 sums do not necessarily make sense in all semirings).  The semiring of
 regular languages is closed, via Kleene star.
 
+A final observation is that if $R$ is a semiring, then the set of $n
+\times n$ matrices with elements in $R$ is also a semiring, where
+matrix addition and multiplication are defined in the usual manner in
+terms of addition and multiplication in $R$.  If $R$ is a star
+semiring, then a star operator can also be defined for matrices; for
+details see \citet{dolan2013fun}.
+
 \subsection{Transition matrices}
 \label{sec:transition-matrices}
 
-Given a DFA $D$, a semiring $R$, and a function $\Sigma \to R$
-assigning an element of $R$ to each alphabet symbol, we may form a
-\term{transition matrix}\footnote{Textbooks on automata often define
-  the \term{transition matrix} for a DFA as something else, namely,
-  the $||Q|| \times ||\Sigma||$ matrix with the $q,s$ entry equal to
+Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
+  matrix} is an $n \times n$ matrix $M_G$ with a $1$ in the $i,j$
+position if there is an edge from node $i$ to node $j$, and a $0$
+otherwise.  It is a standard observation that the $k$th power of $M_G$
+encodes information about length-$k$ paths in $G$; specifically, the
+$i,j$ entry of $M_G$ is the number of distinct paths of length $k$
+from $i$ to $j$.
+
+However, as observed independently by \citet{dolan2013fun} and
+\citet{oconnor2011shortestpaths}, this can be generalized, by
+parameterizing the construction over an arbitrary semiring.  In
+particular, we may suppose that the edges of $G$ are labelled by
+elements of some semiring $R$, and form the adjacency matrix $M_G$ as
+before, but using the labels instead of always using $1$.  The $k$th
+power of $M_G$ still encodes information about length-$k$ paths, but
+the interpretation depends on the specific choice of $R$, and how the
+edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
+edges labelled by $1$ gives us a count of distinct paths, as before.
+If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
+the $i,j$ entry of $M_G^k$ tells us whether there exists any path of
+length $k$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
+edges with costs yields minimum-cost paths of length $k$; choosing
+$(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
+alphabet $\Sigma$ under union and Cartesian product) and labelling
+edges with elements from $\Sigma$ yields sets of words corresponding
+to length-$k$ paths.
+
+Moreover, if $R$ is a star semiring, then the semiring of square
+matrices over $R$ is as well; in particular, $M_G^*$ encodes
+information about paths of \emph{any} length (recall that,
+intuitively, $M_G^* = I + M_G + M_G^2 + M_G^3 + \dots$).  Choosing $R
+= (\R, \min, +)$ and computing $M_G^*$ thus solves the all-pairs
+shortest paths problem; $(|Bool|, \lor, \land)$ tells us whether any
+paths exist between each pair of nodes; and so on.  Note that $(\N, +,
+\cdot)$ is not closed, but we can make it so by adjoining $+\infty$;
+this corresponds to the observation that the number of distinct paths
+between a pair of nodes in a graph may be infinite if the graph
+contains any cycles.
+
+Of course, DFAs can also be thought of as graphs.  Suppose we have a
+DFA $D$, a semiring $R$, and a function $\Sigma \to R$ assigning an
+element of $R$ to each alphabet symbol.  In this context, we call the
+adjacency matrix for $D$ a \term{transition matrix}.\footnote{Textbooks
+  on automata often define the \term{transition matrix} for a DFA as
+  the $||Q|| \times ||\Sigma||$ matrix with its $q,s$ entry equal to
   $\delta(q,s)$.  This is just a particular representation of the
-  function $\delta$, and quite uninteresting, so we steal the term
-  \term{transition matrix} to refer to something worthwhile.} for
-$D$. The transition matrix is the $||Q|| \times ||Q||$ matrix over $R$
-whose component at $i,j$ is the sum, over all edges from $i$ to $j$,
-of the $R$-values corresponding to their labels.
+  function $\delta$, and quite uninteresting, so we co-opt the term
+  \term{transition matrix} to refer to something more worthwhile.} The
+graph of a DFA may not be simple, that is, there may be multiple edges
+in a DFA between a given pair of nodes, each corresponding to a
+different alphabet symbol.  We can handle this by summing in $R$.
+That is, the transition matrix $M_D$ is the $||Q|| \times ||Q||$
+matrix over $R$ whose component at $i,j$ is the sum, over all edges
+from $i$ to $j$, of the $R$-values corresponding to their labels.
 
 For example, consider the DFA in \pref{fig:dfa-example-simpl}, and the
-semiring of regular languages.  If we send each edge label (\ie
-alphabet symbol) to the singleton language containing only that symbol
-as a length-$1$ string, we obtain the transition matrix \[
+semiring $(\N, +, \cdot)$. If we send each edge label (\ie alphabet
+symbol) to $1$, we obtain the transition matrix
+\[
+\setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 1
+  \\ 0 & 1 & 0 \end{bmatrix}. \] The $k$th power of this matrix tells
+us how many strings of length $k$ take the DFA from one given state to
+another.  If we instead send each edge label to the singleton language
+containing only that symbol as a length-$1$ string, as a member of the
+semiring of regular languages, we obtain the transition matrix \[
 \setlength{\arraycolsep}{5pt} \begin{bmatrix} \varnothing & \{a\} &
   \varnothing \\ \{b\} & \varnothing & \{a\} \\ \varnothing & \{b\} &
-  \varnothing \end{bmatrix}. \]
-
-\todo{Write about $M^n$, $M^*$, etc. \citep{dolan2013fun}}
+  \varnothing \end{bmatrix}. \] The star of this matrix yields the
+complete set of strings that drives the DFA between each pair of
+states.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
