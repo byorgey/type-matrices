@@ -704,36 +704,34 @@ encodes information about length-$k$ paths in $G$; specifically, the
 $i,j$ entry of $M_G$ is the number of distinct paths of length $k$
 from $i$ to $j$.
 
-However, as observed independently by \citet{dolan2013fun} and
-\citet{oconnor2011shortestpaths}, this can be generalized, by
-parameterizing the construction over an arbitrary semiring.  In
-particular, we may suppose that the edges of $G$ are labelled by
-elements of some semiring $R$, and form the adjacency matrix $M_G$ as
-before, but using the labels instead of always using $1$.  The $k$th
-power of $M_G$ still encodes information about length-$k$ paths, but
-the interpretation depends on the specific choice of $R$, and how the
+However, as observed independently by \citet{oconnor2011shortestpaths}
+and \citet{dolan2013fun}, this can be generalized by parameterizing
+the construction over an arbitrary semiring.  In particular, we may
+suppose that the edges of $G$ are labelled by elements of some
+semiring $R$, and form the adjacency matrix $M_G$ as before, but using
+the labels on edges, and $0 \in R$ for missing edges.  The $k$th power
+of $M_G$ still encodes information about length-$k$ paths, but the
+interpretation depends on the specific choice of $R$, and how the
 edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
 edges labelled by $1$ gives us a count of distinct paths, as before.
 If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
 the $i,j$ entry of $M_G^k$ tells us whether there exists any path of
 length $k$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
-edges with costs yields minimum-cost paths of length $k$; choosing
+edges with costs yields the minimum cost of length-$k$ paths; choosing
 $(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
 alphabet $\Sigma$ under union and Cartesian product) and labelling
 edges with elements from $\Sigma$ yields sets of words corresponding
 to length-$k$ paths.
 
-Moreover, if $R$ is a star semiring, then the semiring of square
-matrices over $R$ is as well; in particular, $M_G^*$ encodes
-information about paths of \emph{any} length (recall that,
-intuitively, $M_G^* = I + M_G + M_G^2 + M_G^3 + \dots$).  Choosing $R
-= (\R, \min, +)$ and computing $M_G^*$ thus solves the all-pairs
-shortest paths problem; $(|Bool|, \lor, \land)$ tells us whether any
-paths exist between each pair of nodes; and so on.  Note that $(\N, +,
-\cdot)$ is not closed, but we can make it so by adjoining $+\infty$;
-this corresponds to the observation that the number of distinct paths
-between a pair of nodes in a graph may be infinite if the graph
-contains any cycles.
+Moreover, if $R$ is a star semiring, then $M_G^*$ encodes information
+about paths of \emph{any} length (recall that, intuitively, $M_G^* = I
++ M_G + M_G^2 + M_G^3 + \dots$).  Choosing $R = (\R, \min, +)$ and
+computing $M_G^*$ thus solves the all-pairs shortest paths problem;
+$(|Bool|, \lor, \land)$ tells us whether any paths exist between each
+pair of nodes; and so on.  Note that $(\N, +, \cdot)$ is not closed,
+but we can make it so by adjoining $+\infty$; this corresponds to the
+observation that the number of distinct paths between a pair of nodes
+in a graph may be infinite if the graph contains any cycles.
 
 Of course, DFAs can also be thought of as graphs.  Suppose we have a
 DFA $D$, a semiring $R$, and a function $\Sigma \to R$ assigning an
