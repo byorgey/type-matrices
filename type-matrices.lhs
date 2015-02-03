@@ -850,8 +850,8 @@ each ordered pair of states.
 %  of the combinations are impossible or irrelevant---but we will
 %  certainly
 
-\subsection{Matrices of types}
-\label{sec:matrices-of-types}
+\subsection{Matrices of functors}
+\label{sec:matrices-of-functors}
 
 Though shifting our point of view to DFAs has given us a better
 framework for determining which types we must define, we still had to
