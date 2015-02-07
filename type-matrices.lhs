@@ -162,14 +162,11 @@
   but whose sequences of leaf types correspond to strings in the
   language.
 
-  \todo{Don't use $1$ in the middle of regular expressions, it's
-    distracting and confusing.}
-
   The primary interest of this result lies in the fact that certain
   regular languages correspond to previously studied derivative-like
   operations on polynomial functors.  For example, the regular
-  language $a^*1a^*$ yields the \emph{derivative} of a polynomial
-  functor, and $b^*1a^*$ its \emph{dissection}.  Using our framework,
+  language $a^*ha^*$ yields the \emph{derivative} of a polynomial
+  functor, and $b^*ha^*$ its \emph{dissection}.  Using our framework,
   we are able to unify and lend new perspective on this previous work.
   For example, it turns out that dissection of polynomial functors
   corresponds to taking \emph{divided differences} of real or complex
@@ -237,10 +234,10 @@ followed recursively by another |AList a b|.
 In fact, we can think of |AList a b| as containing values whose
 \term{shape} corresponds to the original |List| type, but whose
 sequence of element types corresponds to the \term{regular expression}
-$(ab)^\ast$, that is, any number of repetitions of the sequence $ab$.
+$(ab)^*$, that is, any number of repetitions of the sequence $ab$.
 
 We can easily generalize this idea to regular expressions other than
-$(ab)^\ast$ (though constructing the corresponding types may be
+$(ab)^*$ (though constructing the corresponding types may be
 complicated). We can also generalize to algebraic data types other
 than |List|, by considering the sequence of element types encountered
 by a canonical traversal \citep{mcbride2008applicative} of each data structure.
@@ -383,28 +380,26 @@ Char|:
 
 While this works, the procedure was somewhat {\it ad hoc}. We reasoned
 about the properties of the pieces that result when a string matching
-$(ab)^\ast$ is split into two substrings, and used this to find
+$(ab)^*$ is split into two substrings, and used this to find
 corresponding types for the subtrees. One might wonder why we ended up
-with four mutually recursive types---is there is any simpler solution?
-And how well will this sort of reasoning extend to more complicated
+with four mutually recursive types---is there any simpler solution?
+And how well does this sort of reasoning extend to more complicated
 structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
 suitable (\term{polynomial}) data type.
 
 For certain regular languages, this problem has already been solved in
 the literature, though without being phrased in terms of regular
-languages.  For example, consider the regular language
-$a^\ast1a^\ast$. It matches sequences of $a$s with precisely one
-occurrence of $1$ somewhere in the middle.  Data structures whose
-inorder sequence of element types matches $a^\ast1a^\ast$ have all
-elements of type |a|, except for one which has type |1|, \ie\ the unit
-type. In other words, imposing this regular expression corresponds to
-finding the \term{derivative} of the orginal type
-\citep{DBLP:journals/fuin/AbbottAMG05} (\pref{fig:derivative}).
-Likewise, the regular language $a^\ast ba^\ast$ corresponds to a
-zipper type \citep{Huet_zipper} with elements of type $b$ at the
-`focus', and the regular language $a^\ast1b^\ast$ corresponds to
-\term{dissection types} \citep{dissection}.
+languages.  For example, consider the regular language $a^*ha^*$. It
+matches sequences of $a$s with precisely one occurrence of $1$
+somewhere in the middle.  Data structures whose inorder sequence of
+element types matches $a^*ha^*$ have all elements of type |a|, except
+for one which has type |h|. This corresponds to a zipper type
+\citep{Huet_zipper} with elements of type $h$ at the `focus'; if we
+substitute the unit type for |h|, we get the \term{derivative} of the
+orginal type \citep{DBLP:journals/fuin/AbbottAMG05}
+(\pref{fig:derivative}).  Likewise, the regular language $b^*ha^*$
+corresponds to \term{dissection types} \citep{dissection}.
 
 \begin{figure}
   \centering
@@ -432,7 +427,7 @@ t = Nothing ##
 
 dia = renderT t # frame 0.5
   \end{diagram}
-  \caption{A tree corresponding to the regular language $a^\ast1a^\ast$}
+  \caption{A tree corresponding to the regular language $a^*1a^*$}
   \label{fig:derivative}
 \end{figure}
 
@@ -443,7 +438,7 @@ language.
 
 In the remainder of the paper, we first review some standard results
 about regular languages and DFAs (\pref{sec:regexp-and-dfas}).  We
-describe our framework informally (\pref{sec:our-framework}) and give
+describe our framework informally (\pref{sec:dfas-matrices}) and give
 some examples of its application (\pref{sec:examples}).  We then give
 a more formal treatment of our results (\pref{sec:formalization}) and
 conclude with a discussion of derivatives
@@ -454,12 +449,11 @@ conclude with a discussion of derivatives
 \label{sec:regexp-and-dfas}
 
 We begin with a quick review of the basic theory of regular languages
-and deterministic finite automata in
-\pref{sec:regexps}--\pref{sec:kleenes-theorem}.  Readers already
-familiar with this theory may safely skip these sections.  In
-\pref{sec:semirings} and \pref{sec:transition-matrices} we introduce
-some preliminary material on star semirings and transition matrices
-for DFAs which, though not novel, may not be as familiar to readers.
+and deterministic finite automata in Sections
+\ref{sec:regexps}--\ref{sec:kleenes-theorem}.  Readers already
+familiar with this theory may safely skip these sections.  In Section
+\ref{sec:semirings} we introduce some preliminary material on star
+semirings which, though not novel, may not be as familiar to readers.
 
 \subsection{Regular expressions}
 \label{sec:regexps}
@@ -623,38 +617,38 @@ If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
 \subsection{Kleene's Theorem}
 \label{sec:kleenes-theorem}
 
-The punchline is \emph{Kleene's Theorem}, which says that the theory
-of regular expressions and the theory of DFAs are really ``about the
-same thing''.  In particular, the set of strings accepted by a DFA is
-always a regular language, and conversely, for every regular language
-there exists a DFA which accepts it.  Moreover, the proof of the
-theorem is constructive: given a regular expression, we may
-algorithmically construct a corresponding DFA (and vice versa).  For
-example, the regular expression $b^*1a^*$ corresponds to the DFA shown
-in \pref{fig:bstar-1-astar}.  It is not hard to verify that strings
-taking the DFA from state $1$ to state $2$ (the accept state) are
-precisely those matching the regular expression $b^*1a^*$.
+Connecting the previous two sections is \emph{Kleene's Theorem}, which
+says that the theory of regular expressions and the theory of DFAs are
+really ``about the same thing''.  In particular, the set of strings
+accepted by a DFA is always a regular language, and conversely, for
+every regular language there exists a DFA which accepts it.  Moreover,
+the proof of the theorem is constructive: given a regular expression,
+we may algorithmically construct a corresponding DFA, and vice versa.
+For example, the regular expression $b^*ha^*$ corresponds to the DFA
+shown in \pref{fig:bstar-h-astar}.  It is not hard to verify that
+strings taking the DFA from state $1$ to state $2$ (the accept state)
+are precisely those matching the regular expression $b^*ha^*$.
 
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-bstar1astar :: DFA (Diagram B R2)
-bstar1astar = dfa
+bstarhastar :: DFA (Diagram B R2)
+bstarhastar = dfa
   [ 1 --> (False, origin)
   , 2 --> (True, 5 ^& 0)
   ]
-  [ 1 >-- txt "1" --> 2
+  [ 1 >-- txt "h" --> 2
 
   , 1 >-- txt "b" --> 1
   , 2 >-- txt "a" --> 2
   ]
 
-dia = drawDFA bstar1astar # frame 0.5
+dia = drawDFA bstarhastar # frame 0.5
   \end{diagram}
-  \caption{A DFA for $b^*1a^*$}
-  \label{fig:bstar-1-astar}
+  \caption{A DFA for $b^*ha^*$}
+  \label{fig:bstar-h-astar}
 \end{figure}
 
 The precise details of these constructions are not important for the
@@ -677,7 +671,8 @@ $+$, and $+$ is commutative and associative),
 \end{itemize}
 
 Note in particular that regular languages form a semiring under the
-operations of union and concatenation.
+operations of union and concatenation, with $0 = \varnothing$ and $1 =
+\{\varepsilon\}$.
 
 A \term{star semiring} or \term{closed semiring}
 \citep{lehmann1977algebraic} has an additional operation, $(-)^*$,
@@ -693,92 +688,12 @@ terms of addition and multiplication in $R$.  If $R$ is a star
 semiring, then a star operator can also be defined for matrices; for
 details see \citet{dolan2013fun}.
 
-\subsection{Transition matrices}
-\label{sec:transition-matrices}
-
-Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
-  matrix} is an $n \times n$ matrix $M_G$ with a $1$ in the $i,j$
-position if there is an edge from node $i$ to node $j$, and a $0$
-otherwise.  It is a standard observation that the $k$th power of $M_G$
-encodes information about length-$k$ paths in $G$; specifically, the
-$i,j$ entry of $M_G$ is the number of distinct paths of length $k$
-from $i$ to $j$.
-
-However, as observed independently by \citet{oconnor2011shortestpaths}
-and \citet{dolan2013fun}, this can be generalized by parameterizing
-the construction over an arbitrary semiring.  In particular, we may
-suppose that the edges of $G$ are labelled by elements of some
-semiring $R$, and form the adjacency matrix $M_G$ as before, but using
-the labels on edges, and $0 \in R$ for missing edges.  The $k$th power
-of $M_G$ still encodes information about length-$k$ paths, but the
-interpretation depends on the specific choice of $R$, and how the
-edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
-edges labelled by $1$ gives us a count of distinct paths, as before.
-If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
-the $i,j$ entry of $M_G^k$ tells us whether there exists any path of
-length $k$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
-edges with costs yields the minimum cost of length-$k$ paths; choosing
-$(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
-alphabet $\Sigma$ under union and Cartesian product) and labelling
-edges with elements from $\Sigma$ yields sets of words corresponding
-to length-$k$ paths.
-
-Moreover, if $R$ is a star semiring, then $M_G^*$ encodes information
-about paths of \emph{any} length (recall that, intuitively, $M_G^* = I
-+ M_G + M_G^2 + M_G^3 + \dots$).  Choosing $R = (\R, \min, +)$ and
-computing $M_G^*$ thus solves the all-pairs shortest paths problem;
-$(|Bool|, \lor, \land)$ tells us whether any paths exist between each
-pair of nodes; and so on.  Note that $(\N, +, \cdot)$ is not closed,
-but we can make it so by adjoining $+\infty$; this corresponds to the
-observation that the number of distinct paths between a pair of nodes
-in a graph may be infinite if the graph contains any cycles.
-
-Of course, DFAs can also be thought of as graphs.  Suppose we have a
-DFA $D$, a semiring $R$, and a function $\Sigma \to R$ assigning an
-element of $R$ to each alphabet symbol.  In this context, we call the
-adjacency matrix for $D$ a \term{transition matrix}.\footnote{Textbooks
-  on automata often define the \term{transition matrix} for a DFA as
-  the $||Q|| \times ||\Sigma||$ matrix with its $q,s$ entry equal to
-  $\delta(q,s)$.  This is just a particular representation of the
-  function $\delta$, and quite uninteresting, so we co-opt the term
-  \term{transition matrix} to refer to something more worthwhile.} The
-graph of a DFA may not be simple, that is, there may be multiple edges
-in a DFA between a given pair of nodes, each corresponding to a
-different alphabet symbol.  We can handle this by summing in $R$.
-That is, the transition matrix $M_D$ is the $||Q|| \times ||Q||$
-matrix over $R$ whose component at $i,j$ is the sum, over all edges
-from $i$ to $j$, of the $R$-values corresponding to their labels.
-
-For example, consider the DFA in \pref{fig:dfa-example-simpl}, and the
-semiring $(\N, +, \cdot)$. If we send each edge label (\ie alphabet
-symbol) to $1$, we obtain the transition matrix
-\[
-\setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 1
-  \\ 0 & 1 & 0 \end{bmatrix}. \] The $k$th power of this matrix tells
-us how many strings of length $k$ take the DFA from one given state to
-another.  If we instead send each edge label to the singleton language
-containing only that symbol as a length-$1$ string, as a member of the
-semiring of regular languages, we obtain the transition matrix \[
-\setlength{\arraycolsep}{5pt} \begin{bmatrix} \varnothing & \{a\} &
-  \varnothing \\ \{b\} & \varnothing & \{a\} \\ \varnothing & \{b\} &
-  \varnothing \end{bmatrix}. \] The star of this matrix yields the
-complete set of strings that drives the DFA between each pair of
-states.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{XXX}
-\label{sec:the-framework}
-
-We now revisit our {\it ad hoc} analysis from the introduction, and
-see how to reframe it in terms of DFAs and matrices of functors.
-
-\todo{Blah blah, finish some sort of intro here.}
-
-\subsection{Types and DFAs}
-\label{sec:types-and-dfas}
+\section{DFAs and matrices of functors}
+\label{sec:dfas-matrices}
 
 Viewing regular expressions through the lens of DFAs gives us exactly the
 tools we need to generalize our \emph{ad hoc} analysis from the
@@ -789,7 +704,7 @@ data Tree a  =  Leaf a
              |  Fork (Tree a) (Tree a)
 \end{spec}
 whose sequence of element types matches the regular expression
-$(ab)^\ast$, as in the introduction.  This time, however, we will
+$(ab)^*$, as in the introduction.  This time, however, we will
 think about it from the point of view of the corresponding DFA, shown
 in \pref{fig:ab-star-dfa}.
 
@@ -809,7 +724,7 @@ abStar = dfa
 
 dia = drawDFA abStar # frame 0.5
   \end{diagram}
-  \caption{A DFA for $(ab)^\ast$}
+  \caption{A DFA for $(ab)^*$}
   \label{fig:ab-star-dfa}
 \end{figure}
 
@@ -843,15 +758,10 @@ fact, we have already carried out this exact analysis in the
 introduction, but it is now a bit less ad hoc.  In particular, we can
 now see that we end up with four mutually recursive types precisely
 because the DFA for $(ab)^*$ has two states, and we need one type for
-each ordered pair of states.
-
-% \footnote{In general, we can imagine ending up with \emph{fewer}
-%  than $n^2$ mutually recursive types for a DFA of $n$ states---if some
-%  of the combinations are impossible or irrelevant---but we will
-%  certainly
-
-\subsection{Matrices of functors}
-\label{sec:matrices-of-functors}
+each ordered pair of states.\footnote{In general, we could 
+  end up with \emph{fewer} than $n^2$ mutually recursive types for
+  a DFA of $n$ states, if some of the combinations are impossible or
+  irrelevant.}
 
 Though shifting our point of view to DFAs has given us a better
 framework for determining which types we must define, we still had to
@@ -863,9 +773,6 @@ We now abstract away from the particular details of Haskell data types
 and work in terms of a simple language of \term{polynomial
   functors}.
 \begin{itemize}
-\item $1$ denotes the constantly unit functor $1\ a = 1$ (whether $1$
-denotes the constantly unit functor or the unit value should be clear
-from the context).
 \item $K_A$ denotes the constant functor $K_A\ a = A$ which ignores
   its argument and yields $A$.
 \item $X$ denotes the identity functor $X\ a = a$.
@@ -876,67 +783,51 @@ from the context).
 \item We also allow functors to be defined by mutually recursive
   systems of equations $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$,
   and interpret them using a standard least fixed point construction.
-  For example, the single recursive equation $L = 1 + X\times L$
+  For example, the single recursive equation $L = 1 + X \times L$
   denotes the standard type of (finite) polymorphic lists.  As another
   example, the pair of mutually recursive equations
   \begin{align*}
-    F & =
-    G & =
+    E & = K_{|Unit|} + X \times O \\
+    O & = X \times E
   \end{align*}
-  \todo{Finish.  Come up with good example.}
+  defines the types of even- and odd-length lists.  Here, |Unit|
+  denotes the unit type with a single inhabitant.
 \end{itemize}
 
-All of this also generalizes naturally from single-argument functors
-to $n$-ary functors:
+It is worth pointing out that functors form a semiring (up to
+isomorphism) under $+$ and $\times$, where $1 = K_{|Unit|}$ and $0 =
+K_{|Void|}$ (|Void| denotes the type with no inhabitants).  We
+therefore will simply write $0$ and $1$ in place of $K_{|Unit|}$ and
+$K_{|Void|}$.
+
+The above language also generalizes naturally from single-argument
+functors to $n$-ary functors:
 \begin{itemize}
-\item $1\ a_1\ \dots\ a_n = 1$;
-\item $K_A\ a_1\ \dots\ a_n = A$;
-\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
-  a_n$);
-\item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
-  a_1\ \dots\ a_n)$;
+\item $K_A\ a_1\ \dots\ a_n = A$
 \item the identity functor $X$ generalizes to the family of
   projections ${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \]
   That is, ${}_nX_i$ is the $n$-ary functor which yields its $i$th
-  argument.
+  argument.  More generally, the arguments to a functor can be
+  labelled by the elements of some alphabet $\Sigma$, instead of being
+  numbered positionally.  In that case, for $a \in \Sigma$ we write
+  ${}_nX_a$ for the projection which picks out the argument labelled
+  by $a$.
+\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
+  a_n$)
+\item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
+  a_1\ \dots\ a_n)$.
 \end{itemize}
-For example, the Haskell type
+Of course, $n$-ary functors also form a semiring for any $n$.
+
+As an example, the Haskell type
 \begin{spec}
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
-corresponds to the two-argument functor $S = {}_2X_1 + {}_2X_2 + S
-\times S$.  Usually we omit the pre-subscript on $X$ and just write
-$X_1$, $X_2$ and so on when the arity $n$ can be inferred from the
-context.
-
-\todo{Also translate one of the examples from the introduction into
-  this notation, to show the use of mutually recursive systems?}
-
-From this point onwards, as a practical matter, we will assume the
-canonical alphabet $\Sigma = \{1, \dots, n\}$.  This is because
-functor arguments correspond to alphabet elements, and functor
-arguments are identified positionally.
-
-\todo{this should probably be moved later, to some section where we
-  formally prove some stuff}
-We can define $S(F)$, the language of possible sequences of leaf types
-of a multi-argument functor, $F$ as follows:
-
-\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
-
-\begin{align*}
-\leafseq{1} &= \{\varepsilon\} \\
-\leafseq{X_i} &= \{ i \} \\
-\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
-\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
-\end{align*}
-Finally, given $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$ we set
-\[ \overline{\leafseq{F_i} = \leafseq{\Phi_i(F_1, \dots, F_n)}}^n \]
-and take the least fixed point (ordering sets by inclusion).  For
-example, given the list functor $L = 1 + XL$, we obtain \[ \leafseq{L}
-= \{ \varepsilon \} \union \{ 1\sigma \mid \sigma \in \leafseq{L}
-\} \] whose least fixed point is the infinite set $\{ \varepsilon, 1,
-11, 111, \dots \}$ as expected.
+corresponds to the $2$-ary functor $S = {}_2X_a + {}_2X_b + S \times
+S$.  Usually we omit the pre-subscript on $X$ and just write $X_a$,
+$X_b$ and so on when the arity $n$ can be inferred from the context.
+We may also abbreviate $S \times S$ as $S^2$.  All together, we may
+more idiomatically express $S$ as $S = X_a + X_b + S^2$.
 
 Suppose we have a one-argument functor $F$ and some DFA $D =
 (Q,\Sigma,\delta,q_o,F)$.  Let $F_{ij}$ denote the type with the same
@@ -1028,6 +919,81 @@ In other words, given a DFA $D$, we have a \emph{semiring
 matrices of arity-$||\Sigma||$ functors---that is, a mapping from
 functors to matrices which preserves sum and product. \todo{explain
   better what is meant by semiring homomorphism}
+
+\todo{So far, we have the makings \dots}
+
+\subsection{Transition matrices}
+\label{sec:transition-matrices}
+
+Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
+  matrix} is an $n \times n$ matrix $M_G$ with a $1$ in the $i,j$
+position if there is an edge from node $i$ to node $j$, and a $0$
+otherwise.  It is a standard observation that the $k$th power of $M_G$
+encodes information about length-$k$ paths in $G$; specifically, the
+$i,j$ entry of $M_G$ is the number of distinct paths of length $k$
+from $i$ to $j$.
+
+However, as observed independently by \citet{oconnor2011shortestpaths}
+and \citet{dolan2013fun}, this can be generalized by parameterizing
+the construction over an arbitrary semiring.  In particular, we may
+suppose that the edges of $G$ are labelled by elements of some
+semiring $R$, and form the adjacency matrix $M_G$ as before, but using
+the labels on edges, and $0 \in R$ for missing edges.  The $k$th power
+of $M_G$ still encodes information about length-$k$ paths, but the
+interpretation depends on the specific choice of $R$, and how the
+edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
+edges labelled by $1$ gives us a count of distinct paths, as before.
+If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
+the $i,j$ entry of $M_G^k$ tells us whether there exists any path of
+length $k$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
+edges with costs yields the minimum cost of length-$k$ paths; choosing
+$(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
+alphabet $\Sigma$ under union and Cartesian product) and labelling
+edges with elements from $\Sigma$ yields sets of words corresponding
+to length-$k$ paths.
+
+Moreover, if $R$ is a star semiring, then $M_G^*$ encodes information
+about paths of \emph{any} length (recall that, intuitively, $M_G^* = I
++ M_G + M_G^2 + M_G^3 + \dots$).  Choosing $R = (\R, \min, +)$ and
+computing $M_G^*$ thus solves the all-pairs shortest paths problem;
+$(|Bool|, \lor, \land)$ tells us whether any paths exist between each
+pair of nodes; and so on.  Note that $(\N, +, \cdot)$ is not closed,
+but we can make it so by adjoining $+\infty$; this corresponds to the
+observation that the number of distinct paths between a pair of nodes
+in a graph may be infinite if the graph contains any cycles.
+
+Of course, DFAs can also be thought of as graphs.  Suppose we have a
+DFA $D$, a semiring $R$, and a function $\Sigma \to R$ assigning an
+element of $R$ to each alphabet symbol.  In this context, we call the
+adjacency matrix for $D$ a \term{transition matrix}.\footnote{Textbooks
+  on automata often define the \term{transition matrix} for a DFA as
+  the $||Q|| \times ||\Sigma||$ matrix with its $q,s$ entry equal to
+  $\delta(q,s)$.  This is just a particular representation of the
+  function $\delta$, and quite uninteresting, so we co-opt the term
+  \term{transition matrix} to refer to something more worthwhile.} The
+graph of a DFA may not be simple, that is, there may be multiple edges
+in a DFA between a given pair of nodes, each corresponding to a
+different alphabet symbol.  We can handle this by summing in $R$.
+That is, the transition matrix $M_D$ is the $||Q|| \times ||Q||$
+matrix over $R$ whose component at $i,j$ is the sum, over all edges
+from $i$ to $j$, of the $R$-values corresponding to their labels.
+
+For example, consider the DFA in \pref{fig:dfa-example-simpl}, and the
+semiring $(\N, +, \cdot)$. If we send each edge label (\ie alphabet
+symbol) to $1$, we obtain the transition matrix
+\[
+\setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 1
+  \\ 0 & 1 & 0 \end{bmatrix}. \] The $k$th power of this matrix tells
+us how many strings of length $k$ take the DFA from one given state to
+another.  If we instead send each edge label to the singleton language
+containing only that symbol as a length-$1$ string, as a member of the
+semiring of regular languages, we obtain the transition matrix \[
+\setlength{\arraycolsep}{5pt} \begin{bmatrix} \varnothing & \{a\} &
+  \varnothing \\ \{b\} & \varnothing & \{a\} \\ \varnothing & \{b\} &
+  \varnothing \end{bmatrix}. \] The star of this matrix yields the
+complete set of strings that drives the DFA between each pair of
+states.
+
 
 \section{Examples}
 \label{sec:examples}
@@ -1315,6 +1281,28 @@ One point worth mentioning is that \todo{Write about uniqueness of
   is in the language recognized by a DFA if it never causes the DFA to
   reject.  I'm not quite sure how this relates to the fact that
   least+greatest fixedpoints coincide in Haskell.}
+
+\todo{this should probably be moved later, to some section where we
+  formally prove some stuff}
+We can define $S(F)$, the language of possible sequences of leaf types
+of a multi-argument functor, $F$ as follows:
+
+\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
+
+\begin{align*}
+\leafseq{1} &= \{\varepsilon\} \\
+\leafseq{X_i} &= \{ i \} \\
+\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
+\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
+\end{align*}
+Finally, given $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$ we set
+\[ \overline{\leafseq{F_i} = \leafseq{\Phi_i(F_1, \dots, F_n)}}^n \]
+and take the least fixed point (ordering sets by inclusion).  For
+example, given the list functor $L = 1 + XL$, we obtain \[ \leafseq{L}
+= \{ \varepsilon \} \union \{ 1\sigma \mid \sigma \in \leafseq{L}
+\} \] whose least fixed point is the infinite set $\{ \varepsilon, 1,
+11, 111, \dots \}$ as expected.
+
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
