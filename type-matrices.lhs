@@ -93,7 +93,9 @@
 
 \newcommand{\union}{\cup}
 
-\newcommand{\m}[1]{\mathbf{#1}}
+% \newcommand{\m}[1]{\mathbf{#1}}
+\newcommand{\m}[1]{\left\llbracket {#1} \right\rrbracket}
+\newcommand{\mD}[1]{\m{#1}_D}
 
 \newcommand{\dissect}{\includegraphics{Dissect}}
 \newcommand{\clowns}{\includegraphics{Clowns}}
@@ -681,12 +683,17 @@ Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$ (although such infinite
 sums do not necessarily make sense in all semirings).  The semiring of
 regular languages is closed, via Kleene star.
 
-A final observation is that if $R$ is a semiring, then the set of $n
-\times n$ matrices with elements in $R$ is also a semiring, where
-matrix addition and multiplication are defined in the usual manner in
-terms of addition and multiplication in $R$.  If $R$ is a star
-semiring, then a star operator can also be defined for matrices; for
-details see \citet{dolan2013fun}.
+If $R$ is a semiring, then the set of $n \times n$ matrices with
+elements in $R$ is also a semiring, where matrix addition and
+multiplication are defined in the usual manner in terms of addition
+and multiplication in $R$.  If $R$ is a star semiring, then a star
+operator can also be defined for matrices; for details see
+\citet{dolan2013fun}.
+
+Finally, a \term{semiring homomorphism} is a mapping from the elements
+of one semiring to another that preserves the semiring structure, that
+is, sends $0$ to $0$, $1$ to $1$, and preserves addition and
+multiplication.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -798,7 +805,15 @@ It is worth pointing out that functors form a semiring (up to
 isomorphism) under $+$ and $\times$, where $1 = K_{|Unit|}$ and $0 =
 K_{|Void|}$ (|Void| denotes the type with no inhabitants).  We
 therefore will simply write $0$ and $1$ in place of $K_{|Unit|}$ and
-$K_{|Void|}$.
+$K_{|Void|}$.  In fact, functors also form a star semiring, with the
+polymorphic list type playing the role of the star
+operator. \brent{This is sweeping a bit under the rug, since we have
+  not defined composition for functor expressions; but it is always
+  possible to reduce an expression involving composition to an
+  isomorphic one that does not, so this really does give a
+  well-defined star semiring.  Not sure how much we want/need to say
+  about this.  Perhaps we don't even need to mention that functors
+  form a star semiring at all?}
 
 The above language also generalizes naturally from single-argument
 functors to $n$-ary functors:
@@ -817,7 +832,8 @@ functors to $n$-ary functors:
 \item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
   a_1\ \dots\ a_n)$.
 \end{itemize}
-Of course, $n$-ary functors also form a semiring for any $n$.
+Of course, $n$-ary functors also form a semiring for any $n$ (even
+when $n = 0$, in which case we refer to the \term{semiring of types}).
 
 As an example, the Haskell type
 \begin{spec}
@@ -831,33 +847,32 @@ more idiomatically express $S$ as $S = X_a + X_b + S^2$.
 
 Suppose we have a one-argument functor $F$ and some DFA $D =
 (Q,\Sigma,\delta,q_o,F)$.  Let $F_{ij}$ denote the type with the same
-shape as $F$ \brent{should we define this ``have the same shape as''
-  thing formally?  I guess the idea would be that $F$ and $G$ have the
-  same shape iff $F\ 1\ \dots\ 1 \cong G\ 1\ \dots\ 1$ (where $F$ and
-  $G$ could have different arities).}  \dan{ Should that be $F$ and
-  $G$ have the same shape iff $F\ a\ \dots\ a \cong G\ a\ \dots\ a$?
-  Your definition gives the usual notion of shape: ie. the branching
-  structure without regard to what the elements are. But I'm talking
-  about the shape as a container with elements.  I'm also not sure we
-  need to make this formal.  } but whose sequence of leaf types takes
-$D$ from state $i$ to state $j$.  Note that $F_{ij}$ has arity
-$||\Sigma||$, that is, there is a leaf type corresponding to each
-alphabet symbol of $D$.  We can deduce $F_{ij}$ compositionally by
-considering each of the functor building blocks above in turn.
+shape as $F$ but whose sequence of leaf types\footnote{That is,
+  according to an inorder traversal; we make this more explicit in
+  \pref{sec:formalization}.} takes $D$ from state $i$ to state $j$.
+Note that $F_{ij}$ has arity $||\Sigma||$, that is, there is a leaf
+type corresponding to each alphabet symbol of $D$.  We can deduce
+$F_{ij}$ compositionally by considering each of the functor building
+blocks above in turn.
 
 \begin{itemize}
-\item The constant functor $1$ creates structures containing no
+\item The constant functor $K_A$ creates structures containing no
   elements, \emph{i.e.} which do not cause the DFA to transition at
-  all.  So the only way a $1$ structure can take the DFA from state
+  all.  So the only way a $K_A$-structure can take the DFA from state
   $i$ to state $j$ is if $i = j$:
 \begin{equation}
   \label{eq:unit-functor}
-  1_{ij} =
+  (K_A)_{ij} =
   \begin{cases}
-    1 & i = j \\
+    K_A & i = j \\
     0 & i \neq j
   \end{cases}
 \end{equation}
+As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} = 
+\begin{cases}
+  1 & i = j \\
+  0 & i \neq j
+\end{cases}. \]
 
 \item The identity functor $X$ creates structures containing a single
   leaf element.  So an $X$ structure containing a single value of type
@@ -869,9 +884,6 @@ considering each of the functor building blocks above in turn.
     \label{eq:x-functor}
     X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k.
   \end{equation}
-  For example, \todo{give example?} \brent{Not sure if we need an
-    example here?  What example would we give?}
-
 \item A value with shape $F + G$ is either a value with shape $F$ or a
   value with shape $G$; so the set of $F + G$ shapes taking the DFA
   from state $i$ to state $j$ is just the sum of the corresponding $F$
@@ -883,12 +895,12 @@ considering each of the functor building blocks above in turn.
 
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, whose leaf types drive
-  the DFA in sequence.  \dan{Should the matrix be transposed?}  Hence,
-  in order to take the DFA from state $i$ to state $j$ overall, the
-  $F$-structure must take the DFA from state $i$ to some state $k$,
-  and then the $G$-structure must take it from $k$ to $j$.  This works
-  for any state $k$, and $(FG)_{ij}$ is the sum over all such
-  possibilities.  Thus,
+  the DFA in sequence.  \dan{Should the matrix be transposed?}\brent{I
+    don't think so, why?}  Hence, in order to take the DFA from state
+  $i$ to state $j$ overall, the $F$-structure must take the DFA from
+  state $i$ to some state $k$, and then the $G$-structure must take it
+  from $k$ to $j$.  This works for any state $k$, and $(FG)_{ij}$ is
+  the sum over all such possibilities.  Thus,
   \begin{equation}
     \label{eq:product-of-functors}
     (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}.
@@ -898,29 +910,22 @@ considering each of the functor building blocks above in turn.
 The above rules for $1$, sums, and products might look familiar.  In
 fact, they are just the definitions of the identity matrix, matrix
 addition, and matrix product.  That is, we can arrange all the
-$F_{ij}$ for a given functor $F$ in a matrix $\m{F}$ whose $(i,j)$th
-entry is $F_{ij}$.  Then $\m{1}$ is the identity matrix (with ones
-along the main diagonal and zeros everywhere else); the matrix for the
-sum of $F$ and $G$ the sum of their matrices; and the matrix for their
-product is the product of their matrices.
+$F_{ij}$ for a given functor $F$ in a matrix, $\mD{F}$, whose $(i,j)$th
+entry is $F_{ij}$.  Then we have
+\begin{itemize}
+\item $\mD{1} = I_{||\Sigma||}$, that is, the $||\Sigma|| \times
+  ||\Sigma||$ identity matrix, with ones along the main diagonal and
+  zeros everywhere else;
+\item $\mD{F+G} = \mD F + \mD G$; and
+\item $\mD{FG} = \mD F \mD G$.
+\end{itemize}
 
-And what about $X$?  Recall that $X_{ij}$ is the sum of the labels on
-all transitions from state $i$ to state $j$ in the DFA.  Hence, the
-matrix $\m{X}_D$ is the \emph{transition matrix} for $D$.
-
-\todo{Say something about implicits/fixed points.  Just do the same
-  construction again -- take LFP of implicit matrix equation?  What's
-  the order relation?  Actually, I guess it doesn't matter: we're
-  really just using matrices as a way to organize systems of type
-  equations.}
-
-In other words, given a DFA $D$, we have a \emph{semiring
-  homomorphism} from arity-$1$ functors to $||Q|| \times ||Q||$
-matrices of arity-$||\Sigma||$ functors---that is, a mapping from
-functors to matrices which preserves sum and product. \todo{explain
-  better what is meant by semiring homomorphism}
-
-\todo{So far, we have the makings \dots}
+So far, given a DFA $D$, we have the makings of a homomorphism from
+the semiring of arity-$1$ functors to the semiring of $||Q|| \times
+||Q||$ matrices of arity-$||\Sigma||$ functors.  However, there is
+still some unfinished business, namely, the interpretation of
+$\mD{X}$.  This gets at the heart of the matter, and to understand it,
+we must take a slight detour.
 
 \subsection{Transition matrices}
 \label{sec:transition-matrices}
@@ -928,29 +933,33 @@ functors to matrices which preserves sum and product. \todo{explain
 Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
   matrix} is an $n \times n$ matrix $M_G$ with a $1$ in the $i,j$
 position if there is an edge from node $i$ to node $j$, and a $0$
-otherwise.  It is a standard observation that the $k$th power of $M_G$
-encodes information about length-$k$ paths in $G$; specifically, the
-$i,j$ entry of $M_G$ is the number of distinct paths of length $k$
-from $i$ to $j$.
+otherwise.  It is a standard observation that the $m$th power of $M_G$
+encodes information about length-$m$ paths in $G$; specifically, the
+$i,j$ entry of $M_G$ is the number of distinct paths of length $m$
+from $i$ to $j$.  This is because a path from $i$ to $j$ of length $m$
+is the concatenation of a length-$(m-1)$ path from $i$ to some $k$
+followed by an edge from $k$ to $j$, so the total number of length-$m$
+paths is the sum of such paths over all possible $k$; this is exactly
+what is computed by the matrix multiplication $M_G^{m-1} M = M_G^m$.
 
 However, as observed independently by \citet{oconnor2011shortestpaths}
 and \citet{dolan2013fun}, this can be generalized by parameterizing
 the construction over an arbitrary semiring.  In particular, we may
 suppose that the edges of $G$ are labelled by elements of some
 semiring $R$, and form the adjacency matrix $M_G$ as before, but using
-the labels on edges, and $0 \in R$ for missing edges.  The $k$th power
-of $M_G$ still encodes information about length-$k$ paths, but the
+the labels on edges, and $0 \in R$ for missing edges.  The $m$th power
+of $M_G$ still encodes information about length-$m$ paths, but the
 interpretation depends on the specific choice of $R$, and how the
 edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
 edges labelled by $1$ gives us a count of distinct paths, as before.
 If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
-the $i,j$ entry of $M_G^k$ tells us whether there exists any path of
-length $k$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
-edges with costs yields the minimum cost of length-$k$ paths; choosing
+the $i,j$ entry of $M_G^m$ tells us whether there exists any path of
+length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
+edges with costs yields the minimum cost of length-$m$ paths; choosing
 $(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
 alphabet $\Sigma$ under union and Cartesian product) and labelling
 edges with elements from $\Sigma$ yields sets of words corresponding
-to length-$k$ paths.
+to length-$m$ paths.
 
 Moreover, if $R$ is a star semiring, then $M_G^*$ encodes information
 about paths of \emph{any} length (recall that, intuitively, $M_G^* = I
@@ -983,8 +992,8 @@ semiring $(\N, +, \cdot)$. If we send each edge label (\ie alphabet
 symbol) to $1$, we obtain the transition matrix
 \[
 \setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 1
-  \\ 0 & 1 & 0 \end{bmatrix}. \] The $k$th power of this matrix tells
-us how many strings of length $k$ take the DFA from one given state to
+  \\ 0 & 1 & 0 \end{bmatrix}. \] The $m$th power of this matrix tells
+us how many strings of length $m$ take the DFA from one given state to
 another.  If we instead send each edge label to the singleton language
 containing only that symbol as a length-$1$ string, as a member of the
 semiring of regular languages, we obtain the transition matrix \[
@@ -994,6 +1003,15 @@ semiring of regular languages, we obtain the transition matrix \[
 complete set of strings that drives the DFA between each pair of
 states.
 
+We can now see how to interpret $\mD{X}$: it is simply the transition
+matrix for $D$, taken over the semiring of types.  An $X$-structure
+contains a single element, which causes the DFA to take one step.
+
+\todo{Do we also need to say something about implicits/fixed points?
+  Just do the same construction again -- take LFP of implicit matrix
+  equation?  What's the order relation?  Actually, I guess it doesn't
+  matter: we're really just using matrices as a way to organize
+  systems of type equations.}
 
 \section{Examples}
 \label{sec:examples}
