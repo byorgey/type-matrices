@@ -92,7 +92,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% a bit more space for matrices
-\setlength{\arraycolsep}{5pt} 
+\setlength{\arraycolsep}{5pt}
 
 \newcommand{\union}{\cup}
 
@@ -768,7 +768,7 @@ fact, we have already carried out this exact analysis in the
 introduction, but it is now a bit less ad hoc.  In particular, we can
 now see that we end up with four mutually recursive types precisely
 because the DFA for $(ab)^*$ has two states, and we need one type for
-each ordered pair of states.\footnote{In general, we could 
+each ordered pair of states.\footnote{In general, we could
   end up with \emph{fewer} than $n^2$ mutually recursive types for
   a DFA of $n$ states, if some of the combinations are impossible or
   irrelevant.}
@@ -870,7 +870,7 @@ blocks above in turn.
     0 & i \neq j
   \end{cases}
 \end{equation}
-As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} = 
+As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} =
 \begin{cases}
   1 & i = j \\
   0 & i \neq j
@@ -1030,7 +1030,7 @@ transition $a$ is replaced by the functor $X_a$. \brent{Can we/do we
 To make things concrete, we can revisit some familiar examples using
 our new framework. As a first example, consider the resular expression
 $(aa)^*$, corresponding to the DFA shown in \pref{fig:dfa-aa}, along
-with the standard polymorphic list type, $L = 1 + XL$.  
+with the standard polymorphic list type, $L = 1 + XL$.
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
@@ -1108,7 +1108,7 @@ even length, and |L12|, lists with odd length. More familiarly:
 As another example, consider again the recursive tree type given by $T = X
 + T \times T$, along with the two-state DFA for $(ab)^*$ shown in
 \pref{fig:ab-star-dfa}.  Applying the homomorphism, we obtain
-\[ \m{T} = \m{X + T^2} = \m{X} + \m{T}^2, \] where 
+\[ \m{T} = \m{X + T^2} = \m{X} + \m{T}^2, \] where
 \[ \m{X} =
   \begin{bmatrix}
     0 & X_a \\ X_b & 0
@@ -1271,9 +1271,9 @@ transition matrix $\begin{bmatrix} X_b & X_h \\ 0 &
 +
 \begin{bmatrix}
   |T11| & |T12| \\
-  |T21| & |T22|  
+  |T21| & |T22|
 \end{bmatrix}^2 \\
-= 
+=
 \begin{bmatrix}
   X_b + |T11|^2 + |T12| |T21| & X_h + |T11| |T12| + |T12| |T22| \\
   |T21| |T11| + |T22| |T21| & X_a + |T21| |T12| + |T22|^2
@@ -1294,7 +1294,7 @@ matrix equation and simplifying yields
 \[
 \begin{bmatrix}
   |T11| & |T12| \\
-  |T21| & |T22|  
+  |T21| & |T22|
 \end{bmatrix} \\
 =
 \begin{bmatrix}
@@ -1552,19 +1552,29 @@ matrices indeed gives us
 \endgroup
 as expected.
 
-\todo{Explain divided differences a bit. Note we use ``backwards''
-  notation $f[b,a]$, to match up with left-right direction of leaves.}
+Just as differentiation of types has an analytic analogue, dissection
+has an analogue as well, known as \term{divided differences}.  Let $f
+: \R \to \R$ be a real-valued function, and let $b,a \in \R$.  Then
+the \term{divided difference} of $f$ at $b$ and $a$,
+notated\footnote{Our notation is actually ``backwards'' with respect
+  to the usual notation---what we write as $f_{b,a}$ is often written
+  $f[a,b]$---in order to better align with the combinatorial intuition
+  discussed later.} $f_{b,a}$, is defined by
+\[ f_{b,a} = \frac{f_b - f_a}{b - a}, \] where for consistency of notation
+we write $f_a$ for $f(a)$, and likewise for $f_b$.  In the limit, as
+$b \to a$, this yields the usual derivative of $f$.  In the interest
+of readability we will sometimes also write
 
-\[ f[b,a] = \frac{f(b) - f(a)}{b - a}. \]
-We cannot directly interpret subtraction and division of types in our
-framework.  However, if we multiply both sides by $(b - a)$ and
-rearrange a bit, we can derive an equivalent relationship in terms of
-only addition and multiplication, namely,
-\[ f(a) + f[b,a] \times b = a \times f[b,a] + f(b). \]  In fact, this
+We now consider the type-theoretic analogue of $f_{b,a}$.  We cannot
+directly interpret subtraction and division of functors.  However, if
+we multiply both sides by $(b - a)$ and rearrange a bit, we can derive
+an equivalent relationship in terms of only addition and
+multiplication, namely,
+\[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b. \]  In fact, this
 equation corresponds exactly to the isomorphism witnessed by McBride's
 function |right|,
-\[ |right :: p j + (| \dissect |p c j, c) -> (j,| \dissect |p c j) + p
-c| \] We can now understand why the letters |b| and |a| are ``backwards''.
+\[ |right :: p a + (| \dissect |p b a, b) -> (a,| \dissect |p b a) + p
+b| \] We can now understand why the letters |b| and |a| are ``backwards''.
 Intuitively, we can think of a dissection as a ``snapshot'' of a data
 structure in the midst of a traversal; values of type |a| are
 ``unprocessed'' and values of type |b| are ``processed''.  The
@@ -1572,15 +1582,33 @@ structure in the midst of a traversal; values of type |a| are
 turning |a| values into |b| values.  This is exactly what is
 accomplished by |right|: \todo{Explain intuitively.  Draw some pictures.}
 
-We can generalize all of this to $n$-ary dissection, corresponding to
-higher divided differences.  $f[x_n, x_{n-1}, \dots, x_0]$ denotes the
-$(n+1)$-ary divided difference of $f$ over the variables $x_n, \dots,
-x_0$.  \todo{Show that it corresponds to regular expression
-  $x_n^*1x_{n-1}^*1\dots 1 x_0^*$.} \todo{Notation: write
-  $f_{n \dots 0}$ instead of $f[x_n, \dots, x_0]$.}
+Higher-order divided differences, corresponding to higher derivatives,
+are defined by the recurrence
+\begin{equation} \label{eq:div-diff-rec}
+f_{x_n \dots x_0} = \frac{f_{x_n
+    \dots x_1} - f_{x_{n-1} \dots x_0}}{x_n - x_0}.
+\end{equation}
+Alternatively,
+the higher-order divided differences of a function $f$ can be arranged
+in a matrix, as, for example,
+\begin{equation} \label{eq:div-diff-mat}
+\Delta_{abc} f =
+\begin{bmatrix}
+f_a & f_{a,b} & f_{a,b,c} \\
+0   & f_b    & f_{b,c}   \\
+0   & 0      & f_c
+\end{bmatrix}
+\end{equation}
+in such a way as to be a semiring homomorphism. \todo{Explain a bit
+  more what is meant by this?}  Proving that this is equivalent to the
+recurrence \eqref{eq:div-diff-rec} boils down to showing that if $f =
+gh$ then \[ f_{x_n \dots x_0} = \sum_{j=0}^n g_{x_n \dots x_j} h_{x_j
+  \dots x_0}. \]
 
-We have the standard recurrence \[ f_{n\dots0} = \frac{f_{n\dots1} -
-  f_{n-1 \dots 0}}{x_n - x_0} \] \todo{prove this?}
+The matrix \eqref{eq:div-diff-mat} should look familiar: \todo{Explain why.}
+
+Can we derive something like |right| corresponding to higher-order
+divided differences? \todo{finish}
 
 %% Consider now the DFA for the regular expression $a^*1b^*$.
 %% The corresponding diagram is
@@ -1641,18 +1669,8 @@ We have the standard recurrence \[ f_{n\dots0} = \frac{f_{n\dots1} -
 %% this definition carries over to types.
 %% Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
-\section{Composition}
-\label{sec:composition}
-
-\todo{Composition of functors.  Can't extend the homomorphism but we
-  can say something about it.}
-
-
-\todo{Write something about associativity/commutativity?  Holds for
-  types up to isomorphism but we might want something a bit stronger
-  at times.}
-
 \section{Discussion}
+
 Technique for constructing types with constraints. Ad hoc rules formalized.
 In some sense we've given an explanation for derivatives and dissections.
 Hope they can find new applications eg. trees with constraints in the style of
