@@ -20,7 +20,7 @@ data Type = A | B | H
 
 drawType A = text "a" # italic # centerX <> square 2 # fc yellow
 drawType B = text "b" # italic # centerX <> circle 1 # fc red
-drawType H = text "h" # centerX <> circle 1 # fc white # dashingG [0.2,0.2] 0
+drawType H = text "h" # italic # centerX <> circle 1 # fc white # dashingG [0.2,0.2] 0
 
 renderT :: (Renderable Text b, Renderable (Path R2) b) => Tree (Maybe Type) -> Diagram b R2
 renderT

@@ -91,10 +91,13 @@
 % Math typesetting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% a bit more space for matrices
+\setlength{\arraycolsep}{5pt} 
+
 \newcommand{\union}{\cup}
 
 % \newcommand{\m}[1]{\mathbf{#1}}
-\newcommand{\m}[1]{\left\llbracket {#1} \right\rrbracket}
+\newcommand{\m}[1]{\left[ {#1} \right]}
 \newcommand{\mD}[1]{\m{#1}_D}
 
 \newcommand{\dissect}{\includegraphics{Dissect}}
@@ -401,7 +404,7 @@ for one which has type |h|. This corresponds to a zipper type
 substitute the unit type for |h|, we get the \term{derivative} of the
 orginal type \citep{DBLP:journals/fuin/AbbottAMG05}
 (\pref{fig:derivative}).  Likewise, the regular language $b^*ha^*$
-corresponds to \term{dissection types} \citep{dissection}.
+corresponds to \term{dissection types} \citep{mcbride-dissection}.
 
 \begin{figure}
   \centering
@@ -832,8 +835,7 @@ functors to $n$-ary functors:
 \item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
   a_1\ \dots\ a_n)$.
 \end{itemize}
-Of course, $n$-ary functors also form a semiring for any $n$ (even
-when $n = 0$, in which case we refer to the \term{semiring of types}).
+Of course, $n$-ary functors also form a semiring for any $n$.
 
 As an example, the Haskell type
 \begin{spec}
@@ -910,8 +912,9 @@ As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} =
 The above rules for $1$, sums, and products might look familiar.  In
 fact, they are just the definitions of the identity matrix, matrix
 addition, and matrix product.  That is, we can arrange all the
-$F_{ij}$ for a given functor $F$ in a matrix, $\mD{F}$, whose $(i,j)$th
-entry is $F_{ij}$.  Then we have
+$F_{ij}$ for a given functor $F$ in a matrix, $\mD{F}$, whose
+$(i,j)$th entry is $F_{ij}$. (We also write simply $\m{F}$ when $D$ is
+clear from the context.)  Then we have
 \begin{itemize}
 \item $\mD{1} = I_{||\Sigma||}$, that is, the $||\Sigma|| \times
   ||\Sigma||$ identity matrix, with ones along the main diagonal and
@@ -991,7 +994,7 @@ For example, consider the DFA in \pref{fig:dfa-example-simpl}, and the
 semiring $(\N, +, \cdot)$. If we send each edge label (\ie alphabet
 symbol) to $1$, we obtain the transition matrix
 \[
-\setlength{\arraycolsep}{5pt} \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 1
+\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 1
   \\ 0 & 1 & 0 \end{bmatrix}. \] The $m$th power of this matrix tells
 us how many strings of length $m$ take the DFA from one given state to
 another.  If we instead send each edge label to the singleton language
@@ -1004,8 +1007,10 @@ complete set of strings that drives the DFA between each pair of
 states.
 
 We can now see how to interpret $\mD{X}$: it is simply the transition
-matrix for $D$, taken over the semiring of types.  An $X$-structure
-contains a single element, which causes the DFA to take one step.
+matrix for $D$, taken over the semiring of functors, where each
+transition $a$ is replaced by the functor $X_a$. \brent{Can we/do we
+  need to give some more explanation/intuition as to why this is the
+  right definition?}
 
 \todo{Do we also need to say something about implicits/fixed points?
   Just do the same construction again -- take LFP of implicit matrix
@@ -1016,68 +1021,16 @@ contains a single element, which causes the DFA to take one step.
 \section{Examples}
 \label{sec:examples}
 
-As an example, consider again the recursive tree type given by $T = X
-+ T \times T$, along with the two-state DFA for $(ab)^*$ shown in
-\pref{fig:ab-star-dfa}.  The matrix for $T$ can be written
-\[ \m{T} =
-\begin{bmatrix}
-  |T11| & |T12| \\
-  |T21| & |T22|
-\end{bmatrix}
-\]
-where the meanings of the types $T_{ij}$ \todo{finish}.  The punchline
-is that we can take the recursive equation for $T$ and simply apply
-the homomorphism to both sides, resulting in the matrix equation
-\[ \m{T} = \m{X}_D + \m{T}^2, \] where $\m{X}_D$ is the transition
-matrix for $D$, namely
-\[ \m{X}_D =
-  \begin{bmatrix}
-    0 & a \\
-    b & 0
-  \end{bmatrix}.
-\]
-Expanding out this matrix equation and performing the indicated matrix
-operations yields
-
-\begin{multline*}
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
-  =
-  \begin{bmatrix}
-    0 & a \\
-    b & 0
-  \end{bmatrix}
-  +
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
-  ^2
-  \\
-  =
-  \begin{bmatrix}
-    |T11|^2 + |T12| |T21| & |a| + |T11| |T12| + |T12| |T22| \\
-    |b| + |T21| |T12| + |T22| |T21| & |T21| |T12| + |T22|^2
-  \end{bmatrix}.
-\end{multline*}
-Equating the left- and right-hand sides elementwise yields precisely
-the definitions for $T_{ij}$ we derived in \pref{sec:introduction}.
-
-\todo{include a bunch more examples here.  Both other DFAs and other
-  types \dots}
-
 %format Lij = L "_{ij}"
 %format L11
 %format L12
 %format L21
 %format L22
 
-To make things concrete, we can revisit some familiar types from this
-viewpoint. For example consider the resular expression $(aa)^*$. This
-corresponds to the DFA shown in \pref{fig:dfa-aa}.
-
+To make things concrete, we can revisit some familiar examples using
+our new framework. As a first example, consider the resular expression
+$(aa)^*$, corresponding to the DFA shown in \pref{fig:dfa-aa}, along
+with the standard polymorphic list type, $L = 1 + XL$.  
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
@@ -1097,16 +1050,25 @@ dia = drawDFA aaStar # frame 0.5
   \caption{A DFA for $(aa)^*$}
   \label{fig:dfa-aa}
 \end{figure}
-We now apply the homomorphism to the defining equation for lists,
-\[ \m{L} = \m{1} + \m{X}_D \m{L}, \] where the transition matrix in
-this case is
-\[ \m{X}_D =
+The matrix for $L$ can be written
+\[ \m{L} =
 \begin{bmatrix}
-  |0| & |a| \\
-  |a| & |0|
+  |L11| & |L12| \\
+  |L21| & |L22|
+\end{bmatrix}
+.
+\]
+The punchline is that we can take the recursive equation for $L$ and
+simply apply the homomorphism to both sides, resulting in the matrix
+equation
+\[ \m{L} = \m{1 + XL} = \m{1} + \m{X} \m{L}, \] where $\m{X}$ is the transition matrix for $D$, namely
+\[ \m{X} =
+\begin{bmatrix}
+  |0| & X_|a| \\ X_|a| & |0|
 \end{bmatrix}.
 \]
-This yields
+Expanding out this matrix equation and performing the indicated matrix
+operations yields
 \begin{multline*}
   \begin{bmatrix}
     |L11| & |L12| \\
@@ -1119,8 +1081,8 @@ This yields
   \end{bmatrix}
   +
   \begin{bmatrix}
-    0 & a \\
-    a & 0
+    0 & X_a \\
+    X_a & 0
   \end{bmatrix}
   \begin{bmatrix}
     |L11| & |L12| \\
@@ -1129,40 +1091,68 @@ This yields
   \\
   =
   \begin{bmatrix}
-    1+a |L21| & a |L22| \\
-    a |L11| & 1+a |L21|
+    1+X_a |L21| & X_a |L22| \\
+    X_a |L11| & 1+ X_a |L12|
   \end{bmatrix}.
 \end{multline*}
 
 We can see that |L11| and |L22| are isomorphic, as are |L12| and
-|L21|. \brent{Note this sort of thing arises from automorphisms of the
-  DFA?} Thinking about the meaning of paths through the DFA, we see
-that |L11| is the type of lists with even length, and |L12|, lists with
-odd length. More familiarly:
+|L21|; this is because the DFA $D$ has a nontrivial automorphism
+(ignoring start and accept states).  Thinking about the meaning of
+paths through the DFA, we see that |L11| is the type of lists with
+even length, and |L12|, lists with odd length. More familiarly:
 
 > data EvenList a  = EvenNil | EvenCons a (OddList a)
 > data OddList a   = OddCons a (EvenList a)
 
-%format Bij = B "_{ij}"
-%format B11
-%format B12
-%format B21
-%format B22
+As another example, consider again the recursive tree type given by $T = X
++ T \times T$, along with the two-state DFA for $(ab)^*$ shown in
+\pref{fig:ab-star-dfa}.  Applying the homomorphism, we obtain
+\[ \m{T} = \m{X + T^2} = \m{X} + \m{T}^2, \] where 
+\[ \m{X} =
+  \begin{bmatrix}
+    0 & X_a \\ X_b & 0
+  \end{bmatrix}.
+\]
+This yields
+\begin{multline*}
+  \begin{bmatrix}
+    |T11| & |T12| \\
+    |T21| & |T22|
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    0 & X_a \\
+    X_b & 0
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    |T11| & |T12| \\
+    |T21| & |T22|
+  \end{bmatrix}
+  ^2
+  \\
+  =
+  \begin{bmatrix}
+    |T11|^2 + |T12| |T21| & X_|a| + |T11| |T12| + |T12| |T22| \\
+    X_|b| + |T21| |T12| + |T22| |T21| & |T21| |T12| + |T22|^2
+  \end{bmatrix}.
+\end{multline*}
+Equating the left- and right-hand sides elementwise yields precisely
+the definitions for $T_{ij}$ we derived in Section
+\ref{sec:introduction}.
 
-As another example, consider constructing a type of binary trees with
-data of two different types, $a$ and $b$, at internal nodes---but with
-the restriction that two values of type $a$ may never occur
-consecutively in an inorder traversal.  \todo{mention RE's closed
-  under negation, Aho-Corasick construction (Efficient String
-  Matching, 1975)?} This restriction corresponds to the DFA shown in
-\pref{fig:DFA-no-consec-a}, with the transition matrix
-\[ \m{X}_D =
+Now consider constructing a type of binary trees with data of two
+different types, $a$ and $b$, at internal nodes---but with the
+restriction that two values of type $a$ may never occur consecutively
+in an inorder traversal.  This restriction corresponds to the DFA
+shown in \pref{fig:DFA-no-consec-a}, with the transition matrix
+\[ \m{X} =
 \begin{bmatrix}
-  |b| & |a| \\
-  |b| & 0
+  X_|b| & X_|a| \\
+  X_|b| & 0
 \end{bmatrix}.
 \]
-
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
@@ -1185,7 +1175,7 @@ dia = drawDFA noAA # frame 0.5
 \end{figure}
 
 Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
-\begin{multline*}
+\[
   \begin{bmatrix}
     |T11| & |T12| \\
     |T21| & |T22|
@@ -1201,14 +1191,14 @@ Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
     |T21| & |T22|
   \end{bmatrix}
   \begin{bmatrix}
-    b & a \\
-    b & 0
+    X_b & X_a \\
+    X_b & 0
   \end{bmatrix}
   \begin{bmatrix}
     |T11| & |T12| \\
     |T21| & |T22|.
   \end{bmatrix}
-\end{multline*}
+\]
 Expanding the right-hand side and equating elementwise yields
 \begin{align*}
   |T11| &= 1 + (|T11| + |T12|)b|T11| + |T11|a|T21| \\
@@ -1254,16 +1244,64 @@ accept states, we are actually looking for the sum type
 
 > type T a b = Either (T11 a b) (T12 a b)
 
-\todo{show some example values?}
+Two points are in order: first, this example is complex enough that it
+is hard to imagine coming up with these |Tij| via an ad-hoc analysis.
+Second, the complexity, along with the fact that the final type |T| is
+actually a sum type, both highlight the fact that actually using the
+type |T| would be extremely inconvenient.  \todo{Write about
+  alternate, isomorphic encoding by embedding transition functions at
+  the type level, as in my blog post?  That means we no longer need
+  four mutually recursive types, but it doesn't help with the fact
+  that |T| is a sum type; for that you can make an existential wrapper
+  with dynamic type checks.}
 
-\todo{show example? discuss remaining issues: (1) inconvenient to use.
-  Can ameliorate this with helper functions (?).}
-
-\todo{Can we come up with a nice generic way to hide stuff under
-  suitable existential wrappers, exposing an API similar to that of
-  the original type but with some additional occurrences of |Maybe|,
-  and dynamic type checks?  Could even code this up as a Haskell
-  library perhaps\dots}
+As one final example, consider the type $T = X + T^2$ again, but this
+time constrained by the regular expression $b^* h a^*$, with
+transition matrix $\begin{bmatrix} X_b & X_h \\ 0 &
+  X_a \end{bmatrix}$.  Applying the homomorphism yields
+\begin{multline*}
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|
+\end{bmatrix}
+=
+\begin{bmatrix}
+  X_b & X_h \\ 0 & X_a
+\end{bmatrix}
++
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|  
+\end{bmatrix}^2 \\
+= 
+\begin{bmatrix}
+  X_b + |T11|^2 + |T12| |T21| & X_h + |T11| |T12| + |T12| |T22| \\
+  |T21| |T11| + |T22| |T21| & X_a + |T21| |T12| + |T22|^2
+\end{bmatrix}.
+\end{multline*}
+Here something strange happens: looking at the DFA, it is plain that
+there are no paths from state $2$ to state $1$, and we therefore
+expect the corresponding type |T21| to be empty.  However, it does not
+look empty at first sight: we have $|T21| = |T21| |T11| + |T22|
+|T21|$.  In fact, it \emph{is} empty, since we are interpreting
+recursively defined functors via a least fixed point semantics.  It is
+not hard to see that $0$ is in fact a fixed point of the above
+equation for |T21|.  In practice, we can analyze a DFA beforehand to
+see which states are reachable from which other states; if there is no
+path from $i$ to $j$ then we know $|Tij| = 0$, which can simplify
+calculations.  For example, substituting $|T21| = 0$ into the above
+matrix equation and simplifying yields
+\[
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|  
+\end{bmatrix} \\
+=
+\begin{bmatrix}
+  X_b + |T11|^2 & X_h + |T11| |T12| + |T12| |T22| \\
+  0 & X_a + |T22|^2
+\end{bmatrix}.
+\]
 
 \section{Formalization XXX}
 \label{sec:formalization}
@@ -1327,7 +1365,7 @@ example, given the list functor $L = 1 + XL$, we obtain \[ \leafseq{L}
 Now that we have seen the general framework, let's return to the
 specific application of computing \emph{derivatives} of data types.
 In order to compute a derivative, we need the DFA for the regular
-expression $a^*1a^*$, shown in~\pref{fig:DFA-deriv}.
+expression $a^*ha^*$, shown in~\pref{fig:DFA-deriv}.
 
 \begin{figure}
   \centering
@@ -1340,7 +1378,7 @@ deriv = dfa
   , 2 --> (True , 5 ^& 0)
   ]
   [ 1 >-- txt "a" --> 1
-  , 1 >-- txt "1" --> 2
+  , 1 >-- txt "h" --> 2
   , 2 >-- txt "a" --> 2
   ]
 
@@ -1353,13 +1391,13 @@ dia = drawDFA deriv # frame 0.5
 The corresponding transition matrix is
 \[ \m{X} =
 \begin{bmatrix}
-  |a| & |1| \\
-  |0| & |a|
+  X_a & X_h \\
+  0 & X_a
 \end{bmatrix}.
 \]
 
 Suppose we start with a functor defined as a product:
-\[ F = G \times H \]
+\[ F = G H \]
 Expanding via the homomorphism to type matrices (using $2 \times 2$
 matrices since our DFA has two states), we obtain
 \[
@@ -1384,23 +1422,14 @@ F_{11} = G_{11} \times H_{11} + G_{12}\times H_{21}
 $H_{21}$ is a type whose sequences of leaves take the DFA from state
 $2$ to state $1$---but there are no such sequences, since the DFA has
 no paths from state $2$ to state $1$. So $H_{21}$ is the uninhabited
-type $0$, and $F_{11} = G_{11}\times H_{11}$.  In fact, $F_{11}$ is
-simply the type of structures whose leaves take the DFA from state $1$
-to itself and so whose leaves match the regular expression $a^*$.  So
-we have $F_{11} = F$ (and $G_{11} = G$ and $H_{11} = H$).  Similarly,
-$F_{22} = F$.  We also have
+type $0$, and $F_{11} = G_{11} H_{11}$.  In fact, $F_{11}$ is simply
+the type of structures whose leaves take the DFA from state $1$ to
+itself and so whose leaves match the regular expression $a^*$.  So we
+have $F_{11}\ a\ h \cong F\ a$ (and similarly for $G_{11}$ and $H_{11}$).
+Similarly, $F_{22}\ a\ h \cong F\ a$.  We also have
 \[
-F_{12} = G_{11}\times H_{12}+G_{12}\times H_{22}
+F_{12} = G_{11} H_{12}+G_{12} H_{22} \cong G H_{12} + G_{12} H.
 \]
-and thus
-\[
-F_{12} = G\times H_{12}+G_{12}\times H.
-\]
-
-\todo{note that $F_{21}$ ``should be'' zero but if we expand things
-  out it doesn't look like it!  Have to do some fixpoint analysis to
-  see that it is isomorphic to void.  What does it mean that if we
-  take the greatest fixpoint we don't get void? (right?) seems odd.}
 
 This looks suspiciously like the usual Leibniz law for the derivative
 of a product. We also know that
@@ -1409,20 +1438,17 @@ of a product. We also know that
 \]
 and
 \[
-X_{12} = 1
+X_{12} = X_h
 \]
-\dan{Make sure $1$ isn't ambiguous}
-These are precisely the rules for differentiating polynomials.
-So $F_{12}$ is the derivative of $F$.
-We described above how $a^*1a^*$ gives rise to zipper types.
-We have now shown how these can be computed as derivatives.
-  \dan{
-  Need to do sums and fixed points.
-  }
+If we substitute the unit type for |h|, these are precisely the rules
+for differentiating polynomials.  \todo{sums and fixpoints?} So
+$F_{12}$ is the derivative of $F$.
 
-There is another way to look at this. Write
+\brent{I am not sure that I quite understand the following.  In
+  particular I don't get the step from $f(aI + [d])$ to $f(aI) +
+  f'(a)[d]$.}  There is another way to look at this. Write
 \[
-\m{X} = a\m{1}+\m{d}
+\m{X} = X_a I + \m{d}
 \]
 where
 \[ \m{d} =
@@ -1431,20 +1457,20 @@ where
   |0| & |0|
 \end{bmatrix}
 \]
-Note that $\m{d}^2=\m{0}$.
-If we have a polynomial $F$, then we have that
-\begin{eqnarray}
-F(\m{X}) &=& F(a\m{1}+\m{d})\\
-&=& F(a\m{1})+F'(a)\m{d}\\
-&=& \begin{bmatrix}
-  |F(a)| & |0| \\
-  |0| & |F(a)|
+Note that $\m{d}^2 = 0$.
+If we have a polynomial $f$, then we have that
+\begin{align*}
+f(\m{X}) &= f(aI + \m{d})\\
+&= f(a I) + f'(a)\m{d}\\
+&= \begin{bmatrix}
+  f(a) & 0 \\
+  0 & f(a)
 \end{bmatrix}
 +\begin{bmatrix}
-  |0| & |F'(a)| \\
-  |0| & |0|
+  0 & f'(a) \\
+  0 & 0
 \end{bmatrix}
-\end{eqnarray}
+\end{align*}
 The matrix $\m{d}$ is playing a role similar to an
 ``infinitesimal'' in calculus where the expression
 $dx$ is manipulated informally as if $(dx)^2=0$.
@@ -1453,10 +1479,12 @@ $dx$ is manipulated informally as if $(dx)^2=0$.
 \section{Divided Differences}
 \label{sec:divided-differences}
 
-Consider again the regular expression $b^*1a^*$.  Data structures with
-leaf sequences matching this pattern have a ``hole'' with values of
-type $b$ to the left of the hole and values of type $a$ to the right
-(\pref{fig:divided-tree}).
+Consider again the regular expression $b^*ha^*$.  Data structures with
+leaf sequences matching this pattern have a ``hole'' of type |h|, with
+values of type $b$ to the left of the hole and values of type $a$ to
+the right (\pref{fig:divided-tree}).\footnote{Typically we substitute
+  the unit type for |h|, but it makes the theory work much more
+  smoothly if we represent it initially with a unique type variable.}
 \begin{figure}
   \centering
 \begin{diagram}[width=150]
@@ -1485,12 +1513,12 @@ t = nd
 dia = renderT t # frame 0.5
 \end{diagram}
 %$
-  \caption{A tree with leaf sequence matching $b^*1a^*$}
+  \caption{A tree with leaf sequence matching $b^*ha^*$}
   \label{fig:divided-tree}
 \end{figure}
-Such structures have been considered by McBride (XXX cite), who refers
-to them as ``dissections'' and shows how they can be used, for
-example, to generically derive tail-recursive maps and folds.
+Such structures have been considered by \citet{mcbride-dissection},
+who refers to them as ``dissections'' and shows how they can be used,
+for example, to generically derive tail-recursive maps and folds.
 
 Given a functor $p$, McBride uses $\dissect p$ to denote the bifunctor
 which is the dissection of $p$, and also defines bifunctors $(\clowns
@@ -1503,13 +1531,13 @@ elements of the first type paired with a $q$-dissection, or a
 $p$-dissection paired with a $q$-structure containing only elements of
 the second type.
 
-The DFA recognizing $b^*1a^*$ is illustrated in
-\pref{fig:bstar-1-astar}, and has transition matrix
-\[ \begin{bmatrix} b & 1 \\ 0 & a \end{bmatrix}. \] There are clearly
+The DFA recognizing $b^*ha^*$ is illustrated in
+\pref{fig:bstar-h-astar}, and has transition matrix
+\[ \begin{bmatrix} X_b & X_h \\ 0 & X_a \end{bmatrix}. \] There are clearly
 no leaf sequences taking this DFA from state $2$ to state $1$; leaf
 sequences matching $b^*$ or $a^*$ keep the
 DFA in state $1$ or state $2$, respectively; and leaf sequences
-matching $b^*1a^*$ take the DFA from state $1$ to state $2$.  That is,
+matching $b^*ha^*$ take the DFA from state $1$ to state $2$.  That is,
 under the homomorphism induced by this DFA, the functor $p$ maps to
 the matrix of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p
   \\ 0 & \jokers p \end{bmatrix}. \] Taking the product of two such
@@ -1587,7 +1615,7 @@ We have the standard recurrence \[ f_{n\dots0} = \frac{f_{n\dots1} -
 %% \[
 %% F_{12}(a,b) = G(a)\times H_{12}(a,b)+G_{12}(a,b)\times H(b)
 %% \]
-%% This is the modified Leibniz rule described in \cite{dissection}.
+%% This is the modified Leibniz rule described in \cite{mcbride-dissection}.
 %% \dan{Do other operations}
 %% We have already argued above in \pref{sec:zippers-and-dissections}
 %% that the regular expression $a^*1b^*$
