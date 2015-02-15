@@ -96,6 +96,11 @@
 
 \newcommand{\union}{\cup}
 
+% regular expression alternation/choice operator
+\newcommand{\alt}{+}
+
+\newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+
 % \newcommand{\m}[1]{\mathbf{#1}}
 \newcommand{\m}[1]{\left[ {#1} \right]}
 \newcommand{\mD}[1]{\m{#1}_D}
@@ -106,6 +111,8 @@
 
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\R}{\mathbb{R}}
+
+\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -237,19 +244,21 @@ or contain a value of type |a|, followed by a value of type |b|,
 followed recursively by another |AList a b|.
 
 In fact, we can think of |AList a b| as containing values whose
-\term{shape} corresponds to the original |List| type, but whose
-sequence of element types corresponds to the \term{regular expression}
-$(ab)^*$, that is, any number of repetitions of the sequence $ab$.
+\term{shape} corresponds to the original |List| type (that is, we have
+the isomorphism $|AList a a| \cong |List a|$), but whose sequence of
+element types corresponds to the \term{regular expression} $(ab)^*$,
+that is, any number of repetitions of the sequence $ab$.
 
 We can easily generalize this idea to regular expressions other than
 $(ab)^*$ (though constructing the corresponding types may be
 complicated). We can also generalize to algebraic data types other
 than |List|, by considering the sequence of element types encountered
-by a canonical traversal \citep{mcbride2008applicative} of each data structure.
-That is, in general, given some algebraic data type and a regular
-expression, we consider the problem of constructing a corresponding
-algebraic data type ``of the same shape'' but with sequences of
-element types matching the regular expression.
+by a canonical inorder traversal of each data structure
+\citep{mcbride2008applicative}.  That is, in general, given some
+algebraic data type and a regular expression, we consider the problem
+of constructing a corresponding algebraic data type ``of the same
+shape'' but with sequences of element types matching the regular
+expression.
 
 %format TreeAB = Tree "_{AB}"
 %format TreeAA = Tree "_{AA}"
@@ -279,10 +288,9 @@ trees with data stored in the leaves:
 %endif
 Consider again the problem of writing down a type whose values have
 the same shape as values of type |Tree a|, but where the data elements
-alternate between two types |a| and |b| (when listed according to an
-inorder traversal), beginning with a leftmost element of type |a| and
-ending with a rightmost element of type |b|.  An example can be seen
-in \pref{fig:alt-tree}.
+alternate between two types |a| and |b|, beginning with a leftmost
+element of type |a| and ending with a rightmost element of type |b|.
+An example can be seen in \pref{fig:alt-tree}.
 
 \begin{figure}
   \centering
@@ -333,8 +341,11 @@ end with |b|.  Or the left subtree could start with |a| and end with
 where |TreeAA a b| represents alternating trees with left and
 rightmost elements both of type |a|, and similarly for |TreeBB|.
 
-Similar reasoning about the subtree types leads to the remainder of
-the mutually recursive definition:
+Of course, we are now left with the task of defining |TreeAA| and
+|TreeBB|, but we can carry out similar reasoning: for example a
+|TreeAA| value can either be a single leaf of type |a|, or a branch
+with a |TreeAB| and |TreeAA|, or a |TreeAA| and |TreeBA|.  All told,
+we obtain
 > data TreeAA a b  =  LeafAA a
 >                  |  ForkAA  (TreeAB a b)  (TreeAA a b)
 >                  |  ForkAA' (TreeAA a b)  (TreeBA a b)
@@ -393,10 +404,14 @@ structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
 suitable (\term{polynomial}) data type.
 
-For certain regular languages, this problem has already been solved in
-the literature, though without being phrased in terms of regular
+\brent{Moreover, the resulting mutually recursive system of types is
+  difficult to work with in practice; we will address this problem as
+  well.}
+
+For certain languages, this problem has already been explored in the
+literature, though without being phrased in terms of regular
 languages.  For example, consider the regular language $a^*ha^*$. It
-matches sequences of $a$s with precisely one occurrence of $1$
+matches sequences of $a$s with precisely one occurrence of $h$
 somewhere in the middle.  Data structures whose inorder sequence of
 element types matches $a^*ha^*$ have all elements of type |a|, except
 for one which has type |h|. This corresponds to a zipper type
@@ -432,7 +447,7 @@ t = Nothing ##
 
 dia = renderT t # frame 0.5
   \end{diagram}
-  \caption{A tree corresponding to the regular language $a^*1a^*$}
+  \caption{A tree corresponding to the regular language $a^*ha^*$}
   \label{fig:derivative}
 \end{figure}
 
@@ -444,16 +459,15 @@ language.
 In the remainder of the paper, we first review some standard results
 about regular languages and DFAs (\pref{sec:regexp-and-dfas}).  We
 describe our framework informally (\pref{sec:dfas-matrices}) and give
-some examples of its application (\pref{sec:examples}).  We then give
-a more formal treatment of our results (\pref{sec:formalization}) and
-conclude with a discussion of derivatives
-(\pref{sec:derivatives-again}) and divided differences
+some examples of its application (\pref{sec:examples}).  \brent{Do we
+  have something else here?} We conclude with a discussion of
+derivatives (\pref{sec:derivatives-again}) and divided differences
 (\pref{sec:divided-differences}).
 
 \section{Regular expressions and DFAs}
 \label{sec:regexp-and-dfas}
 
-We begin with a quick review of the basic theory of regular languages
+We begin with a review of the basic theory of regular languages
 and deterministic finite automata in Sections
 \ref{sec:regexps}--\ref{sec:kleenes-theorem}.  Readers already
 familiar with this theory may safely skip these sections.  In Section
@@ -465,29 +479,27 @@ semirings which, though not novel, may not be as familiar to readers.
 
 A \term{regular expression} over an alphabet $\Sigma$ is a term of the
 following grammar:
-\[ R ::= \varnothing \mid \varepsilon \mid a \in \Sigma \mid R \union R \mid RR \mid R^* \]
-
-\newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+\[ R ::= \bullet \mid \varepsilon \mid a \in \Sigma \mid R \alt R  \mid RR \mid R^* \]
 
 When writing regular expressions, we allow parentheses for
 disambiguation, and adopt the common convention that Kleene star
 ($R^*$) has higher precedence than concatenation ($RR$), which has
-higher precedence than alternation ($R \union R$).
+higher precedence than alternation ($R \alt R$).
 
 Semantically, we can interpret each regular expression $R$ as a set of
 strings $\sem R \subseteq \Sigma^*$, where $\Sigma^*$ denotes the set
 of all finite sequences built from elements of $\Sigma$.  In
 particular,
 \begin{itemize}
-\item $\sem \varnothing = \varnothing$ denotes the empty set.
+\item $\sem \bullet = \varnothing$ denotes the empty set.
 \item $\sem \varepsilon = \{\varepsilon\}$ denotes the singleton set
   containing the empty string.
 \item $\sem a = \{a\}$ denotes the singleton set containing the
   length-$1$ sequence $a$.
 \item $\sem{R_1 \union R_2} = \sem{R_1} \union \sem{R_2}$.
 \item $\sem{R_1 R_2} = \sem{R_1} \sem{R_2}$, where $L_1 L_2$ denotes
-  concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in L_1,
-  s_2 \in L_2 \}. \]
+  pairwise concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in
+  L_1, s_2 \in L_2 \}. \]
 \item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least fixed
   point solution of \[ L^* = \{\varepsilon\} \union LL^*. \] Note that
   such a least fixed point must exist by the Knaster-Tarski
@@ -670,21 +682,29 @@ that
   \item $(+,0)$ is a commutative monoid (that is, $0$ is an identity for
 $+$, and $+$ is commutative and associative),
   \item $(\cdot,1)$ is a monoid,
-  \item $\cdot$ distributes over $+$ from both the left and the right, and
+  \item $\cdot$ distributes over $+$ from both the left and the right,
+    that is, $a \cdot (b + c) = a \cdot b + a \cdot c$ and $(b + c)
+    \cdot a = b \cdot a + c \cdot a$, and
   \item $0$ is an annihilator for $\cdot$, that is $r \cdot 0 = 0
     \cdot r = 0$ for all $r \in R$.
 \end{itemize}
 
-Note in particular that regular languages form a semiring under the
-operations of union and concatenation, with $0 = \varnothing$ and $1 =
-\{\varepsilon\}$.
+Examples of semirings include:
+\begin{itemize}
+\item $(|Bool|, \lor, |False|, \land, |True|)$, boolean values under disjunction and conjunction;
+\item $(\N, +, 0, \cdot, 1)$, the natural numbers under addition and multiplication;
+\item $(\R^+, \max, 0, +, 0)$, the nonnegative real numbers under maximum and addition;
+\item the set of regular languages form a semiring under the operations of union
+  and pairwise concatenation, with $0 = \varnothing$ and $1 = \{\varepsilon\}$.
+\end{itemize}
 
 A \term{star semiring} or \term{closed semiring}
 \citep{lehmann1977algebraic} has an additional operation, $(-)^*$,
-satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r. \]
-Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$ (although such infinite
-sums do not necessarily make sense in all semirings).  The semiring of
-regular languages is closed, via Kleene star.
+satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r, \]
+for all $r \in R$.  Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$
+(although such infinite sums do not necessarily make sense in all
+semirings).  The semiring of regular languages is closed, via Kleene
+star.
 
 If $R$ is a semiring, then the set of $n \times n$ matrices with
 elements in $R$ is also a semiring, where matrix addition and
@@ -695,7 +715,7 @@ operator can also be defined for matrices; for details see
 
 Finally, a \term{semiring homomorphism} is a mapping from the elements
 of one semiring to another that preserves the semiring structure, that
-is, sends $0$ to $0$, $1$ to $1$, and preserves addition and
+is, that sends $0$ to $0$, $1$ to $1$, and preserves addition and
 multiplication.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -744,9 +764,12 @@ dia = drawDFA abStar # frame 0.5
 %format T21
 %format T22
 
-Let |Tij a b| denote the type of binary trees whose element type
-sequences take the DFA from state $i$ to state $j$.  Since the DFA has
-two states, there are four such types:
+The key is to consider not just the data type we are ultimately
+interested in---in this case, those trees which take the DFA from
+state $1$ to itself---but an entire family of related types. In
+particular, let |Tij a b| denote the type of binary trees whose
+element type sequences take the DFA from state $i$ to state $j$.
+Since the DFA has two states, there are four such types:
 \begin{itemize}
 \item |T11 a b| --- this is the type of trees we are primarily
   interested in constructing, whose leaf sequences match $(ab)^*$.
@@ -768,10 +791,10 @@ fact, we have already carried out this exact analysis in the
 introduction, but it is now a bit less ad hoc.  In particular, we can
 now see that we end up with four mutually recursive types precisely
 because the DFA for $(ab)^*$ has two states, and we need one type for
-each ordered pair of states.\footnote{In general, we could
-  end up with \emph{fewer} than $n^2$ mutually recursive types for
-  a DFA of $n$ states, if some of the combinations are impossible or
-  irrelevant.}
+each ordered pair of states.\footnote{In general, we will end up with
+  \emph{at most} $||Q||^2$ mutually recursive types.  Depending on the
+  DFA and on which types we are particularly interested in, some of
+  the generated types may be uninhabited or irrelevant.}
 
 Though shifting our point of view to DFAs has given us a better
 framework for determining which types we must define, we still had to
@@ -791,17 +814,25 @@ and work in terms of a simple language of \term{polynomial
 \item We can also form products of functors, $(F \times G)\ a = F\ a
   \times G\ a$.  We often abbreviate $F \times G$ as $FG$.
 \item We also allow functors to be defined by mutually recursive
-  systems of equations $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$,
-  and interpret them using a standard least fixed point construction.
-  For example, the single recursive equation $L = 1 + X \times L$
-  denotes the standard type of (finite) polymorphic lists.  As another
-  example, the pair of mutually recursive equations
+  systems of equations \[ 
+  \begin{cases}
+    F_1 = \Phi_1(F_1, \dots, F_n) \\
+    \vdots \\
+    F_n = \Phi_n(F_1, \dots, F_n),
+  \end{cases}
+  \]
+  where each $\Phi_k$ is a polynomial functor expression which is
+  allowed to mention $F_1, \dots, F_n$, and interpret them using a
+  standard least fixed point semantics.  For example, the single
+  recursive equation $L = 1 + X \times L$ denotes the standard type of
+  (finite) polymorphic lists.  As another example, the pair of
+  mutually recursive equations
   \begin{align*}
     E & = K_{|Unit|} + X \times O \\
     O & = X \times E
   \end{align*}
-  defines the types of even- and odd-length lists.  Here, |Unit|
-  denotes the unit type with a single inhabitant.
+  defines the types of even- and odd-length polymorphic lists.  Here,
+  |Unit| denotes the unit type with a single inhabitant.
 \end{itemize}
 
 It is worth pointing out that functors form a semiring (up to
@@ -810,30 +841,25 @@ K_{|Void|}$ (|Void| denotes the type with no inhabitants).  We
 therefore will simply write $0$ and $1$ in place of $K_{|Unit|}$ and
 $K_{|Void|}$.  In fact, functors also form a star semiring, with the
 polymorphic list type playing the role of the star
-operator. \brent{This is sweeping a bit under the rug, since we have
-  not defined composition for functor expressions; but it is always
-  possible to reduce an expression involving composition to an
-  isomorphic one that does not, so this really does give a
-  well-defined star semiring.  Not sure how much we want/need to say
-  about this.  Perhaps we don't even need to mention that functors
-  form a star semiring at all?}
+operator.
 
-The above language also generalizes naturally from single-argument
-functors to $n$-ary functors:
+The above language also generalizes naturally from unary to $n$-ary
+functors:
 \begin{itemize}
-\item $K_A\ a_1\ \dots\ a_n = A$
-\item the identity functor $X$ generalizes to the family of
-  projections ${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \]
-  That is, ${}_nX_i$ is the $n$-ary functor which yields its $i$th
-  argument.  More generally, the arguments to a functor can be
-  labelled by the elements of some alphabet $\Sigma$, instead of being
-  numbered positionally.  In that case, for $a \in \Sigma$ we write
-  ${}_nX_a$ for the projection which picks out the argument labelled
-  by $a$.
-\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
-  a_n$)
-\item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
-  a_1\ \dots\ a_n)$.
+\item $K_A\ a_1\ \dots\ a_n = A$.
+\item The identity functor $X$ generalizes to the family of
+  projections $X_k$, where \[ X_k\ a_1\ \dots\ a_n = a_k. \] That is,
+  $X_k$ is the functor which yields its $k$th argument, and may be
+  regarded as an $n$-ary functor for any $n \geq k$.  More generally,
+  the arguments to a functor can be labelled by the elements of some
+  alphabet $\Sigma$, instead of being numbered positionally.  In that
+  case, for $a \in \Sigma$ we write $X_a$ for the projection which
+  picks out the argument labelled by $a$.
+\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) +
+  (G\ a_1\ \dots\ a_n)$.
+\item $(F \times G)\ a_1\ \dots\ a_n =
+  (F\ a_1\ \dots\ a_n) \times (G\ a_1\ \dots\ a_n)$.
+\item Recursion also generalizes straightforwardly.
 \end{itemize}
 Of course, $n$-ary functors also form a semiring for any $n$.
 
@@ -841,21 +867,33 @@ As an example, the Haskell type
 \begin{spec}
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
-corresponds to the $2$-ary functor $S = {}_2X_a + {}_2X_b + S \times
-S$.  Usually we omit the pre-subscript on $X$ and just write $X_a$,
-$X_b$ and so on when the arity $n$ can be inferred from the context.
-We may also abbreviate $S \times S$ as $S^2$.  All together, we may
-more idiomatically express $S$ as $S = X_a + X_b + S^2$.
+corresponds to the bifunctor (that is, $2$-ary functor) $S = X_a + X_b
++ S \times S$; we may also abbreviate $S \times S$ as $S^2$.  
 
-Suppose we have a one-argument functor $F$ and some DFA $D =
+Given a functor $F$ we may define its potential sequences of leaf
+types, $\leafseq(F)$, by an inorder traversal, that is,
+\begin{align*}
+\leafseq{0}   &= \varnothing \\
+\leafseq{K_A} &= \{\varepsilon\} \quad A \neq |Void| \\
+\leafseq{X_a} &= \{ a \} \\
+\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
+\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
+\end{align*}
+Finally, given a system $F_k = \Phi_k(F_1, \dots, F_n)$ we simply set
+\[ \leafseq{F_k} = \leafseq{\Phi_k(F_1, \dots, F_n)} \]
+for each $i$, and take the least fixed point (ordering sets by
+inclusion).  For example, given the list functor $L = 1 + XL$, we
+obtain \[ \leafseq{L} = \{ \varepsilon \} \union \{ 1\sigma \mid
+\sigma \in \leafseq{L} \} \] whose least fixed point is the infinite
+set $\{ \varepsilon, 1, 11, 111, \dots \}$ as expected.
+
+Suppose we have a unary functor $F$ and some DFA $D =
 (Q,\Sigma,\delta,q_o,F)$.  Let $F_{ij}$ denote the type with the same
-shape as $F$ but whose sequence of leaf types\footnote{That is,
-  according to an inorder traversal; we make this more explicit in
-  \pref{sec:formalization}.} takes $D$ from state $i$ to state $j$.
-Note that $F_{ij}$ has arity $||\Sigma||$, that is, there is a leaf
-type corresponding to each alphabet symbol of $D$.  We can deduce
-$F_{ij}$ compositionally by considering each of the functor building
-blocks above in turn.
+shape as $F$ but whose sequences of leaf types take $D$ from state $i$
+to state $j$.  Note that $F_{ij}$ has arity $||\Sigma||$, that is,
+there is a leaf type corresponding to each alphabet symbol of $D$.  We
+can deduce $F_{ij}$ compositionally, by recursion on the syntax of
+functor expressions.
 
 \begin{itemize}
 \item The constant functor $K_A$ creates structures containing no
@@ -863,33 +901,26 @@ blocks above in turn.
   all.  So the only way a $K_A$-structure can take the DFA from state
   $i$ to state $j$ is if $i = j$:
 \begin{equation}
-  \label{eq:unit-functor}
   (K_A)_{ij} =
   \begin{cases}
     K_A & i = j \\
     0 & i \neq j
   \end{cases}
 \end{equation}
-As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} =
+As a special case, the functor $1 = K_{|Unit|}$ yields 
+\begin{equation}
+\label{eq:unit-functor}
+1_{ij} =
 \begin{cases}
   1 & i = j \\
   0 & i \neq j
-\end{cases}. \]
+\end{cases}.
+\end{equation}
 
-\item The identity functor $X$ creates structures containing a single
-  leaf element.  So an $X$ structure containing a single value of type
-  $a$ takes the DFA from state $i$ to state $j$ precisely when the DFA
-  contains a transition from $i$ to $j$ labeled with $a$. Since there
-  may be multiple edges from $i$ to $j$, $X_{ij}$ is therefore the
-  \emph{sum} of all the labels on edges from $i$ to $j$.  Formally,
-  \begin{equation}
-    \label{eq:x-functor}
-    X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k.
-  \end{equation}
 \item A value with shape $F + G$ is either a value with shape $F$ or a
   value with shape $G$; so the set of $F + G$ shapes taking the DFA
-  from state $i$ to state $j$ is just the sum of the corresponding $F$
-  and $G$ shapes:
+  from state $i$ to state $j$ is the disjoint sum of the corresponding
+  $F$ and $G$ shapes:
   \begin{equation}
     \label{eq:sum-of-functors}
     (F + G)_{ij} = F_{ij} + G_{ij}.
@@ -907,14 +938,21 @@ As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} =
     \label{eq:product-of-functors}
     (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}.
   \end{equation}
+
+\item For a recursive system of functors \[ F_k = \Phi_k(F_1, \dots,
+  F_n), \] we may mutually define \[ (F_k)_{ij} = \left( \Phi_k(F_1,
+  \dots, F_n) \right)_{ij}, \] interpreted via the same least fixed
+  point semantics.
 \end{itemize}
 
-The above rules for $1$, sums, and products might look familiar.  In
+The above rules for $1$, sums, and products might look familiar: in
 fact, they are just the definitions of the identity matrix, matrix
-addition, and matrix product.  That is, we can arrange all the
-$F_{ij}$ for a given functor $F$ in a matrix, $\mD{F}$, whose
-$(i,j)$th entry is $F_{ij}$. (We also write simply $\m{F}$ when $D$ is
-clear from the context.)  Then we have
+addition, and matrix product.  That is, given some functor $F$ and DFA
+$D$, we can arrange all the $F_{ij}$ in a matrix, $\mD{F}$, whose
+$(i,j)$th entry is $F_{ij}$. (We also write simply $\m{F}$ when $D$
+can be inferred from context.)  Then we can rephrase
+\eqref{eq:unit-functor}--\eqref{eq:product-of-functors} above as
+
 \begin{itemize}
 \item $\mD{1} = I_{||\Sigma||}$, that is, the $||\Sigma|| \times
   ||\Sigma||$ identity matrix, with ones along the main diagonal and
@@ -1340,25 +1378,6 @@ One point worth mentioning is that \todo{Write about uniqueness of
 
 \todo{this should probably be moved later, to some section where we
   formally prove some stuff}
-We can define $S(F)$, the language of possible sequences of leaf types
-of a multi-argument functor, $F$ as follows:
-
-\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
-
-\begin{align*}
-\leafseq{1} &= \{\varepsilon\} \\
-\leafseq{X_i} &= \{ i \} \\
-\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
-\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
-\end{align*}
-Finally, given $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$ we set
-\[ \overline{\leafseq{F_i} = \leafseq{\Phi_i(F_1, \dots, F_n)}}^n \]
-and take the least fixed point (ordering sets by inclusion).  For
-example, given the list functor $L = 1 + XL$, we obtain \[ \leafseq{L}
-= \{ \varepsilon \} \union \{ 1\sigma \mid \sigma \in \leafseq{L}
-\} \] whose least fixed point is the infinite set $\{ \varepsilon, 1,
-11, 111, \dots \}$ as expected.
-
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
