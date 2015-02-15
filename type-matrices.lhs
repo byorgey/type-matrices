@@ -976,7 +976,7 @@ Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
 position if there is an edge from node $i$ to node $j$, and a $0$
 otherwise.  It is a standard observation that the $m$th power of $M_G$
 encodes information about length-$m$ paths in $G$; specifically, the
-$i,j$ entry of $M_G$ is the number of distinct paths of length $m$
+$i,j$ entry of $M_G^m$ is the number of distinct paths of length $m$
 from $i$ to $j$.  This is because a path from $i$ to $j$ of length $m$
 is the concatenation of a length-$(m-1)$ path from $i$ to some $k$
 followed by an edge from $k$ to $j$, so the total number of length-$m$
@@ -990,15 +990,15 @@ suppose that the edges of $G$ are labelled by elements of some
 semiring $R$, and form the adjacency matrix $M_G$ as before, but using
 the labels on edges, and $0 \in R$ for missing edges.  The $m$th power
 of $M_G$ still encodes information about length-$m$ paths, but the
-interpretation depends on the specific choice of $R$, and how the
-edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
-edges labelled by $1$ gives us a count of distinct paths, as before.
-If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
-the $i,j$ entry of $M_G^m$ tells us whether there exists any path of
+interpretation depends on the specific choice of $R$ and on the edge
+labelling.  Choosing the semiring $(\N,+,\cdot)$ with all edges
+labelled by $1$ gives us a count of distinct paths, as before.  If we
+choose $(|Bool|, \lor, \land)$ and label each edge with |True|, the
+$i,j$ entry of $M_G^m$ tells us whether there exists any path of
 length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
 edges with costs yields the minimum cost of length-$m$ paths; choosing
-$(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
-alphabet $\Sigma$ under union and Cartesian product) and labelling
+$(\mathcal{P}(\Sigma^*), \cup, \cdot)$ (that is, languages over some
+alphabet $\Sigma$ under union and pairwise concatenation) and labelling
 edges with elements from $\Sigma$ yields sets of words corresponding
 to length-$m$ paths.
 
@@ -1045,16 +1045,13 @@ complete set of strings that drives the DFA between each pair of
 states.
 
 We can now see how to interpret $\mD{X}$: it is simply the transition
-matrix for $D$, taken over the semiring of functors, where each
-transition $a$ is replaced by the functor $X_a$. \brent{Can we/do we
-  need to give some more explanation/intuition as to why this is the
-  right definition?}
-
-\todo{Do we also need to say something about implicits/fixed points?
-  Just do the same construction again -- take LFP of implicit matrix
-  equation?  What's the order relation?  Actually, I guess it doesn't
-  matter: we're really just using matrices as a way to organize
-  systems of type equations.}
+matrix for $D$, taken over the semiring of arity-$||\Sigma||$
+functors, where each transition $a$ is replaced by the functor
+$X_a$. That is, in general, each entry of $\mD X$ will consist of a
+(possibly empty) sum of functors \[ \sum_{\substack{a \in \Sigma
+    \\ \delta(i,a) = j}} X_a. \] By definition, these will drive the
+DFA in the proper way; moreover, sums of $X_a$ are the only functors
+with the same shape as $X$.
 
 \section{Examples}
 \label{sec:examples}
@@ -1065,10 +1062,18 @@ transition $a$ is replaced by the functor $X_a$. \brent{Can we/do we
 %format L21
 %format L22
 
-To make things concrete, we can revisit some familiar examples using
-our new framework. As a first example, consider the resular expression
-$(aa)^*$, corresponding to the DFA shown in \pref{fig:dfa-aa}, along
-with the standard polymorphic list type, $L = 1 + XL$.
+To make things more concrete, we can revisit some familiar examples
+using our new framework. As a first example, consider the resular
+expression $(aa)^*$, corresponding to the DFA shown in
+\pref{fig:dfa-aa}, along with the standard polymorphic list type, $L =
+1 + XL$. The matrix for $L$ can be written
+\[ \m{L} =
+\begin{bmatrix}
+  |L11| & |L12| \\
+  |L21| & |L22|
+\end{bmatrix}
+.
+\]
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
@@ -1088,14 +1093,6 @@ dia = drawDFA aaStar # frame 0.5
   \caption{A DFA for $(aa)^*$}
   \label{fig:dfa-aa}
 \end{figure}
-The matrix for $L$ can be written
-\[ \m{L} =
-\begin{bmatrix}
-  |L11| & |L12| \\
-  |L21| & |L22|
-\end{bmatrix}
-.
-\]
 The punchline is that we can take the recursive equation for $L$ and
 simply apply the homomorphism to both sides, resulting in the matrix
 equation
@@ -1138,13 +1135,13 @@ We can see that |L11| and |L22| are isomorphic, as are |L12| and
 |L21|; this is because the DFA $D$ has a nontrivial automorphism
 (ignoring start and accept states).  Thinking about the meaning of
 paths through the DFA, we see that |L11| is the type of lists with
-even length, and |L12|, lists with odd length. More familiarly:
+even length, and |L21|, lists with odd length. More familiarly:
 
 > data EvenList a  = EvenNil | EvenCons a (OddList a)
 > data OddList a   = OddCons a (EvenList a)
 
 As another example, consider again the recursive tree type given by $T = X
-+ T \times T$, along with the two-state DFA for $(ab)^*$ shown in
++ T^2$, along with the two-state DFA for $(ab)^*$ shown in
 \pref{fig:ab-star-dfa}.  Applying the homomorphism, we obtain
 \[ \m{T} = \m{X + T^2} = \m{X} + \m{T}^2, \] where
 \[ \m{X} =
@@ -1179,6 +1176,61 @@ This yields
 Equating the left- and right-hand sides elementwise yields precisely
 the definitions for $T_{ij}$ we derived in Section
 \ref{sec:introduction}.
+
+As a final example, consider the type $T = X + T^2$ again, but this
+time constrained by the regular expression $b^* h a^*$, with
+transition matrix $\begin{bmatrix} X_b & X_h \\ 0 &
+  X_a \end{bmatrix}$.  Applying the homomorphism yields
+\begin{multline*}
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|
+\end{bmatrix}
+=
+\begin{bmatrix}
+  X_b & X_h \\ 0 & X_a
+\end{bmatrix}
++
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|
+\end{bmatrix}^2 \\
+=
+\begin{bmatrix}
+  X_b + |T11|^2 + |T12| |T21| & X_h + |T11| |T12| + |T12| |T22| \\
+  |T21| |T11| + |T22| |T21| & X_a + |T21| |T12| + |T22|^2
+\end{bmatrix}.
+\end{multline*}
+Here something strange happens: looking at the DFA, it is plain that
+there are no paths from state $2$ to state $1$, and we therefore
+expect the corresponding type |T21| to be empty.  However, it does not
+look empty at first sight: we have $|T21| = |T21| |T11| + |T22|
+|T21|$.  In fact, it \emph{is} empty, since we are interpreting
+recursively defined functors via a least fixed point semantics, and it
+is not hard to see that $0$ is in fact a fixed point of the above
+equation for |T21|.  In practice, we can perform a reachability
+analysis for a DFA beforehand (by taking the star of its transition
+matrix under $(|Bool|, \lor, \land)$) to see which states are
+reachable from which other states; if there is no path from $i$ to $j$
+then we know $|Tij| = 0$, which can simplify calculations.  For
+example, substituting $|T21| = 0$ into the above equation and
+simplifying yields
+\[
+\begin{bmatrix}
+  |T11| & |T12| \\
+  |T21| & |T22|
+\end{bmatrix} \\
+=
+\begin{bmatrix}
+  X_b + |T11|^2 & X_h + |T11| |T12| + |T12| |T22| \\
+  0 & X_a + |T22|^2
+\end{bmatrix}.
+\]
+
+\section{Alternate representations}
+\label{sec:alternate}
+
+\brent{Should this go here?  Need to finish writing it.}
 
 Now consider constructing a type of binary trees with data of two
 different types, $a$ and $b$, at internal nodes---but with the
@@ -1293,92 +1345,6 @@ type |T| would be extremely inconvenient.  \todo{Write about
   that |T| is a sum type; for that you can make an existential wrapper
   with dynamic type checks.}
 
-As one final example, consider the type $T = X + T^2$ again, but this
-time constrained by the regular expression $b^* h a^*$, with
-transition matrix $\begin{bmatrix} X_b & X_h \\ 0 &
-  X_a \end{bmatrix}$.  Applying the homomorphism yields
-\begin{multline*}
-\begin{bmatrix}
-  |T11| & |T12| \\
-  |T21| & |T22|
-\end{bmatrix}
-=
-\begin{bmatrix}
-  X_b & X_h \\ 0 & X_a
-\end{bmatrix}
-+
-\begin{bmatrix}
-  |T11| & |T12| \\
-  |T21| & |T22|
-\end{bmatrix}^2 \\
-=
-\begin{bmatrix}
-  X_b + |T11|^2 + |T12| |T21| & X_h + |T11| |T12| + |T12| |T22| \\
-  |T21| |T11| + |T22| |T21| & X_a + |T21| |T12| + |T22|^2
-\end{bmatrix}.
-\end{multline*}
-Here something strange happens: looking at the DFA, it is plain that
-there are no paths from state $2$ to state $1$, and we therefore
-expect the corresponding type |T21| to be empty.  However, it does not
-look empty at first sight: we have $|T21| = |T21| |T11| + |T22|
-|T21|$.  In fact, it \emph{is} empty, since we are interpreting
-recursively defined functors via a least fixed point semantics.  It is
-not hard to see that $0$ is in fact a fixed point of the above
-equation for |T21|.  In practice, we can analyze a DFA beforehand to
-see which states are reachable from which other states; if there is no
-path from $i$ to $j$ then we know $|Tij| = 0$, which can simplify
-calculations.  For example, substituting $|T21| = 0$ into the above
-matrix equation and simplifying yields
-\[
-\begin{bmatrix}
-  |T11| & |T12| \\
-  |T21| & |T22|
-\end{bmatrix} \\
-=
-\begin{bmatrix}
-  X_b + |T11|^2 & X_h + |T11| |T12| + |T12| |T22| \\
-  0 & X_a + |T22|^2
-\end{bmatrix}.
-\]
-
-\section{Formalization XXX}
-\label{sec:formalization}
-
-One point worth mentioning is that \todo{Write about uniqueness of
-  representation, see stuff in comments}
-
-% There's a detail whose importance I'm not 100\% sure of. There are
-% multiple solutions to the problem of 'lifting' a type to be
-% constrained by a regexp. Compare
-
-% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
-
-% vs.
-
-% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
-
-% Both will end up with the same regular language. (Basically because we
-% have idempotence in languages, x+x=x.) Is here anything you think that
-% needs to be said about this? Some solutions are nice in that every
-% string in the language is represented precisely once. I think the
-% matrix construction gives us these because it's coming from a DFA so
-% there's only one path you can take through it. Does that sound right?
-% So we're actually doing slightly better than just constraining the
-% leaves with regular expressions. We're getting the best such type, in
-% some sense. Or at least I hope we are.
-
-\todo{We need a better story about finite vs. infinite.  The above
-  gives the standard presentation of DFAs for finite strings, but
-  Haskell types can include infinite values.  So we want to do
-  something like use the \emph{greatest} fixed point of $\Sigma^* =
-  \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
-  is in the language recognized by a DFA if it never causes the DFA to
-  reject.  I'm not quite sure how this relates to the fact that
-  least+greatest fixedpoints coincide in Haskell.}
-
-\todo{this should probably be moved later, to some section where we
-  formally prove some stuff}
-
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
 Now that we have seen the general framework, let's return to the
@@ -1417,83 +1383,88 @@ The corresponding transition matrix is
 
 Suppose we start with a functor defined as a product:
 \[ F = G H \]
-Expanding via the homomorphism to type matrices (using $2 \times 2$
-matrices since our DFA has two states), we obtain
+Expanding via the homomorphism to matrices of bifunctors, we obtain
 \[
 \begin{bmatrix}
   F_{11} & F_{12} \\
-  F_{21} & F_{22}
+  0 & F_{22}
 \end{bmatrix}
 =
 \begin{bmatrix}
   G_{11} & G_{12} \\
-  G_{21} & G_{22}
+  0 & G_{22}
 \end{bmatrix}
 \begin{bmatrix}
   H_{11} & H_{12} \\
-  H_{21} & H_{22}
+  0 & H_{22}
 \end{bmatrix}
 \]
-Let's consider each of the $F_{ij}$ in turn.  First, we have
+(the occurrences of $0$ correspond to the observation that there are
+no paths in the DFA from state $2$ to state $1$).  Let's consider each
+of the nonzero $F_{ij}$ in turn.  First, we have
 \[
-F_{11} = G_{11} \times H_{11} + G_{12}\times H_{21}
+F_{11} = G_{11} \times H_{11}
 \]
-$H_{21}$ is a type whose sequences of leaves take the DFA from state
-$2$ to state $1$---but there are no such sequences, since the DFA has
-no paths from state $2$ to state $1$. So $H_{21}$ is the uninhabited
-type $0$, and $F_{11} = G_{11} H_{11}$.  In fact, $F_{11}$ is simply
-the type of structures whose leaves take the DFA from state $1$ to
-itself and so whose leaves match the regular expression $a^*$.  So we
-have $F_{11}\ a\ h \cong F\ a$ (and similarly for $G_{11}$ and $H_{11}$).
-Similarly, $F_{22}\ a\ h \cong F\ a$.  We also have
+$F_{11}$ is simply the type of structures whose leaves take the DFA
+from state $1$ to itself and so whose leaves match the regular
+expression $a^*$; hence we have $F_{11}\ a\ h \cong F\ a$ (and
+similarly for $G_{11}$, $H_{11}$, $F_{22}$, $G_{22}$, and $H_{22}$).
+We also have
 \[
 F_{12} = G_{11} H_{12}+G_{12} H_{22} \cong G H_{12} + G_{12} H.
 \]
-
 This looks suspiciously like the usual Leibniz law for the derivative
-of a product. We also know that
+of a product (\ie the ``product rule'' for differentiation). We also
+know that
 \[
 1_{12} = 0
 \]
 and
 \[
-X_{12} = X_h
+X_{12} = X_h,
 \]
-If we substitute the unit type for |h|, these are precisely the rules
-for differentiating polynomials.  \todo{sums and fixpoints?} So
-$F_{12}$ is the derivative of $F$.
+and if $F = G + H$ then $F_{12} = G_{12} + H_{12}$.  If we substitute
+the unit type for |h|, these are precisely the rules for
+differentiating polynomials. So $F_{12}$ is the derivative of $F$.
 
-\brent{I am not sure that I quite understand the following.  In
-  particular I don't get the step from $f(aI + [d])$ to $f(aI) +
-  f'(a)[d]$.}  There is another way to look at this. Write
+There is another way to look at this. Write
 \[
-\m{X} = X_a I + \m{d}
+\m{X} = 
+\begin{bmatrix}
+  X_a & X_h \\ 0 & X_a
+\end{bmatrix}
+=
+X_a I + d
 \]
 where
-\[ \m{d} =
+\[ d =
 \begin{bmatrix}
-  |0| & |1| \\
+  |0| & X_h \\
   |0| & |0|
 \end{bmatrix}
 \]
-Note that $\m{d}^2 = 0$.
-If we have a polynomial $f$, then we have that
+Note that $d^2 = 0$.  Given a polynomial $f$, we can evaluate it at
+the matrix $\m X$ to obtain
 \begin{align*}
-f(\m{X}) &= f(aI + \m{d})\\
-&= f(a I) + f'(a)\m{d}\\
+f(\m{X}) &= f(X_a I + d)\\
+&= f(X_a I) + f'(X_a) d\\
 &= \begin{bmatrix}
-  f(a) & 0 \\
-  0 & f(a)
+  f(X_a) & 0 \\
+  0 & f(X_a)
 \end{bmatrix}
 +\begin{bmatrix}
-  0 & f'(a) \\
+  0 & f'(X_a) X_h \\
   0 & 0
 \end{bmatrix}
 \end{align*}
-The matrix $\m{d}$ is playing a role similar to an
-``infinitesimal'' in calculus where the expression
-$dx$ is manipulated informally as if $(dx)^2=0$.
-(Compare wth the dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
+where the second equality follows from the fact that $d^2 =
+0$. \brent{Need to explain this better.  I understand the details now
+  in the case of normal polynomials and an infinitesimal $dx$.  But I
+  am actually not quite sure I buy it in this case since matrix
+  multiplication is not commutative.}  The matrix $d$ is playing a
+role similar to an ``infinitesimal'' in calculus, where the expression
+$dx$ is manipulated informally as if $(dx)^2=0$.  (Compare wth the
+dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
 
 \section{Divided Differences}
 \label{sec:divided-differences}
@@ -1502,8 +1473,8 @@ Consider again the regular expression $b^*ha^*$.  Data structures with
 leaf sequences matching this pattern have a ``hole'' of type |h|, with
 values of type $b$ to the left of the hole and values of type $a$ to
 the right (\pref{fig:divided-tree}).\footnote{Typically we substitute
-  the unit type for |h|, but it makes the theory work much more
-  smoothly if we represent it initially with a unique type variable.}
+  the unit type for |h|, but it makes the theory work more smoothly if
+  we represent it initially with a unique type variable.}
 \begin{figure}
   \centering
 \begin{diagram}[width=150]
@@ -1536,18 +1507,18 @@ dia = renderT t # frame 0.5
   \label{fig:divided-tree}
 \end{figure}
 Such structures have been considered by \citet{mcbride-dissection},
-who refers to them as ``dissections'' and shows how they can be used,
+who refers to them as \term{dissections} and shows how they can be used,
 for example, to generically derive tail-recursive maps and folds.
 
-Given a functor $p$, McBride uses $\dissect p$ to denote the bifunctor
-which is the dissection of $p$, and also defines bifunctors $(\clowns
-p)\ b\ a = p\ b$ and $(\jokers p)\ b\ a = p\ a$.  The central
+Given a functor $F$, McBride uses $\dissect F$ to denote the bifunctor
+which is the dissection of $F$, and also defines bifunctors $(\clowns
+F)\ b\ a = F\ b$ and $(\jokers F)\ b\ a = F\ a$.  The central
 construction is the Leibniz rule for dissection of a product, \[
-\dissect (p \times q) = \clowns p \times \dissect q + \dissect p
-\times \jokers q. \] That is, a dissection of a $(p \times
-q)$-structure consists either of a $p$-structure containing only
-elements of the first type paired with a $q$-dissection, or a
-$p$-dissection paired with a $q$-structure containing only elements of
+\dissect (F \times G) = \clowns F \times \dissect G + \dissect F
+\times \jokers G. \] That is, a dissection of a $(F \times
+G)$-structure consists either of a $F$-structure containing only
+elements of the first type paired with a $G$-dissection, or a
+$F$-dissection paired with a $G$-structure containing only elements of
 the second type.
 
 The DFA recognizing $b^*ha^*$ is illustrated in
@@ -1557,27 +1528,27 @@ no leaf sequences taking this DFA from state $2$ to state $1$; leaf
 sequences matching $b^*$ or $a^*$ keep the
 DFA in state $1$ or state $2$, respectively; and leaf sequences
 matching $b^*ha^*$ take the DFA from state $1$ to state $2$.  That is,
-under the homomorphism induced by this DFA, the functor $p$ maps to
-the matrix of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p
-  \\ 0 & \jokers p \end{bmatrix}. \] Taking the product of two such
-matrices indeed gives us
+under the homomorphism induced by this DFA, the functor $F$ maps to
+the matrix of bifunctors \[ \begin{bmatrix} \clowns F & \dissect F
+  \\ 0 & \jokers F \end{bmatrix}. \] Taking the product of two such
+matrices indeed yields
 \begingroup
 \setlength{\arraycolsep}{5pt}
-\[ \begin{bmatrix} \clowns p & \dissect p
-  \\ 0 & \jokers p \end{bmatrix} \begin{bmatrix} \clowns q & \dissect
-  q \\ 0 & \jokers q \end{bmatrix} = \begin{bmatrix} \clowns p \times
-  \clowns q & \clowns p \times \dissect q + \dissect p + \jokers q
-  \\ 0 & \jokers p \times \jokers q \end{bmatrix}. \]
+\[ \begin{bmatrix} \clowns F & \dissect F
+  \\ 0 & \jokers F \end{bmatrix} \begin{bmatrix} \clowns G & \dissect
+  G \\ 0 & \jokers G \end{bmatrix} = \begin{bmatrix} \clowns F \times
+  \clowns G & \clowns F \times \dissect G + \dissect F \times \jokers G
+  \\ 0 & \jokers F \times \jokers G \end{bmatrix}, \]
 \endgroup
 as expected.
 
 Just as differentiation of types has an analytic analogue, dissection
-has an analogue as well, known as \term{divided differences}.  Let $f
-: \R \to \R$ be a real-valued function, and let $b,a \in \R$.  Then
-the \term{divided difference} of $f$ at $b$ and $a$,
-notated\footnote{Our notation is actually ``backwards'' with respect
-  to the usual notation---what we write as $f_{b,a}$ is often written
-  $f[a,b]$---in order to better align with the combinatorial intuition
+has an analogue as well, known as \term{divided difference}.  Let $f :
+\R \to \R$ be a real-valued function, and let $b,a \in \R$.  Then the
+\term{divided difference} of $f$ at $b$ and $a$, notated\footnote{Our
+  notation is actually ``backwards'' with respect to the usual
+  notation---what we write as $f_{b,a}$ is often written $f[a,b]$ or
+  $[a,b]f$---in order to better align with the combinatorial intuition
   discussed later.} $f_{b,a}$, is defined by
 \[ f_{b,a} = \frac{f_b - f_a}{b - a}, \] where for consistency of notation
 we write $f_a$ for $f(a)$, and likewise for $f_b$.  In the limit, as
@@ -1711,3 +1682,42 @@ Acknowledgments.
 \bibliography{type-matrices}
 
 \end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Text that we might want to do something with eventually
+
+
+%% One point worth mentioning is that \todo{Write about uniqueness of
+%%   representation, see stuff in comments}
+
+% There's a detail whose importance I'm not 100\% sure of. There are
+% multiple solutions to the problem of 'lifting' a type to be
+% constrained by a regexp. Compare
+
+% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
+
+% vs.
+
+% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+
+% Both will end up with the same regular language. (Basically because we
+% have idempotence in languages, x+x=x.) Is here anything you think that
+% needs to be said about this? Some solutions are nice in that every
+% string in the language is represented precisely once. I think the
+% matrix construction gives us these because it's coming from a DFA so
+% there's only one path you can take through it. Does that sound right?
+% So we're actually doing slightly better than just constraining the
+% leaves with regular expressions. We're getting the best such type, in
+% some sense. Or at least I hope we are.
+
+%% \todo{We need a better story about finite vs. infinite.  The above
+%%   gives the standard presentation of DFAs for finite strings, but
+%%   Haskell types can include infinite values.  So we want to do
+%%   something like use the \emph{greatest} fixed point of $\Sigma^* =
+%%   \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
+%%   is in the language recognized by a DFA if it never causes the DFA to
+%%   reject.  I'm not quite sure how this relates to the fact that
+%%   least+greatest fixedpoints coincide in Haskell.}
