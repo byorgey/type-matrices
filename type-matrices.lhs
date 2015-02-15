@@ -417,7 +417,7 @@ element types matches $a^*ha^*$ have all elements of type |a|, except
 for one which has type |h|. This corresponds to a zipper type
 \citep{Huet_zipper} with elements of type $h$ at the `focus'; if we
 substitute the unit type for |h|, we get the \term{derivative} of the
-orginal type \citep{DBLP:journals/fuin/AbbottAMG05}
+original type \citep{DBLP:journals/fuin/AbbottAMG05}
 (\pref{fig:derivative}).  Likewise, the regular language $b^*ha^*$
 corresponds to \term{dissection types} \citep{mcbride-dissection}.
 
@@ -851,10 +851,10 @@ functors:
   projections $X_k$, where \[ X_k\ a_1\ \dots\ a_n = a_k. \] That is,
   $X_k$ is the functor which yields its $k$th argument, and may be
   regarded as an $n$-ary functor for any $n \geq k$.  More generally,
-  the arguments to a functor can be labelled by the elements of some
+  the arguments to a functor can be labeled by the elements of some
   alphabet $\Sigma$, instead of being numbered positionally.  In that
   case, for $a \in \Sigma$ we write $X_a$ for the projection which
-  picks out the argument labelled by $a$.
+  picks out the argument labeled by $a$.
 \item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) +
   (G\ a_1\ \dots\ a_n)$.
 \item $(F \times G)\ a_1\ \dots\ a_n =
@@ -986,19 +986,19 @@ what is computed by the matrix multiplication $M_G^{m-1} M = M_G^m$.
 However, as observed independently by \citet{oconnor2011shortestpaths}
 and \citet{dolan2013fun}, this can be generalized by parameterizing
 the construction over an arbitrary semiring.  In particular, we may
-suppose that the edges of $G$ are labelled by elements of some
+suppose that the edges of $G$ are labeled by elements of some
 semiring $R$, and form the adjacency matrix $M_G$ as before, but using
 the labels on edges, and $0 \in R$ for missing edges.  The $m$th power
 of $M_G$ still encodes information about length-$m$ paths, but the
 interpretation depends on the specific choice of $R$ and on the edge
-labelling.  Choosing the semiring $(\N,+,\cdot)$ with all edges
-labelled by $1$ gives us a count of distinct paths, as before.  If we
+labeling.  Choosing the semiring $(\N,+,\cdot)$ with all edges
+labeled by $1$ gives us a count of distinct paths, as before.  If we
 choose $(|Bool|, \lor, \land)$ and label each edge with |True|, the
 $i,j$ entry of $M_G^m$ tells us whether there exists any path of
-length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
+length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labeling
 edges with costs yields the minimum cost of length-$m$ paths; choosing
 $(\mathcal{P}(\Sigma^*), \cup, \cdot)$ (that is, languages over some
-alphabet $\Sigma$ under union and pairwise concatenation) and labelling
+alphabet $\Sigma$ under union and pairwise concatenation) and labeling
 edges with elements from $\Sigma$ yields sets of words corresponding
 to length-$m$ paths.
 
@@ -1063,7 +1063,7 @@ with the same shape as $X$.
 %format L22
 
 To make things more concrete, we can revisit some familiar examples
-using our new framework. As a first example, consider the resular
+using our new framework. As a first example, consider the regular
 expression $(aa)^*$, corresponding to the DFA shown in
 \pref{fig:dfa-aa}, along with the standard polymorphic list type, $L =
 1 + XL$. The matrix for $L$ can be written
@@ -1463,7 +1463,7 @@ where the second equality follows from the fact that $d^2 =
   am actually not quite sure I buy it in this case since matrix
   multiplication is not commutative.}  The matrix $d$ is playing a
 role similar to an ``infinitesimal'' in calculus, where the expression
-$dx$ is manipulated informally as if $(dx)^2=0$.  (Compare wth the
+$dx$ is manipulated informally as if $(dx)^2=0$.  (Compare with the
 dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
 
 \section{Divided Differences}
