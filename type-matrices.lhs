@@ -871,17 +871,17 @@ corresponds to the bifunctor (that is, $2$-ary functor) $S = X_a + X_b
 + S \times S$; we may also abbreviate $S \times S$ as $S^2$.  
 
 Given a functor $F$ we may define its potential sequences of leaf
-types, $\leafseq(F)$, by an inorder traversal, that is,
+types, $\leafseq{F}$, by an inorder traversal, that is,
 \begin{align*}
 \leafseq{0}   &= \varnothing \\
-\leafseq{K_A} &= \{\varepsilon\} \quad A \neq |Void| \\
+\leafseq{K_A} &= \{\varepsilon\} \quad (A \neq |Void|) \\
 \leafseq{X_a} &= \{ a \} \\
 \leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
 \leafseq{F \times G} &= \leafseq{F}\leafseq{G}
 \end{align*}
 Finally, given a system $F_k = \Phi_k(F_1, \dots, F_n)$ we simply set
 \[ \leafseq{F_k} = \leafseq{\Phi_k(F_1, \dots, F_n)} \]
-for each $i$, and take the least fixed point (ordering sets by
+for each $k$, and take the least fixed point (ordering sets by
 inclusion).  For example, given the list functor $L = 1 + XL$, we
 obtain \[ \leafseq{L} = \{ \varepsilon \} \union \{ 1\sigma \mid
 \sigma \in \leafseq{L} \} \] whose least fixed point is the infinite
@@ -928,12 +928,11 @@ As a special case, the functor $1 = K_{|Unit|}$ yields
 
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, whose leaf types drive
-  the DFA in sequence.  \dan{Should the matrix be transposed?}\brent{I
-    don't think so, why?}  Hence, in order to take the DFA from state
-  $i$ to state $j$ overall, the $F$-structure must take the DFA from
-  state $i$ to some state $k$, and then the $G$-structure must take it
-  from $k$ to $j$.  This works for any state $k$, and $(FG)_{ij}$ is
-  the sum over all such possibilities.  Thus,
+  the DFA in sequence. Hence, in order to take the DFA from state $i$
+  to state $j$ overall, the $F$-structure must take the DFA from state
+  $i$ to some state $k$, and then the $G$-structure must take it from
+  $k$ to $j$.  This works for any state $k$, and $(FG)_{ij}$ is the
+  sum over all such possibilities.  Thus,
   \begin{equation}
     \label{eq:product-of-functors}
     (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}.
@@ -1227,8 +1226,8 @@ simplifying yields
 \end{bmatrix}.
 \]
 
-\section{Alternate representations}
-\label{sec:alternate}
+\section{Alternative representations}
+\label{sec:alternative}
 
 \brent{Should this go here?  Need to finish writing it.}
 
@@ -1443,11 +1442,30 @@ where
   |0| & |0|
 \end{bmatrix}
 \]
-Note that $d^2 = 0$.  Given a polynomial $f$, we can evaluate it at
-the matrix $\m X$ to obtain
+Note that $d^2 = 0$.  Note also that \[ (X_a I) d = 
+\begin{bmatrix}
+  0 & X_a X_h \\ 0 & 0
+\end{bmatrix}
+\] and \[ d (X_a I) = 
+\begin{bmatrix}
+  0 & X_h X_a \\ 0 & 0
+\end{bmatrix}.
+\] 
+Treating the product of functors as commutative is problematic in our
+setting, since we care about the precise sequence of leaf types.
+However, in this particular instance, letting $X_a$ and $X_h$ commute
+corresponds to letting the ``hole'' of type |h| ``float'' to the
+outside---typically, when constructing a zipper structure, one does
+this anyway, storing the focused element separately from the rest of
+the structure.  Under this interpretation, then, $(X_a I)$ and $d$
+commute even though matrix multiplication is not commutative in
+general.  We then note that \[ (X_a I + d)^n = (X_a I)^n + n (X_a
+I)^{n-1} d, \] making use of this special commutativity and the fact
+that $d^2 = 0$, annihilating all the subsequent terms.  We can
+linearly extend this to an entire polynomial $f$, that is,
 \begin{align*}
 f(\m{X}) &= f(X_a I + d)\\
-&= f(X_a I) + f'(X_a) d\\
+&= f(X_a I) + f'(X_a I) d\\
 &= \begin{bmatrix}
   f(X_a) & 0 \\
   0 & f(X_a)
@@ -1457,14 +1475,10 @@ f(\m{X}) &= f(X_a I + d)\\
   0 & 0
 \end{bmatrix}
 \end{align*}
-where the second equality follows from the fact that $d^2 =
-0$. \brent{Need to explain this better.  I understand the details now
-  in the case of normal polynomials and an infinitesimal $dx$.  But I
-  am actually not quite sure I buy it in this case since matrix
-  multiplication is not commutative.}  The matrix $d$ is playing a
-role similar to an ``infinitesimal'' in calculus, where the expression
-$dx$ is manipulated informally as if $(dx)^2=0$.  (Compare with the
-dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
+The matrix $d$ is thus playing a role similar to an ``infinitesimal''
+in calculus, where the expression $dx$ is manipulated informally as if
+$(dx)^2=0$.  (Compare with the dual numbers described by
+\cite{DBLP:journals/lisp/SiskindP08}.)
 
 \section{Divided Differences}
 \label{sec:divided-differences}
@@ -1552,8 +1566,7 @@ has an analogue as well, known as \term{divided difference}.  Let $f :
   discussed later.} $f_{b,a}$, is defined by
 \[ f_{b,a} = \frac{f_b - f_a}{b - a}, \] where for consistency of notation
 we write $f_a$ for $f(a)$, and likewise for $f_b$.  In the limit, as
-$b \to a$, this yields the usual derivative of $f$.  In the interest
-of readability we will sometimes also write
+$b \to a$, this yields the usual derivative of $f$.
 
 We now consider the type-theoretic analogue of $f_{b,a}$.  We cannot
 directly interpret subtraction and division of functors.  However, if
