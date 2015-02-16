@@ -25,6 +25,7 @@
 \usepackage{tikz}
 \usepackage{prettyref}
 \usepackage{xspace}
+\usepackage{url}
 
 \usepackage[outputdir=diagrams/,backend=cairo,extension=pdf]{diagrams-latex}
 % \usepackage{verbatim}
@@ -74,7 +75,7 @@
 % Notes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newif\ifcomments\commentstrue
+\newif\ifcomments\commentsfalse
 
 \ifcomments
 \newcommand{\authornote}[3]{\textcolor{#1}{[#3 ---#2]}}
@@ -404,10 +405,6 @@ structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
 suitable (\term{polynomial}) data type.
 
-\brent{Moreover, the resulting mutually recursive system of types is
-  difficult to work with in practice; we will address this problem as
-  well.}
-
 For certain languages, this problem has already been explored in the
 literature, though without being phrased in terms of regular
 languages.  For example, consider the regular language $a^*ha^*$. It
@@ -459,8 +456,9 @@ language.
 In the remainder of the paper, we first review some standard results
 about regular languages and DFAs (\pref{sec:regexp-and-dfas}).  We
 describe our framework informally (\pref{sec:dfas-matrices}) and give
-some examples of its application (\pref{sec:examples}).  \brent{Do we
-  have something else here?} We conclude with a discussion of
+some examples of its application (\pref{sec:examples}) and describe an
+alternative encoding which can be more convenient in practice
+(\pref{sec:alternative}). We conclude with a discussion of
 derivatives (\pref{sec:derivatives-again}) and divided differences
 (\pref{sec:divided-differences}).
 
@@ -615,7 +613,11 @@ an iterated version of $\delta$:
 \end{align*}
 
 If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
-``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.
+``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.  More
+generally, given a string $\omega$, we can partially apply $\delta^*$
+to obtain a ``driving function'' $\chi : Q \to Q$ which encodes how the string
+$\omega$ drives the DFA: if the DFA starts in state $q$ then after
+processing $\omega$ it will end in state $\chi(q)$.
 
 % Given any pair
 % of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
@@ -1226,123 +1228,35 @@ simplifying yields
 \end{bmatrix}.
 \]
 
-\section{Alternative representations}
+\section{An alternative representation}
 \label{sec:alternative}
 
-\brent{Should this go here?  Need to finish writing it.}
+One way to look at the examples shown so far is that we have
+essentially had to \emph{duplicate} the initial functor |F|, resulting
+in several slightly different copies, each with a slightly different
+set of ``constructors'', in order to keep track of which constructors
+are allowed at which points.  Such encodings would be extremely trying
+to work with in practice, requiring much tedious case analysis.  In a
+language with a sufficiently expressive type system, however, we do
+not need to duplicate anything, but can instead make use of types to
+dictate which constructors are allowed in which situations.
 
-Now consider constructing a type of binary trees with data of two
-different types, $a$ and $b$, at internal nodes---but with the
-restriction that two values of type $a$ may never occur consecutively
-in an inorder traversal.  This restriction corresponds to the DFA
-shown in \pref{fig:DFA-no-consec-a}, with the transition matrix
-\[ \m{X} =
-\begin{bmatrix}
-  X_|b| & X_|a| \\
-  X_|b| & 0
-\end{bmatrix}.
-\]
-\begin{figure}
-  \centering
-  \begin{diagram}[width=100]
-import TypeMatricesDiagrams
+What information, exactly, do we need to keep around at the level of
+types?  It is not enough to just index by a pair of DFA states; the
+problem is that each constructor may correspond to \emph{multiple}
+possible pairs of states.  In fact, what we need is to index by an
+entire \emph{driving function}.  Given some functor $T$, the idea is
+to produce just a \emph{single} $n$-ary functor $T_\chi$ indexed by a
+driving function $\chi : Q \to Q$. A value of type $|T|_\chi$ is a
+structure with a shape allowed by |T|, whose sequence of leaf types,
+taken together, drives the DFA in the way encoded by $\chi$.  The
+desired type can then be selected as the sum of all types indexed by
+driving functions taking the start state to some accepting state.
 
-noAA :: DFA (Diagram B R2)
-noAA = dfa
-  [ 1 --> (True, origin)
-  , 2 --> (True, 5 ^& 0)
-  ]
-  [ 1 >-- txt "b" --> 1
-  , 1 >-- txt "a" --> 2
-  , 2 >-- txt "b" --> 1
-  ]
-
-dia = drawDFA noAA # frame 0.5
-  \end{diagram}
-  \caption{A DFA for avoiding consecutive $a$'s}
-  \label{fig:DFA-no-consec-a}
-\end{figure}
-
-Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
-\[
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
-  =
-  \begin{bmatrix}
-    1 & 0 \\
-    0 & 1
-  \end{bmatrix}
-  +
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
-  \begin{bmatrix}
-    X_b & X_a \\
-    X_b & 0
-  \end{bmatrix}
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|.
-  \end{bmatrix}
-\]
-Expanding the right-hand side and equating elementwise yields
-\begin{align*}
-  |T11| &= 1 + (|T11| + |T12|)b|T11| + |T11|a|T21| \\
-  |T12| &=     (|T11| + |T12|)b|T12| + |T11|a|T22| \\
-  |T21| &=     (|T21| + |T22|)b|T11| + |T21|a|T21| \\
-  |T22| &= 1 + (|T21| + |T22|)b|T12| + |T21|a|T22|,
-\end{align*}
-or in Haskell notation,
-
-%format Empty11
-%format B11
-%format A11
-%format B12
-%format A12
-%format B21
-%format A21
-%format Empty22
-%format B22
-%format A22
-
-> data T11 a b
->   =  Empty11
->   |  B11 (Either (T11 a b) (T12 a b)) b (T11 a b)
->   |  A11 (T11 a b) a (T21 a b)
->
-> data T12 a b
->   =  B12 (Either (T11 a b) (T12 a b)) b (T12 a b)
->   |  A12 (T11 a b) a (T22 a b)
->
-> data T21 a b
->   =  B21 (Either (T21 a b) (T22 a b)) b (T11 a b)
->   |  A21 (T21 a b) a (T21 a b)
->
-> data T22 a b
->   =  Empty22
->   |  B22 (Either (T21 a b) (T22 a b)) b (T12 a b)
->   |  A22 (T21 a b) a (T22 a b)
-
-(We could also equivalently distribute out products such as $(|T11| +
-|T12|)b|T11| = |T11| b |T11| + |T12| b |T11|$ and end up with more
-constructors for each data type.) Since both states in the DFA are
-accept states, we are actually looking for the sum type
-
-> type T a b = Either (T11 a b) (T12 a b)
-
-Two points are in order: first, this example is complex enough that it
-is hard to imagine coming up with these |Tij| via an ad-hoc analysis.
-Second, the complexity, along with the fact that the final type |T| is
-actually a sum type, both highlight the fact that actually using the
-type |T| would be extremely inconvenient.  \todo{Write about
-  alternate, isomorphic encoding by embedding transition functions at
-  the type level, as in my blog post?  That means we no longer need
-  four mutually recursive types, but it doesn't help with the fact
-  that |T| is a sum type; for that you can make an existential wrapper
-  with dynamic type checks.}
+For details of this encoding, see \citet{yorgey2010onaproblem}.
+Encoding driving functions and their composition requires only natural
+numbers and lists, so they can be encoded in any language (such as
+Haskell) which allows encoding these at the level of types.
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
@@ -1565,25 +1479,29 @@ has an analogue as well, known as \term{divided difference}.  Let $f :
   $[a,b]f$---in order to better align with the combinatorial intuition
   discussed later.} $f_{b,a}$, is defined by
 \[ f_{b,a} = \frac{f_b - f_a}{b - a}, \] where for consistency of notation
-we write $f_a$ for $f(a)$, and likewise for $f_b$.  In the limit, as
-$b \to a$, this yields the usual derivative of $f$.
+we write $f_b$ for $f(b)$, and likewise for $f_a$.  In the limit, as
+$a \to b$, this yields the usual derivative of $f$.
 
 We now consider the type-theoretic analogue of $f_{b,a}$.  We cannot
 directly interpret subtraction and division of functors.  However, if
 we multiply both sides by $(b - a)$ and rearrange a bit, we can derive
-an equivalent relationship in terms of only addition and
+an equivalent relationship expressed in terms of only addition and
 multiplication, namely,
-\[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b. \]  In fact, this
+\[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b. \]  This
 equation corresponds exactly to the isomorphism witnessed by McBride's
 function |right|,
-\[ |right :: p a + (| \dissect |p b a, b) -> (a,| \dissect |p b a) + p
-b| \] We can now understand why the letters |b| and |a| are ``backwards''.
-Intuitively, we can think of a dissection as a ``snapshot'' of a data
-structure in the midst of a traversal; values of type |a| are
-``unprocessed'' and values of type |b| are ``processed''.  The
-``current position'' moves from left to right through the structure,
-turning |a| values into |b| values.  This is exactly what is
-accomplished by |right|: \todo{Explain intuitively.  Draw some pictures.}
+\[ |right : F a + (| \dissect |F b a, b) -> (a,| \dissect |F b a) + F
+b| \] We can now explain why the letters |b| and |a| are
+``backwards''.  Intuitively, we can think of a dissection as a
+``snapshot'' of a data structure in the midst of a traversal; values
+of type |a| are ``unprocessed'' and values of type |b| are
+``processed''.  The ``current position'' moves from left to right
+through the structure, turning |a| values into |b| values.  This is
+exactly what is accomplished by |right|: given a structure full of
+unprocessed |a| values, or a dissected |F| with a focused |b| value,
+it moves the focus right by one step, either focusing on the first
+unprocessed |a|, or yielding a structure full of |b|s in the case that
+all the values have been processed.
 
 Higher-order divided differences, corresponding to higher derivatives,
 are defined by the recurrence
@@ -1595,23 +1513,141 @@ Alternatively,
 the higher-order divided differences of a function $f$ can be arranged
 in a matrix, as, for example,
 \begin{equation} \label{eq:div-diff-mat}
-\Delta_{abc} f =
+\dissect_{cba} f =
 \begin{bmatrix}
-f_a & f_{a,b} & f_{a,b,c} \\
-0   & f_b    & f_{b,c}   \\
-0   & 0      & f_c
+f_c & f_{c,b} & f_{c,b,a} \\
+0   & f_b    & f_{b,a}   \\
+0   & 0      & f_a
 \end{bmatrix}
 \end{equation}
-in such a way as to be a semiring homomorphism. \todo{Explain a bit
-  more what is meant by this?}  Proving that this is equivalent to the
-recurrence \eqref{eq:div-diff-rec} boils down to showing that if $f =
-gh$ then \[ f_{x_n \dots x_0} = \sum_{j=0}^n g_{x_n \dots x_j} h_{x_j
-  \dots x_0}. \]
+in such a way as to be a semiring homomorphism, that is,
+$\dissect_{cba}(f + g) = \dissect_{cba} f + \dissect_{cba} g$ and
+$\dissect_{cba} (fg) = \dissect_{cba} f \dissect_{cba} g$, and so on.
+Proving that this yields a definition equivalent to the recurrence
+\eqref{eq:div-diff-rec} boils down to showing that if $f = gh$ then
+\begin{equation} \label{eq:div-diff-prod}
+f_{x_n \dots x_0} = \sum_{j=0}^n g_{x_n \dots x_j} h_{x_j \dots
+  x_0}.
+\end{equation}
+Proving \eqref{eq:div-diff-prod} is not entirely straightforward; in
+fact, we conjecture that the computational content of the proof, in
+the $n=2$ case, essentially consists of (the interesting part of) the
+impementation of the isomorphism |right|.
 
-The matrix \eqref{eq:div-diff-mat} should look familiar: \todo{Explain why.}
+\begin{figure}
+  \centering
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
 
-Can we derive something like |right| corresponding to higher-order
-divided differences? \todo{finish}
+deriv :: DFA (Diagram B R2)
+deriv = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True , 10 ^& 0)
+  ]
+  [ 1 >-- txt "c" --> 1
+  , 1 >-- txt "h" --> 2
+  , 2 >-- txt "b" --> 2
+  , 2 >-- txt "h" --> 3
+  , 3 >-- txt "a" --> 3
+  ]
+
+dia = drawDFA deriv # frame 0.5
+  \end{diagram}
+  \caption{A DFA for higher-order divided difference}
+  \label{fig:DFA-ho-divdiff}
+\end{figure}
+
+If we now consider the DFA $D$ in \pref{fig:DFA-ho-divdiff}, we can
+see that \eqref{eq:div-diff-mat} corresponds to the matrix $\mD{F}$.
+More generally, a DFA consisting of a sequence of $n$ states with
+self-loops chained together by |h| transitions will have a
+transition matrix corresponding to an order-$n$ matrix of divided
+differences.  In general, $F_{ij}$ will consist of $j-i$ holes
+interspersed among sequences of consecutive alphabet elements.
+
+By analogy with the binary dissection case, we would expect
+\eqref{eq:div-diff-rec} to yield an isomorphism with type \[
+\dissect_{x_{n-1} \dots x_0} F + (\dissect_{x_n \dots x_0}, x_n) \to
+(x_0, \dissect_{x_n \dots x_0} F) + \dissect_{x_n \dots x_1} F. \] We
+have not yet been able to fully make sense of this, but hope to
+understand it better in the future.  In particular, our intuition is
+that this will yield a tail-recursive implementation of a structure
+being processed by multiple coroutines.
+
+\section{Discussion and future work}
+
+This paper arose out of several blog posts by both authors
+\citep{piponi2009finite, piponi2010tomography, piponi2010regular,
+  yorgey2010onaproblem}, although the content of this paper is not a
+strict superset of the content of the blog posts.  There is much
+remaining to be explored, in particular understanding the isomorphisms
+induced by higher-order divided differences, and generalizing this
+framework to $n$-ary functors and partial differentiation.  It seems
+likely that $q$-derivatives can also fruitfully be seen in a similar
+light \citep{stay2014q}.
+
+Some of the ideas in this paper are implicitly present in earlier
+work; we note in particular \citet[p. 590]{duchon2004boltzmann} who
+mention generating Boltzmann samplers for strings corresponding to
+regular expressions, also via their DFAs.  It would be interesting to
+explore the relationship in more detail.
+
+\section*{Acknowledgments}
+\label{sec:acknowledgments}
+
+This work was partially supported by the National Science Foundation,
+under NSF 1218002, CCF-SHF Small: \emph{Beyond Algebraic Data Types:
+  Combinatorial Species and Mathematically-Structured Programming}.
+
+%% \printbibliography
+\bibliographystyle{plainnat}
+\bibliography{type-matrices}
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Text that we might want to do something with eventually
+
+
+%% One point worth mentioning is that \todo{Write about uniqueness of
+%%   representation, see stuff in comments}
+
+% There's a detail whose importance I'm not 100\% sure of. There are
+% multiple solutions to the problem of 'lifting' a type to be
+% constrained by a regexp. Compare
+
+% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
+
+% vs.
+
+% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+
+% Both will end up with the same regular language. (Basically because we
+% have idempotence in languages, x+x=x.) Is here anything you think that
+% needs to be said about this? Some solutions are nice in that every
+% string in the language is represented precisely once. I think the
+% matrix construction gives us these because it's coming from a DFA so
+% there's only one path you can take through it. Does that sound right?
+% So we're actually doing slightly better than just constraining the
+% leaves with regular expressions. We're getting the best such type, in
+% some sense. Or at least I hope we are.
+
+%% \todo{We need a better story about finite vs. infinite.  The above
+%%   gives the standard presentation of DFAs for finite strings, but
+%%   Haskell types can include infinite values.  So we want to do
+%%   something like use the \emph{greatest} fixed point of $\Sigma^* =
+%%   \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
+%%   is in the language recognized by a DFA if it never causes the DFA to
+%%   reject.  I'm not quite sure how this relates to the fact that
+%%   least+greatest fixedpoints coincide in Haskell.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Consider now the DFA for the regular expression $a^*1b^*$.
 %% The corresponding diagram is
@@ -1672,65 +1708,109 @@ divided differences? \todo{finish}
 %% this definition carries over to types.
 %% Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
-\section{Discussion}
-
-Technique for constructing types with constraints. Ad hoc rules formalized.
-In some sense we've given an explanation for derivatives and dissections.
-Hope they can find new applications eg. trees with constraints in the style of
-2-3/red-black trees (though maybe it's not the same kind of thing actually).
-
-\section*{Acknowledgments}
-\label{sec:acknowledgments}
-
-Acknowledgments.
-
-\todo{should cite our blog posts on the topic}
-
-\todo{should cite Duchon, Flajolet, Louchard, Schaeffer, ``Boltzmann
-  Samplers for Random Generation'' --- they hint at something related
-  to this idea on p. 590}.
-
-%% \printbibliography
-\bibliographystyle{plainnat}
-\bibliography{type-matrices}
-
-\end{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Text that we might want to do something with eventually
+%% Consider constructing a type of binary trees with data of two
+%% different types, $a$ and $b$, at internal nodes---but with the
+%% restriction that two values of type $a$ may never occur consecutively
+%% in an inorder traversal.  This restriction corresponds to the DFA
+%% shown in \pref{fig:DFA-no-consec-a}, with the transition matrix
+%% \[ \m{X} =
+%% \begin{bmatrix}
+%%   X_|b| & X_|a| \\
+%%   X_|b| & 0
+%% \end{bmatrix}.
+%% \]
+%% \begin{figure}
+%%   \centering
+%%   \begin{diagram}[width=100]
+%% import TypeMatricesDiagrams
 
+%% noAA :: DFA (Diagram B R2)
+%% noAA = dfa
+%%   [ 1 --> (True, origin)
+%%   , 2 --> (True, 5 ^& 0)
+%%   ]
+%%   [ 1 >-- txt "b" --> 1
+%%   , 1 >-- txt "a" --> 2
+%%   , 2 >-- txt "b" --> 1
+%%   ]
 
-%% One point worth mentioning is that \todo{Write about uniqueness of
-%%   representation, see stuff in comments}
+%% dia = drawDFA noAA # frame 0.5
+%%   \end{diagram}
+%%   \caption{A DFA for avoiding consecutive $a$'s}
+%%   \label{fig:DFA-no-consec-a}
+%% \end{figure}
 
-% There's a detail whose importance I'm not 100\% sure of. There are
-% multiple solutions to the problem of 'lifting' a type to be
-% constrained by a regexp. Compare
+%% Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
+%% \[
+%%   \begin{bmatrix}
+%%     |T11| & |T12| \\
+%%     |T21| & |T22|
+%%   \end{bmatrix}
+%%   =
+%%   \begin{bmatrix}
+%%     1 & 0 \\
+%%     0 & 1
+%%   \end{bmatrix}
+%%   +
+%%   \begin{bmatrix}
+%%     |T11| & |T12| \\
+%%     |T21| & |T22|
+%%   \end{bmatrix}
+%%   \begin{bmatrix}
+%%     X_b & X_a \\
+%%     X_b & 0
+%%   \end{bmatrix}
+%%   \begin{bmatrix}
+%%     |T11| & |T12| \\
+%%     |T21| & |T22|.
+%%   \end{bmatrix}
+%% \]
+%% Expanding the right-hand side and equating elementwise yields
+%% \begin{align*}
+%%   |T11| &= 1 + (|T11| + |T12|)b|T11| + |T11|a|T21| \\
+%%   |T12| &=     (|T11| + |T12|)b|T12| + |T11|a|T22| \\
+%%   |T21| &=     (|T21| + |T22|)b|T11| + |T21|a|T21| \\
+%%   |T22| &= 1 + (|T21| + |T22|)b|T12| + |T21|a|T22|,
+%% \end{align*}
+%% or in Haskell notation,
 
-% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
+%% %format Empty11
+%% %format B11
+%% %format A11
+%% %format B12
+%% %format A12
+%% %format B21
+%% %format A21
+%% %format Empty22
+%% %format B22
+%% %format A22
 
-% vs.
+%% > data T11 a b
+%% >   =  Empty11
+%% >   |  B11 (Either (T11 a b) (T12 a b)) b (T11 a b)
+%% >   |  A11 (T11 a b) a (T21 a b)
+%% >
+%% > data T12 a b
+%% >   =  B12 (Either (T11 a b) (T12 a b)) b (T12 a b)
+%% >   |  A12 (T11 a b) a (T22 a b)
+%% >
+%% > data T21 a b
+%% >   =  B21 (Either (T21 a b) (T22 a b)) b (T11 a b)
+%% >   |  A21 (T21 a b) a (T21 a b)
+%% >
+%% > data T22 a b
+%% >   =  Empty22
+%% >   |  B22 (Either (T21 a b) (T22 a b)) b (T12 a b)
+%% >   |  A22 (T21 a b) a (T22 a b)
 
-% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+%% (We could also equivalently distribute out products such as $(|T11| +
+%% |T12|)b|T11| = |T11| b |T11| + |T12| b |T11|$ and end up with more
+%% constructors for each data type.) Since both states in the DFA are
+%% accept states, we are actually looking for the sum type
 
-% Both will end up with the same regular language. (Basically because we
-% have idempotence in languages, x+x=x.) Is here anything you think that
-% needs to be said about this? Some solutions are nice in that every
-% string in the language is represented precisely once. I think the
-% matrix construction gives us these because it's coming from a DFA so
-% there's only one path you can take through it. Does that sound right?
-% So we're actually doing slightly better than just constraining the
-% leaves with regular expressions. We're getting the best such type, in
-% some sense. Or at least I hope we are.
-
-%% \todo{We need a better story about finite vs. infinite.  The above
-%%   gives the standard presentation of DFAs for finite strings, but
-%%   Haskell types can include infinite values.  So we want to do
-%%   something like use the \emph{greatest} fixed point of $\Sigma^* =
-%%   \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
-%%   is in the language recognized by a DFA if it never causes the DFA to
-%%   reject.  I'm not quite sure how this relates to the fact that
-%%   least+greatest fixedpoints coincide in Haskell.}
+%% > type T' a b = Either (T11 a b) (T12 a b)
