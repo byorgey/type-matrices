@@ -25,6 +25,7 @@
 \usepackage{tikz}
 \usepackage{prettyref}
 \usepackage{xspace}
+\usepackage{url}
 
 \usepackage[outputdir=diagrams/,backend=cairo,extension=pdf]{diagrams-latex}
 % \usepackage{verbatim}
@@ -74,7 +75,7 @@
 % Notes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newif\ifcomments\commentstrue
+\newif\ifcomments\commentsfalse
 
 \ifcomments
 \newcommand{\authornote}[3]{\textcolor{#1}{[#3 ---#2]}}
@@ -96,6 +97,11 @@
 
 \newcommand{\union}{\cup}
 
+% regular expression alternation/choice operator
+\newcommand{\alt}{+}
+
+\newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+
 % \newcommand{\m}[1]{\mathbf{#1}}
 \newcommand{\m}[1]{\left[ {#1} \right]}
 \newcommand{\mD}[1]{\m{#1}_D}
@@ -106,6 +112,8 @@
 
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\R}{\mathbb{R}}
+
+\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -237,19 +245,21 @@ or contain a value of type |a|, followed by a value of type |b|,
 followed recursively by another |AList a b|.
 
 In fact, we can think of |AList a b| as containing values whose
-\term{shape} corresponds to the original |List| type, but whose
-sequence of element types corresponds to the \term{regular expression}
-$(ab)^*$, that is, any number of repetitions of the sequence $ab$.
+\term{shape} corresponds to the original |List| type (that is, we have
+the isomorphism $|AList a a| \cong |List a|$), but whose sequence of
+element types corresponds to the \term{regular expression} $(ab)^*$,
+that is, any number of repetitions of the sequence $ab$.
 
 We can easily generalize this idea to regular expressions other than
 $(ab)^*$ (though constructing the corresponding types may be
 complicated). We can also generalize to algebraic data types other
 than |List|, by considering the sequence of element types encountered
-by a canonical traversal \citep{mcbride2008applicative} of each data structure.
-That is, in general, given some algebraic data type and a regular
-expression, we consider the problem of constructing a corresponding
-algebraic data type ``of the same shape'' but with sequences of
-element types matching the regular expression.
+by a canonical inorder traversal of each data structure
+\citep{mcbride2008applicative}.  That is, in general, given some
+algebraic data type and a regular expression, we consider the problem
+of constructing a corresponding algebraic data type ``of the same
+shape'' but with sequences of element types matching the regular
+expression.
 
 %format TreeAB = Tree "_{AB}"
 %format TreeAA = Tree "_{AA}"
@@ -279,10 +289,9 @@ trees with data stored in the leaves:
 %endif
 Consider again the problem of writing down a type whose values have
 the same shape as values of type |Tree a|, but where the data elements
-alternate between two types |a| and |b| (when listed according to an
-inorder traversal), beginning with a leftmost element of type |a| and
-ending with a rightmost element of type |b|.  An example can be seen
-in \pref{fig:alt-tree}.
+alternate between two types |a| and |b|, beginning with a leftmost
+element of type |a| and ending with a rightmost element of type |b|.
+An example can be seen in \pref{fig:alt-tree}.
 
 \begin{figure}
   \centering
@@ -333,8 +342,11 @@ end with |b|.  Or the left subtree could start with |a| and end with
 where |TreeAA a b| represents alternating trees with left and
 rightmost elements both of type |a|, and similarly for |TreeBB|.
 
-Similar reasoning about the subtree types leads to the remainder of
-the mutually recursive definition:
+Of course, we are now left with the task of defining |TreeAA| and
+|TreeBB|, but we can carry out similar reasoning: for example a
+|TreeAA| value can either be a single leaf of type |a|, or a branch
+with a |TreeAB| and |TreeAA|, or a |TreeAA| and |TreeBA|.  All told,
+we obtain
 > data TreeAA a b  =  LeafAA a
 >                  |  ForkAA  (TreeAB a b)  (TreeAA a b)
 >                  |  ForkAA' (TreeAA a b)  (TreeBA a b)
@@ -393,16 +405,16 @@ structures or regular expressions?  Our goal will be to derive a more
 principled way to do this analysis for any regular language and any
 suitable (\term{polynomial}) data type.
 
-For certain regular languages, this problem has already been solved in
-the literature, though without being phrased in terms of regular
+For certain languages, this problem has already been explored in the
+literature, though without being phrased in terms of regular
 languages.  For example, consider the regular language $a^*ha^*$. It
-matches sequences of $a$s with precisely one occurrence of $1$
+matches sequences of $a$s with precisely one occurrence of $h$
 somewhere in the middle.  Data structures whose inorder sequence of
 element types matches $a^*ha^*$ have all elements of type |a|, except
 for one which has type |h|. This corresponds to a zipper type
 \citep{Huet_zipper} with elements of type $h$ at the `focus'; if we
 substitute the unit type for |h|, we get the \term{derivative} of the
-orginal type \citep{DBLP:journals/fuin/AbbottAMG05}
+original type \citep{DBLP:journals/fuin/AbbottAMG05}
 (\pref{fig:derivative}).  Likewise, the regular language $b^*ha^*$
 corresponds to \term{dissection types} \citep{mcbride-dissection}.
 
@@ -432,7 +444,7 @@ t = Nothing ##
 
 dia = renderT t # frame 0.5
   \end{diagram}
-  \caption{A tree corresponding to the regular language $a^*1a^*$}
+  \caption{A tree corresponding to the regular language $a^*ha^*$}
   \label{fig:derivative}
 \end{figure}
 
@@ -444,16 +456,16 @@ language.
 In the remainder of the paper, we first review some standard results
 about regular languages and DFAs (\pref{sec:regexp-and-dfas}).  We
 describe our framework informally (\pref{sec:dfas-matrices}) and give
-some examples of its application (\pref{sec:examples}).  We then give
-a more formal treatment of our results (\pref{sec:formalization}) and
-conclude with a discussion of derivatives
-(\pref{sec:derivatives-again}) and divided differences
+some examples of its application (\pref{sec:examples}) and describe an
+alternative encoding which can be more convenient in practice
+(\pref{sec:alternative}). We conclude with a discussion of
+derivatives (\pref{sec:derivatives-again}) and divided differences
 (\pref{sec:divided-differences}).
 
 \section{Regular expressions and DFAs}
 \label{sec:regexp-and-dfas}
 
-We begin with a quick review of the basic theory of regular languages
+We begin with a review of the basic theory of regular languages
 and deterministic finite automata in Sections
 \ref{sec:regexps}--\ref{sec:kleenes-theorem}.  Readers already
 familiar with this theory may safely skip these sections.  In Section
@@ -465,29 +477,27 @@ semirings which, though not novel, may not be as familiar to readers.
 
 A \term{regular expression} over an alphabet $\Sigma$ is a term of the
 following grammar:
-\[ R ::= \varnothing \mid \varepsilon \mid a \in \Sigma \mid R \union R \mid RR \mid R^* \]
-
-\newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+\[ R ::= \bullet \mid \varepsilon \mid a \in \Sigma \mid R \alt R  \mid RR \mid R^* \]
 
 When writing regular expressions, we allow parentheses for
 disambiguation, and adopt the common convention that Kleene star
 ($R^*$) has higher precedence than concatenation ($RR$), which has
-higher precedence than alternation ($R \union R$).
+higher precedence than alternation ($R \alt R$).
 
 Semantically, we can interpret each regular expression $R$ as a set of
 strings $\sem R \subseteq \Sigma^*$, where $\Sigma^*$ denotes the set
 of all finite sequences built from elements of $\Sigma$.  In
 particular,
 \begin{itemize}
-\item $\sem \varnothing = \varnothing$ denotes the empty set.
+\item $\sem \bullet = \varnothing$ denotes the empty set.
 \item $\sem \varepsilon = \{\varepsilon\}$ denotes the singleton set
   containing the empty string.
 \item $\sem a = \{a\}$ denotes the singleton set containing the
   length-$1$ sequence $a$.
 \item $\sem{R_1 \union R_2} = \sem{R_1} \union \sem{R_2}$.
 \item $\sem{R_1 R_2} = \sem{R_1} \sem{R_2}$, where $L_1 L_2$ denotes
-  concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in L_1,
-  s_2 \in L_2 \}. \]
+  pairwise concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in
+  L_1, s_2 \in L_2 \}. \]
 \item $\sem{R^*} = \sem{R}^*$, where $L^*$ denotes the least fixed
   point solution of \[ L^* = \{\varepsilon\} \union LL^*. \] Note that
   such a least fixed point must exist by the Knaster-Tarski
@@ -603,7 +613,11 @@ an iterated version of $\delta$:
 \end{align*}
 
 If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
-``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.
+``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.  More
+generally, given a string $\omega$, we can partially apply $\delta^*$
+to obtain a ``driving function'' $\chi : Q \to Q$ which encodes how the string
+$\omega$ drives the DFA: if the DFA starts in state $q$ then after
+processing $\omega$ it will end in state $\chi(q)$.
 
 % Given any pair
 % of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
@@ -670,21 +684,29 @@ that
   \item $(+,0)$ is a commutative monoid (that is, $0$ is an identity for
 $+$, and $+$ is commutative and associative),
   \item $(\cdot,1)$ is a monoid,
-  \item $\cdot$ distributes over $+$ from both the left and the right, and
+  \item $\cdot$ distributes over $+$ from both the left and the right,
+    that is, $a \cdot (b + c) = a \cdot b + a \cdot c$ and $(b + c)
+    \cdot a = b \cdot a + c \cdot a$, and
   \item $0$ is an annihilator for $\cdot$, that is $r \cdot 0 = 0
     \cdot r = 0$ for all $r \in R$.
 \end{itemize}
 
-Note in particular that regular languages form a semiring under the
-operations of union and concatenation, with $0 = \varnothing$ and $1 =
-\{\varepsilon\}$.
+Examples of semirings include:
+\begin{itemize}
+\item $(|Bool|, \lor, |False|, \land, |True|)$, boolean values under disjunction and conjunction;
+\item $(\N, +, 0, \cdot, 1)$, the natural numbers under addition and multiplication;
+\item $(\R^+, \max, 0, +, 0)$, the nonnegative real numbers under maximum and addition;
+\item the set of regular languages form a semiring under the operations of union
+  and pairwise concatenation, with $0 = \varnothing$ and $1 = \{\varepsilon\}$.
+\end{itemize}
 
 A \term{star semiring} or \term{closed semiring}
 \citep{lehmann1977algebraic} has an additional operation, $(-)^*$,
-satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r. \]
-Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$ (although such infinite
-sums do not necessarily make sense in all semirings).  The semiring of
-regular languages is closed, via Kleene star.
+satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r, \]
+for all $r \in R$.  Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$
+(although such infinite sums do not necessarily make sense in all
+semirings).  The semiring of regular languages is closed, via Kleene
+star.
 
 If $R$ is a semiring, then the set of $n \times n$ matrices with
 elements in $R$ is also a semiring, where matrix addition and
@@ -695,7 +717,7 @@ operator can also be defined for matrices; for details see
 
 Finally, a \term{semiring homomorphism} is a mapping from the elements
 of one semiring to another that preserves the semiring structure, that
-is, sends $0$ to $0$, $1$ to $1$, and preserves addition and
+is, that sends $0$ to $0$, $1$ to $1$, and preserves addition and
 multiplication.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -744,9 +766,12 @@ dia = drawDFA abStar # frame 0.5
 %format T21
 %format T22
 
-Let |Tij a b| denote the type of binary trees whose element type
-sequences take the DFA from state $i$ to state $j$.  Since the DFA has
-two states, there are four such types:
+The key is to consider not just the data type we are ultimately
+interested in---in this case, those trees which take the DFA from
+state $1$ to itself---but an entire family of related types. In
+particular, let |Tij a b| denote the type of binary trees whose
+element type sequences take the DFA from state $i$ to state $j$.
+Since the DFA has two states, there are four such types:
 \begin{itemize}
 \item |T11 a b| --- this is the type of trees we are primarily
   interested in constructing, whose leaf sequences match $(ab)^*$.
@@ -768,10 +793,10 @@ fact, we have already carried out this exact analysis in the
 introduction, but it is now a bit less ad hoc.  In particular, we can
 now see that we end up with four mutually recursive types precisely
 because the DFA for $(ab)^*$ has two states, and we need one type for
-each ordered pair of states.\footnote{In general, we could
-  end up with \emph{fewer} than $n^2$ mutually recursive types for
-  a DFA of $n$ states, if some of the combinations are impossible or
-  irrelevant.}
+each ordered pair of states.\footnote{In general, we will end up with
+  \emph{at most} $||Q||^2$ mutually recursive types.  Depending on the
+  DFA and on which types we are particularly interested in, some of
+  the generated types may be uninhabited or irrelevant.}
 
 Though shifting our point of view to DFAs has given us a better
 framework for determining which types we must define, we still had to
@@ -791,17 +816,25 @@ and work in terms of a simple language of \term{polynomial
 \item We can also form products of functors, $(F \times G)\ a = F\ a
   \times G\ a$.  We often abbreviate $F \times G$ as $FG$.
 \item We also allow functors to be defined by mutually recursive
-  systems of equations $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$,
-  and interpret them using a standard least fixed point construction.
-  For example, the single recursive equation $L = 1 + X \times L$
-  denotes the standard type of (finite) polymorphic lists.  As another
-  example, the pair of mutually recursive equations
+  systems of equations \[ 
+  \begin{cases}
+    F_1 = \Phi_1(F_1, \dots, F_n) \\
+    \vdots \\
+    F_n = \Phi_n(F_1, \dots, F_n),
+  \end{cases}
+  \]
+  where each $\Phi_k$ is a polynomial functor expression which is
+  allowed to mention $F_1, \dots, F_n$, and interpret them using a
+  standard least fixed point semantics.  For example, the single
+  recursive equation $L = 1 + X \times L$ denotes the standard type of
+  (finite) polymorphic lists.  As another example, the pair of
+  mutually recursive equations
   \begin{align*}
     E & = K_{|Unit|} + X \times O \\
     O & = X \times E
   \end{align*}
-  defines the types of even- and odd-length lists.  Here, |Unit|
-  denotes the unit type with a single inhabitant.
+  defines the types of even- and odd-length polymorphic lists.  Here,
+  |Unit| denotes the unit type with a single inhabitant.
 \end{itemize}
 
 It is worth pointing out that functors form a semiring (up to
@@ -810,30 +843,25 @@ K_{|Void|}$ (|Void| denotes the type with no inhabitants).  We
 therefore will simply write $0$ and $1$ in place of $K_{|Unit|}$ and
 $K_{|Void|}$.  In fact, functors also form a star semiring, with the
 polymorphic list type playing the role of the star
-operator. \brent{This is sweeping a bit under the rug, since we have
-  not defined composition for functor expressions; but it is always
-  possible to reduce an expression involving composition to an
-  isomorphic one that does not, so this really does give a
-  well-defined star semiring.  Not sure how much we want/need to say
-  about this.  Perhaps we don't even need to mention that functors
-  form a star semiring at all?}
+operator.
 
-The above language also generalizes naturally from single-argument
-functors to $n$-ary functors:
+The above language also generalizes naturally from unary to $n$-ary
+functors:
 \begin{itemize}
-\item $K_A\ a_1\ \dots\ a_n = A$
-\item the identity functor $X$ generalizes to the family of
-  projections ${}_nX_i$, where \[ {}_nX_i\ a_1\ \dots\ a_n = a_i. \]
-  That is, ${}_nX_i$ is the $n$-ary functor which yields its $i$th
-  argument.  More generally, the arguments to a functor can be
-  labelled by the elements of some alphabet $\Sigma$, instead of being
-  numbered positionally.  In that case, for $a \in \Sigma$ we write
-  ${}_nX_a$ for the projection which picks out the argument labelled
-  by $a$.
-\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) + (G\ a_1\ \dots\
-  a_n$)
-\item $(F \times G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) \times (G\
-  a_1\ \dots\ a_n)$.
+\item $K_A\ a_1\ \dots\ a_n = A$.
+\item The identity functor $X$ generalizes to the family of
+  projections $X_k$, where \[ X_k\ a_1\ \dots\ a_n = a_k. \] That is,
+  $X_k$ is the functor which yields its $k$th argument, and may be
+  regarded as an $n$-ary functor for any $n \geq k$.  More generally,
+  the arguments to a functor can be labeled by the elements of some
+  alphabet $\Sigma$, instead of being numbered positionally.  In that
+  case, for $a \in \Sigma$ we write $X_a$ for the projection which
+  picks out the argument labeled by $a$.
+\item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) +
+  (G\ a_1\ \dots\ a_n)$.
+\item $(F \times G)\ a_1\ \dots\ a_n =
+  (F\ a_1\ \dots\ a_n) \times (G\ a_1\ \dots\ a_n)$.
+\item Recursion also generalizes straightforwardly.
 \end{itemize}
 Of course, $n$-ary functors also form a semiring for any $n$.
 
@@ -841,21 +869,33 @@ As an example, the Haskell type
 \begin{spec}
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
-corresponds to the $2$-ary functor $S = {}_2X_a + {}_2X_b + S \times
-S$.  Usually we omit the pre-subscript on $X$ and just write $X_a$,
-$X_b$ and so on when the arity $n$ can be inferred from the context.
-We may also abbreviate $S \times S$ as $S^2$.  All together, we may
-more idiomatically express $S$ as $S = X_a + X_b + S^2$.
+corresponds to the bifunctor (that is, $2$-ary functor) $S = X_a + X_b
++ S \times S$; we may also abbreviate $S \times S$ as $S^2$.  
 
-Suppose we have a one-argument functor $F$ and some DFA $D =
+Given a functor $F$ we may define its potential sequences of leaf
+types, $\leafseq{F}$, by an inorder traversal, that is,
+\begin{align*}
+\leafseq{0}   &= \varnothing \\
+\leafseq{K_A} &= \{\varepsilon\} \quad (A \neq |Void|) \\
+\leafseq{X_a} &= \{ a \} \\
+\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
+\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
+\end{align*}
+Finally, given a system $F_k = \Phi_k(F_1, \dots, F_n)$ we simply set
+\[ \leafseq{F_k} = \leafseq{\Phi_k(F_1, \dots, F_n)} \]
+for each $k$, and take the least fixed point (ordering sets by
+inclusion).  For example, given the list functor $L = 1 + XL$, we
+obtain \[ \leafseq{L} = \{ \varepsilon \} \union \{ 1\sigma \mid
+\sigma \in \leafseq{L} \} \] whose least fixed point is the infinite
+set $\{ \varepsilon, 1, 11, 111, \dots \}$ as expected.
+
+Suppose we have a unary functor $F$ and some DFA $D =
 (Q,\Sigma,\delta,q_o,F)$.  Let $F_{ij}$ denote the type with the same
-shape as $F$ but whose sequence of leaf types\footnote{That is,
-  according to an inorder traversal; we make this more explicit in
-  \pref{sec:formalization}.} takes $D$ from state $i$ to state $j$.
-Note that $F_{ij}$ has arity $||\Sigma||$, that is, there is a leaf
-type corresponding to each alphabet symbol of $D$.  We can deduce
-$F_{ij}$ compositionally by considering each of the functor building
-blocks above in turn.
+shape as $F$ but whose sequences of leaf types take $D$ from state $i$
+to state $j$.  Note that $F_{ij}$ has arity $||\Sigma||$, that is,
+there is a leaf type corresponding to each alphabet symbol of $D$.  We
+can deduce $F_{ij}$ compositionally, by recursion on the syntax of
+functor expressions.
 
 \begin{itemize}
 \item The constant functor $K_A$ creates structures containing no
@@ -863,33 +903,26 @@ blocks above in turn.
   all.  So the only way a $K_A$-structure can take the DFA from state
   $i$ to state $j$ is if $i = j$:
 \begin{equation}
-  \label{eq:unit-functor}
   (K_A)_{ij} =
   \begin{cases}
     K_A & i = j \\
     0 & i \neq j
   \end{cases}
 \end{equation}
-As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} =
+As a special case, the functor $1 = K_{|Unit|}$ yields 
+\begin{equation}
+\label{eq:unit-functor}
+1_{ij} =
 \begin{cases}
   1 & i = j \\
   0 & i \neq j
-\end{cases}. \]
+\end{cases}.
+\end{equation}
 
-\item The identity functor $X$ creates structures containing a single
-  leaf element.  So an $X$ structure containing a single value of type
-  $a$ takes the DFA from state $i$ to state $j$ precisely when the DFA
-  contains a transition from $i$ to $j$ labeled with $a$. Since there
-  may be multiple edges from $i$ to $j$, $X_{ij}$ is therefore the
-  \emph{sum} of all the labels on edges from $i$ to $j$.  Formally,
-  \begin{equation}
-    \label{eq:x-functor}
-    X_{ij} = \sum_{\substack{k \in \Sigma \\ \delta(i,k) = j}} X_k.
-  \end{equation}
 \item A value with shape $F + G$ is either a value with shape $F$ or a
   value with shape $G$; so the set of $F + G$ shapes taking the DFA
-  from state $i$ to state $j$ is just the sum of the corresponding $F$
-  and $G$ shapes:
+  from state $i$ to state $j$ is the disjoint sum of the corresponding
+  $F$ and $G$ shapes:
   \begin{equation}
     \label{eq:sum-of-functors}
     (F + G)_{ij} = F_{ij} + G_{ij}.
@@ -897,24 +930,30 @@ As a special case, the functor $1 = K_{|Unit|}$ yields \[ 1_{ij} =
 
 \item Products are more interesting.  An $FG$-structure consists of an
   $F$-structure paired with a $G$-structure, whose leaf types drive
-  the DFA in sequence.  \dan{Should the matrix be transposed?}\brent{I
-    don't think so, why?}  Hence, in order to take the DFA from state
-  $i$ to state $j$ overall, the $F$-structure must take the DFA from
-  state $i$ to some state $k$, and then the $G$-structure must take it
-  from $k$ to $j$.  This works for any state $k$, and $(FG)_{ij}$ is
-  the sum over all such possibilities.  Thus,
+  the DFA in sequence. Hence, in order to take the DFA from state $i$
+  to state $j$ overall, the $F$-structure must take the DFA from state
+  $i$ to some state $k$, and then the $G$-structure must take it from
+  $k$ to $j$.  This works for any state $k$, and $(FG)_{ij}$ is the
+  sum over all such possibilities.  Thus,
   \begin{equation}
     \label{eq:product-of-functors}
     (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}.
   \end{equation}
+
+\item For a recursive system of functors \[ F_k = \Phi_k(F_1, \dots,
+  F_n), \] we may mutually define \[ (F_k)_{ij} = \left( \Phi_k(F_1,
+  \dots, F_n) \right)_{ij}, \] interpreted via the same least fixed
+  point semantics.
 \end{itemize}
 
-The above rules for $1$, sums, and products might look familiar.  In
+The above rules for $1$, sums, and products might look familiar: in
 fact, they are just the definitions of the identity matrix, matrix
-addition, and matrix product.  That is, we can arrange all the
-$F_{ij}$ for a given functor $F$ in a matrix, $\mD{F}$, whose
-$(i,j)$th entry is $F_{ij}$. (We also write simply $\m{F}$ when $D$ is
-clear from the context.)  Then we have
+addition, and matrix product.  That is, given some functor $F$ and DFA
+$D$, we can arrange all the $F_{ij}$ in a matrix, $\mD{F}$, whose
+$(i,j)$th entry is $F_{ij}$. (We also write simply $\m{F}$ when $D$
+can be inferred from context.)  Then we can rephrase
+\eqref{eq:unit-functor}--\eqref{eq:product-of-functors} above as
+
 \begin{itemize}
 \item $\mD{1} = I_{||\Sigma||}$, that is, the $||\Sigma|| \times
   ||\Sigma||$ identity matrix, with ones along the main diagonal and
@@ -938,7 +977,7 @@ Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
 position if there is an edge from node $i$ to node $j$, and a $0$
 otherwise.  It is a standard observation that the $m$th power of $M_G$
 encodes information about length-$m$ paths in $G$; specifically, the
-$i,j$ entry of $M_G$ is the number of distinct paths of length $m$
+$i,j$ entry of $M_G^m$ is the number of distinct paths of length $m$
 from $i$ to $j$.  This is because a path from $i$ to $j$ of length $m$
 is the concatenation of a length-$(m-1)$ path from $i$ to some $k$
 followed by an edge from $k$ to $j$, so the total number of length-$m$
@@ -948,19 +987,19 @@ what is computed by the matrix multiplication $M_G^{m-1} M = M_G^m$.
 However, as observed independently by \citet{oconnor2011shortestpaths}
 and \citet{dolan2013fun}, this can be generalized by parameterizing
 the construction over an arbitrary semiring.  In particular, we may
-suppose that the edges of $G$ are labelled by elements of some
+suppose that the edges of $G$ are labeled by elements of some
 semiring $R$, and form the adjacency matrix $M_G$ as before, but using
 the labels on edges, and $0 \in R$ for missing edges.  The $m$th power
 of $M_G$ still encodes information about length-$m$ paths, but the
-interpretation depends on the specific choice of $R$, and how the
-edges are labelled.  Choosing the semiring $(\N,+,\cdot)$ with all
-edges labelled by $1$ gives us a count of distinct paths, as before.
-If we choose $(|Bool|, \lor, \land)$ and label each edge with |True|,
-the $i,j$ entry of $M_G^m$ tells us whether there exists any path of
-length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labelling
+interpretation depends on the specific choice of $R$ and on the edge
+labeling.  Choosing the semiring $(\N,+,\cdot)$ with all edges
+labeled by $1$ gives us a count of distinct paths, as before.  If we
+choose $(|Bool|, \lor, \land)$ and label each edge with |True|, the
+$i,j$ entry of $M_G^m$ tells us whether there exists any path of
+length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labeling
 edges with costs yields the minimum cost of length-$m$ paths; choosing
-$(\mathcal{P}(\Sigma^*), \cup, \times)$ (that is, languages over some
-alphabet $\Sigma$ under union and Cartesian product) and labelling
+$(\mathcal{P}(\Sigma^*), \cup, \cdot)$ (that is, languages over some
+alphabet $\Sigma$ under union and pairwise concatenation) and labeling
 edges with elements from $\Sigma$ yields sets of words corresponding
 to length-$m$ paths.
 
@@ -1007,16 +1046,13 @@ complete set of strings that drives the DFA between each pair of
 states.
 
 We can now see how to interpret $\mD{X}$: it is simply the transition
-matrix for $D$, taken over the semiring of functors, where each
-transition $a$ is replaced by the functor $X_a$. \brent{Can we/do we
-  need to give some more explanation/intuition as to why this is the
-  right definition?}
-
-\todo{Do we also need to say something about implicits/fixed points?
-  Just do the same construction again -- take LFP of implicit matrix
-  equation?  What's the order relation?  Actually, I guess it doesn't
-  matter: we're really just using matrices as a way to organize
-  systems of type equations.}
+matrix for $D$, taken over the semiring of arity-$||\Sigma||$
+functors, where each transition $a$ is replaced by the functor
+$X_a$. That is, in general, each entry of $\mD X$ will consist of a
+(possibly empty) sum of functors \[ \sum_{\substack{a \in \Sigma
+    \\ \delta(i,a) = j}} X_a. \] By definition, these will drive the
+DFA in the proper way; moreover, sums of $X_a$ are the only functors
+with the same shape as $X$.
 
 \section{Examples}
 \label{sec:examples}
@@ -1027,10 +1063,18 @@ transition $a$ is replaced by the functor $X_a$. \brent{Can we/do we
 %format L21
 %format L22
 
-To make things concrete, we can revisit some familiar examples using
-our new framework. As a first example, consider the resular expression
-$(aa)^*$, corresponding to the DFA shown in \pref{fig:dfa-aa}, along
-with the standard polymorphic list type, $L = 1 + XL$.
+To make things more concrete, we can revisit some familiar examples
+using our new framework. As a first example, consider the regular
+expression $(aa)^*$, corresponding to the DFA shown in
+\pref{fig:dfa-aa}, along with the standard polymorphic list type, $L =
+1 + XL$. The matrix for $L$ can be written
+\[ \m{L} =
+\begin{bmatrix}
+  |L11| & |L12| \\
+  |L21| & |L22|
+\end{bmatrix}
+.
+\]
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
@@ -1050,14 +1094,6 @@ dia = drawDFA aaStar # frame 0.5
   \caption{A DFA for $(aa)^*$}
   \label{fig:dfa-aa}
 \end{figure}
-The matrix for $L$ can be written
-\[ \m{L} =
-\begin{bmatrix}
-  |L11| & |L12| \\
-  |L21| & |L22|
-\end{bmatrix}
-.
-\]
 The punchline is that we can take the recursive equation for $L$ and
 simply apply the homomorphism to both sides, resulting in the matrix
 equation
@@ -1100,13 +1136,13 @@ We can see that |L11| and |L22| are isomorphic, as are |L12| and
 |L21|; this is because the DFA $D$ has a nontrivial automorphism
 (ignoring start and accept states).  Thinking about the meaning of
 paths through the DFA, we see that |L11| is the type of lists with
-even length, and |L12|, lists with odd length. More familiarly:
+even length, and |L21|, lists with odd length. More familiarly:
 
 > data EvenList a  = EvenNil | EvenCons a (OddList a)
 > data OddList a   = OddCons a (EvenList a)
 
 As another example, consider again the recursive tree type given by $T = X
-+ T \times T$, along with the two-state DFA for $(ab)^*$ shown in
++ T^2$, along with the two-state DFA for $(ab)^*$ shown in
 \pref{fig:ab-star-dfa}.  Applying the homomorphism, we obtain
 \[ \m{T} = \m{X + T^2} = \m{X} + \m{T}^2, \] where
 \[ \m{X} =
@@ -1142,120 +1178,7 @@ Equating the left- and right-hand sides elementwise yields precisely
 the definitions for $T_{ij}$ we derived in Section
 \ref{sec:introduction}.
 
-Now consider constructing a type of binary trees with data of two
-different types, $a$ and $b$, at internal nodes---but with the
-restriction that two values of type $a$ may never occur consecutively
-in an inorder traversal.  This restriction corresponds to the DFA
-shown in \pref{fig:DFA-no-consec-a}, with the transition matrix
-\[ \m{X} =
-\begin{bmatrix}
-  X_|b| & X_|a| \\
-  X_|b| & 0
-\end{bmatrix}.
-\]
-\begin{figure}
-  \centering
-  \begin{diagram}[width=100]
-import TypeMatricesDiagrams
-
-noAA :: DFA (Diagram B R2)
-noAA = dfa
-  [ 1 --> (True, origin)
-  , 2 --> (True, 5 ^& 0)
-  ]
-  [ 1 >-- txt "b" --> 1
-  , 1 >-- txt "a" --> 2
-  , 2 >-- txt "b" --> 1
-  ]
-
-dia = drawDFA noAA # frame 0.5
-  \end{diagram}
-  \caption{A DFA for avoiding consecutive $a$'s}
-  \label{fig:DFA-no-consec-a}
-\end{figure}
-
-Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
-\[
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
-  =
-  \begin{bmatrix}
-    1 & 0 \\
-    0 & 1
-  \end{bmatrix}
-  +
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|
-  \end{bmatrix}
-  \begin{bmatrix}
-    X_b & X_a \\
-    X_b & 0
-  \end{bmatrix}
-  \begin{bmatrix}
-    |T11| & |T12| \\
-    |T21| & |T22|.
-  \end{bmatrix}
-\]
-Expanding the right-hand side and equating elementwise yields
-\begin{align*}
-  |T11| &= 1 + (|T11| + |T12|)b|T11| + |T11|a|T21| \\
-  |T12| &=     (|T11| + |T12|)b|T12| + |T11|a|T22| \\
-  |T21| &=     (|T21| + |T22|)b|T11| + |T21|a|T21| \\
-  |T22| &= 1 + (|T21| + |T22|)b|T12| + |T21|a|T22|,
-\end{align*}
-or in Haskell notation,
-
-%format Empty11
-%format B11
-%format A11
-%format B12
-%format A12
-%format B21
-%format A21
-%format Empty22
-%format B22
-%format A22
-
-> data T11 a b
->   =  Empty11
->   |  B11 (Either (T11 a b) (T12 a b)) b (T11 a b)
->   |  A11 (T11 a b) a (T21 a b)
->
-> data T12 a b
->   =  B12 (Either (T11 a b) (T12 a b)) b (T12 a b)
->   |  A12 (T11 a b) a (T22 a b)
->
-> data T21 a b
->   =  B21 (Either (T21 a b) (T22 a b)) b (T11 a b)
->   |  A21 (T21 a b) a (T21 a b)
->
-> data T22 a b
->   =  Empty22
->   |  B22 (Either (T21 a b) (T22 a b)) b (T12 a b)
->   |  A22 (T21 a b) a (T22 a b)
-
-(We could also equivalently distribute out products such as $(|T11| +
-|T12|)b|T11| = |T11| b |T11| + |T12| b |T11|$ and end up with more
-constructors for each data type.) Since both states in the DFA are
-accept states, we are actually looking for the sum type
-
-> type T a b = Either (T11 a b) (T12 a b)
-
-Two points are in order: first, this example is complex enough that it
-is hard to imagine coming up with these |Tij| via an ad-hoc analysis.
-Second, the complexity, along with the fact that the final type |T| is
-actually a sum type, both highlight the fact that actually using the
-type |T| would be extremely inconvenient.  \todo{Write about
-  alternate, isomorphic encoding by embedding transition functions at
-  the type level, as in my blog post?  That means we no longer need
-  four mutually recursive types, but it doesn't help with the fact
-  that |T| is a sum type; for that you can make an existential wrapper
-  with dynamic type checks.}
-
-As one final example, consider the type $T = X + T^2$ again, but this
+As a final example, consider the type $T = X + T^2$ again, but this
 time constrained by the regular expression $b^* h a^*$, with
 transition matrix $\begin{bmatrix} X_b & X_h \\ 0 &
   X_a \end{bmatrix}$.  Applying the homomorphism yields
@@ -1284,13 +1207,15 @@ there are no paths from state $2$ to state $1$, and we therefore
 expect the corresponding type |T21| to be empty.  However, it does not
 look empty at first sight: we have $|T21| = |T21| |T11| + |T22|
 |T21|$.  In fact, it \emph{is} empty, since we are interpreting
-recursively defined functors via a least fixed point semantics.  It is
-not hard to see that $0$ is in fact a fixed point of the above
-equation for |T21|.  In practice, we can analyze a DFA beforehand to
-see which states are reachable from which other states; if there is no
-path from $i$ to $j$ then we know $|Tij| = 0$, which can simplify
-calculations.  For example, substituting $|T21| = 0$ into the above
-matrix equation and simplifying yields
+recursively defined functors via a least fixed point semantics, and it
+is not hard to see that $0$ is in fact a fixed point of the above
+equation for |T21|.  In practice, we can perform a reachability
+analysis for a DFA beforehand (by taking the star of its transition
+matrix under $(|Bool|, \lor, \land)$) to see which states are
+reachable from which other states; if there is no path from $i$ to $j$
+then we know $|Tij| = 0$, which can simplify calculations.  For
+example, substituting $|T21| = 0$ into the above equation and
+simplifying yields
 \[
 \begin{bmatrix}
   |T11| & |T12| \\
@@ -1303,62 +1228,35 @@ matrix equation and simplifying yields
 \end{bmatrix}.
 \]
 
-\section{Formalization XXX}
-\label{sec:formalization}
+\section{An alternative representation}
+\label{sec:alternative}
 
-One point worth mentioning is that \todo{Write about uniqueness of
-  representation, see stuff in comments}
+One way to look at the examples shown so far is that we have
+essentially had to \emph{duplicate} the initial functor |F|, resulting
+in several slightly different copies, each with a slightly different
+set of ``constructors'', in order to keep track of which constructors
+are allowed at which points.  Such encodings would be extremely trying
+to work with in practice, requiring much tedious case analysis.  In a
+language with a sufficiently expressive type system, however, we do
+not need to duplicate anything, but can instead make use of types to
+dictate which constructors are allowed in which situations.
 
-% There's a detail whose importance I'm not 100\% sure of. There are
-% multiple solutions to the problem of 'lifting' a type to be
-% constrained by a regexp. Compare
+What information, exactly, do we need to keep around at the level of
+types?  It is not enough to just index by a pair of DFA states; the
+problem is that each constructor may correspond to \emph{multiple}
+possible pairs of states.  In fact, what we need is to index by an
+entire \emph{driving function}.  Given some functor $T$, the idea is
+to produce just a \emph{single} $n$-ary functor $T_\chi$ indexed by a
+driving function $\chi : Q \to Q$. A value of type $|T|_\chi$ is a
+structure with a shape allowed by |T|, whose sequence of leaf types,
+taken together, drives the DFA in the way encoded by $\chi$.  The
+desired type can then be selected as the sum of all types indexed by
+driving functions taking the start state to some accepting state.
 
-% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
-
-% vs.
-
-% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
-
-% Both will end up with the same regular language. (Basically because we
-% have idempotence in languages, x+x=x.) Is here anything you think that
-% needs to be said about this? Some solutions are nice in that every
-% string in the language is represented precisely once. I think the
-% matrix construction gives us these because it's coming from a DFA so
-% there's only one path you can take through it. Does that sound right?
-% So we're actually doing slightly better than just constraining the
-% leaves with regular expressions. We're getting the best such type, in
-% some sense. Or at least I hope we are.
-
-\todo{We need a better story about finite vs. infinite.  The above
-  gives the standard presentation of DFAs for finite strings, but
-  Haskell types can include infinite values.  So we want to do
-  something like use the \emph{greatest} fixed point of $\Sigma^* =
-  \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
-  is in the language recognized by a DFA if it never causes the DFA to
-  reject.  I'm not quite sure how this relates to the fact that
-  least+greatest fixedpoints coincide in Haskell.}
-
-\todo{this should probably be moved later, to some section where we
-  formally prove some stuff}
-We can define $S(F)$, the language of possible sequences of leaf types
-of a multi-argument functor, $F$ as follows:
-
-\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
-
-\begin{align*}
-\leafseq{1} &= \{\varepsilon\} \\
-\leafseq{X_i} &= \{ i \} \\
-\leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
-\leafseq{F \times G} &= \leafseq{F}\leafseq{G}
-\end{align*}
-Finally, given $\overline{F_i = \Phi_i(F_1, \dots, F_n)}^n$ we set
-\[ \overline{\leafseq{F_i} = \leafseq{\Phi_i(F_1, \dots, F_n)}}^n \]
-and take the least fixed point (ordering sets by inclusion).  For
-example, given the list functor $L = 1 + XL$, we obtain \[ \leafseq{L}
-= \{ \varepsilon \} \union \{ 1\sigma \mid \sigma \in \leafseq{L}
-\} \] whose least fixed point is the infinite set $\{ \varepsilon, 1,
-11, 111, \dots \}$ as expected.
-
+For details of this encoding, see \citet{yorgey2010onaproblem}.
+Encoding driving functions and their composition requires only natural
+numbers and lists, so they can be encoded in any language (such as
+Haskell) which allows encoding these at the level of types.
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
@@ -1398,83 +1296,103 @@ The corresponding transition matrix is
 
 Suppose we start with a functor defined as a product:
 \[ F = G H \]
-Expanding via the homomorphism to type matrices (using $2 \times 2$
-matrices since our DFA has two states), we obtain
+Expanding via the homomorphism to matrices of bifunctors, we obtain
 \[
 \begin{bmatrix}
   F_{11} & F_{12} \\
-  F_{21} & F_{22}
+  0 & F_{22}
 \end{bmatrix}
 =
 \begin{bmatrix}
   G_{11} & G_{12} \\
-  G_{21} & G_{22}
+  0 & G_{22}
 \end{bmatrix}
 \begin{bmatrix}
   H_{11} & H_{12} \\
-  H_{21} & H_{22}
+  0 & H_{22}
 \end{bmatrix}
 \]
-Let's consider each of the $F_{ij}$ in turn.  First, we have
+(the occurrences of $0$ correspond to the observation that there are
+no paths in the DFA from state $2$ to state $1$).  Let's consider each
+of the nonzero $F_{ij}$ in turn.  First, we have
 \[
-F_{11} = G_{11} \times H_{11} + G_{12}\times H_{21}
+F_{11} = G_{11} \times H_{11}
 \]
-$H_{21}$ is a type whose sequences of leaves take the DFA from state
-$2$ to state $1$---but there are no such sequences, since the DFA has
-no paths from state $2$ to state $1$. So $H_{21}$ is the uninhabited
-type $0$, and $F_{11} = G_{11} H_{11}$.  In fact, $F_{11}$ is simply
-the type of structures whose leaves take the DFA from state $1$ to
-itself and so whose leaves match the regular expression $a^*$.  So we
-have $F_{11}\ a\ h \cong F\ a$ (and similarly for $G_{11}$ and $H_{11}$).
-Similarly, $F_{22}\ a\ h \cong F\ a$.  We also have
+$F_{11}$ is simply the type of structures whose leaves take the DFA
+from state $1$ to itself and so whose leaves match the regular
+expression $a^*$; hence we have $F_{11}\ a\ h \cong F\ a$ (and
+similarly for $G_{11}$, $H_{11}$, $F_{22}$, $G_{22}$, and $H_{22}$).
+We also have
 \[
 F_{12} = G_{11} H_{12}+G_{12} H_{22} \cong G H_{12} + G_{12} H.
 \]
-
 This looks suspiciously like the usual Leibniz law for the derivative
-of a product. We also know that
+of a product (\ie the ``product rule'' for differentiation). We also
+know that
 \[
 1_{12} = 0
 \]
 and
 \[
-X_{12} = X_h
+X_{12} = X_h,
 \]
-If we substitute the unit type for |h|, these are precisely the rules
-for differentiating polynomials.  \todo{sums and fixpoints?} So
-$F_{12}$ is the derivative of $F$.
+and if $F = G + H$ then $F_{12} = G_{12} + H_{12}$.  If we substitute
+the unit type for |h|, these are precisely the rules for
+differentiating polynomials. So $F_{12}$ is the derivative of $F$.
 
-\brent{I am not sure that I quite understand the following.  In
-  particular I don't get the step from $f(aI + [d])$ to $f(aI) +
-  f'(a)[d]$.}  There is another way to look at this. Write
+There is another way to look at this. Write
 \[
-\m{X} = X_a I + \m{d}
+\m{X} = 
+\begin{bmatrix}
+  X_a & X_h \\ 0 & X_a
+\end{bmatrix}
+=
+X_a I + d
 \]
 where
-\[ \m{d} =
+\[ d =
 \begin{bmatrix}
-  |0| & |1| \\
+  |0| & X_h \\
   |0| & |0|
 \end{bmatrix}
 \]
-Note that $\m{d}^2 = 0$.
-If we have a polynomial $f$, then we have that
+Note that $d^2 = 0$.  Note also that \[ (X_a I) d = 
+\begin{bmatrix}
+  0 & X_a X_h \\ 0 & 0
+\end{bmatrix}
+\] and \[ d (X_a I) = 
+\begin{bmatrix}
+  0 & X_h X_a \\ 0 & 0
+\end{bmatrix}.
+\] 
+Treating the product of functors as commutative is problematic in our
+setting, since we care about the precise sequence of leaf types.
+However, in this particular instance, letting $X_a$ and $X_h$ commute
+corresponds to letting the ``hole'' of type |h| ``float'' to the
+outside---typically, when constructing a zipper structure, one does
+this anyway, storing the focused element separately from the rest of
+the structure.  Under this interpretation, then, $(X_a I)$ and $d$
+commute even though matrix multiplication is not commutative in
+general.  We then note that \[ (X_a I + d)^n = (X_a I)^n + n (X_a
+I)^{n-1} d, \] making use of this special commutativity and the fact
+that $d^2 = 0$, annihilating all the subsequent terms.  We can
+linearly extend this to an entire polynomial $f$, that is,
 \begin{align*}
-f(\m{X}) &= f(aI + \m{d})\\
-&= f(a I) + f'(a)\m{d}\\
+f(\m{X}) &= f(X_a I + d)\\
+&= f(X_a I) + f'(X_a I) d\\
 &= \begin{bmatrix}
-  f(a) & 0 \\
-  0 & f(a)
+  f(X_a) & 0 \\
+  0 & f(X_a)
 \end{bmatrix}
 +\begin{bmatrix}
-  0 & f'(a) \\
+  0 & f'(X_a) X_h \\
   0 & 0
 \end{bmatrix}
 \end{align*}
-The matrix $\m{d}$ is playing a role similar to an
-``infinitesimal'' in calculus where the expression
-$dx$ is manipulated informally as if $(dx)^2=0$.
-(Compare wth the dual numbers described by \cite{DBLP:journals/lisp/SiskindP08}.)
+The matrix $d$ is thus playing a role similar to an ``infinitesimal''
+in calculus, where the expression $dx$ is manipulated informally as if
+$(dx)^2=0$.  (Compare with the dual numbers described by
+\cite{DBLP:journals/lisp/SiskindP08}.)
 
 \section{Divided Differences}
 \label{sec:divided-differences}
@@ -1483,8 +1401,8 @@ Consider again the regular expression $b^*ha^*$.  Data structures with
 leaf sequences matching this pattern have a ``hole'' of type |h|, with
 values of type $b$ to the left of the hole and values of type $a$ to
 the right (\pref{fig:divided-tree}).\footnote{Typically we substitute
-  the unit type for |h|, but it makes the theory work much more
-  smoothly if we represent it initially with a unique type variable.}
+  the unit type for |h|, but it makes the theory work more smoothly if
+  we represent it initially with a unique type variable.}
 \begin{figure}
   \centering
 \begin{diagram}[width=150]
@@ -1517,18 +1435,18 @@ dia = renderT t # frame 0.5
   \label{fig:divided-tree}
 \end{figure}
 Such structures have been considered by \citet{mcbride-dissection},
-who refers to them as ``dissections'' and shows how they can be used,
+who refers to them as \term{dissections} and shows how they can be used,
 for example, to generically derive tail-recursive maps and folds.
 
-Given a functor $p$, McBride uses $\dissect p$ to denote the bifunctor
-which is the dissection of $p$, and also defines bifunctors $(\clowns
-p)\ b\ a = p\ b$ and $(\jokers p)\ b\ a = p\ a$.  The central
+Given a functor $F$, McBride uses $\dissect F$ to denote the bifunctor
+which is the dissection of $F$, and also defines bifunctors $(\clowns
+F)\ b\ a = F\ b$ and $(\jokers F)\ b\ a = F\ a$.  The central
 construction is the Leibniz rule for dissection of a product, \[
-\dissect (p \times q) = \clowns p \times \dissect q + \dissect p
-\times \jokers q. \] That is, a dissection of a $(p \times
-q)$-structure consists either of a $p$-structure containing only
-elements of the first type paired with a $q$-dissection, or a
-$p$-dissection paired with a $q$-structure containing only elements of
+\dissect (F \times G) = \clowns F \times \dissect G + \dissect F
+\times \jokers G. \] That is, a dissection of a $(F \times
+G)$-structure consists either of a $F$-structure containing only
+elements of the first type paired with a $G$-dissection, or a
+$F$-dissection paired with a $G$-structure containing only elements of
 the second type.
 
 The DFA recognizing $b^*ha^*$ is illustrated in
@@ -1538,49 +1456,52 @@ no leaf sequences taking this DFA from state $2$ to state $1$; leaf
 sequences matching $b^*$ or $a^*$ keep the
 DFA in state $1$ or state $2$, respectively; and leaf sequences
 matching $b^*ha^*$ take the DFA from state $1$ to state $2$.  That is,
-under the homomorphism induced by this DFA, the functor $p$ maps to
-the matrix of bifunctors \[ \begin{bmatrix} \clowns p & \dissect p
-  \\ 0 & \jokers p \end{bmatrix}. \] Taking the product of two such
-matrices indeed gives us
+under the homomorphism induced by this DFA, the functor $F$ maps to
+the matrix of bifunctors \[ \begin{bmatrix} \clowns F & \dissect F
+  \\ 0 & \jokers F \end{bmatrix}. \] Taking the product of two such
+matrices indeed yields
 \begingroup
 \setlength{\arraycolsep}{5pt}
-\[ \begin{bmatrix} \clowns p & \dissect p
-  \\ 0 & \jokers p \end{bmatrix} \begin{bmatrix} \clowns q & \dissect
-  q \\ 0 & \jokers q \end{bmatrix} = \begin{bmatrix} \clowns p \times
-  \clowns q & \clowns p \times \dissect q + \dissect p + \jokers q
-  \\ 0 & \jokers p \times \jokers q \end{bmatrix}. \]
+\[ \begin{bmatrix} \clowns F & \dissect F
+  \\ 0 & \jokers F \end{bmatrix} \begin{bmatrix} \clowns G & \dissect
+  G \\ 0 & \jokers G \end{bmatrix} = \begin{bmatrix} \clowns F \times
+  \clowns G & \clowns F \times \dissect G + \dissect F \times \jokers G
+  \\ 0 & \jokers F \times \jokers G \end{bmatrix}, \]
 \endgroup
 as expected.
 
 Just as differentiation of types has an analytic analogue, dissection
-has an analogue as well, known as \term{divided differences}.  Let $f
-: \R \to \R$ be a real-valued function, and let $b,a \in \R$.  Then
-the \term{divided difference} of $f$ at $b$ and $a$,
-notated\footnote{Our notation is actually ``backwards'' with respect
-  to the usual notation---what we write as $f_{b,a}$ is often written
-  $f[a,b]$---in order to better align with the combinatorial intuition
+has an analogue as well, known as \term{divided difference}.  Let $f :
+\R \to \R$ be a real-valued function, and let $b,a \in \R$.  Then the
+\term{divided difference} of $f$ at $b$ and $a$, notated\footnote{Our
+  notation is actually ``backwards'' with respect to the usual
+  notation---what we write as $f_{b,a}$ is often written $f[a,b]$ or
+  $[a,b]f$---in order to better align with the combinatorial intuition
   discussed later.} $f_{b,a}$, is defined by
 \[ f_{b,a} = \frac{f_b - f_a}{b - a}, \] where for consistency of notation
-we write $f_a$ for $f(a)$, and likewise for $f_b$.  In the limit, as
-$b \to a$, this yields the usual derivative of $f$.  In the interest
-of readability we will sometimes also write
+we write $f_b$ for $f(b)$, and likewise for $f_a$.  In the limit, as
+$a \to b$, this yields the usual derivative of $f$.
 
 We now consider the type-theoretic analogue of $f_{b,a}$.  We cannot
 directly interpret subtraction and division of functors.  However, if
 we multiply both sides by $(b - a)$ and rearrange a bit, we can derive
-an equivalent relationship in terms of only addition and
+an equivalent relationship expressed in terms of only addition and
 multiplication, namely,
-\[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b. \]  In fact, this
+\[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b. \]  This
 equation corresponds exactly to the isomorphism witnessed by McBride's
 function |right|,
-\[ |right :: p a + (| \dissect |p b a, b) -> (a,| \dissect |p b a) + p
-b| \] We can now understand why the letters |b| and |a| are ``backwards''.
-Intuitively, we can think of a dissection as a ``snapshot'' of a data
-structure in the midst of a traversal; values of type |a| are
-``unprocessed'' and values of type |b| are ``processed''.  The
-``current position'' moves from left to right through the structure,
-turning |a| values into |b| values.  This is exactly what is
-accomplished by |right|: \todo{Explain intuitively.  Draw some pictures.}
+\[ |right : F a + (| \dissect |F b a, b) -> (a,| \dissect |F b a) + F
+b| \] We can now explain why the letters |b| and |a| are
+``backwards''.  Intuitively, we can think of a dissection as a
+``snapshot'' of a data structure in the midst of a traversal; values
+of type |a| are ``unprocessed'' and values of type |b| are
+``processed''.  The ``current position'' moves from left to right
+through the structure, turning |a| values into |b| values.  This is
+exactly what is accomplished by |right|: given a structure full of
+unprocessed |a| values, or a dissected |F| with a focused |b| value,
+it moves the focus right by one step, either focusing on the first
+unprocessed |a|, or yielding a structure full of |b|s in the case that
+all the values have been processed.
 
 Higher-order divided differences, corresponding to higher derivatives,
 are defined by the recurrence
@@ -1592,23 +1513,141 @@ Alternatively,
 the higher-order divided differences of a function $f$ can be arranged
 in a matrix, as, for example,
 \begin{equation} \label{eq:div-diff-mat}
-\Delta_{abc} f =
+\dissect_{cba} f =
 \begin{bmatrix}
-f_a & f_{a,b} & f_{a,b,c} \\
-0   & f_b    & f_{b,c}   \\
-0   & 0      & f_c
+f_c & f_{c,b} & f_{c,b,a} \\
+0   & f_b    & f_{b,a}   \\
+0   & 0      & f_a
 \end{bmatrix}
 \end{equation}
-in such a way as to be a semiring homomorphism. \todo{Explain a bit
-  more what is meant by this?}  Proving that this is equivalent to the
-recurrence \eqref{eq:div-diff-rec} boils down to showing that if $f =
-gh$ then \[ f_{x_n \dots x_0} = \sum_{j=0}^n g_{x_n \dots x_j} h_{x_j
-  \dots x_0}. \]
+in such a way as to be a semiring homomorphism, that is,
+$\dissect_{cba}(f + g) = \dissect_{cba} f + \dissect_{cba} g$ and
+$\dissect_{cba} (fg) = \dissect_{cba} f \dissect_{cba} g$, and so on.
+Proving that this yields a definition equivalent to the recurrence
+\eqref{eq:div-diff-rec} boils down to showing that if $f = gh$ then
+\begin{equation} \label{eq:div-diff-prod}
+f_{x_n \dots x_0} = \sum_{j=0}^n g_{x_n \dots x_j} h_{x_j \dots
+  x_0}.
+\end{equation}
+Proving \eqref{eq:div-diff-prod} is not entirely straightforward; in
+fact, we conjecture that the computational content of the proof, in
+the $n=2$ case, essentially consists of (the interesting part of) the
+impementation of the isomorphism |right|.
 
-The matrix \eqref{eq:div-diff-mat} should look familiar: \todo{Explain why.}
+\begin{figure}
+  \centering
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
 
-Can we derive something like |right| corresponding to higher-order
-divided differences? \todo{finish}
+deriv :: DFA (Diagram B R2)
+deriv = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True , 10 ^& 0)
+  ]
+  [ 1 >-- txt "c" --> 1
+  , 1 >-- txt "h" --> 2
+  , 2 >-- txt "b" --> 2
+  , 2 >-- txt "h" --> 3
+  , 3 >-- txt "a" --> 3
+  ]
+
+dia = drawDFA deriv # frame 0.5
+  \end{diagram}
+  \caption{A DFA for higher-order divided difference}
+  \label{fig:DFA-ho-divdiff}
+\end{figure}
+
+If we now consider the DFA $D$ in \pref{fig:DFA-ho-divdiff}, we can
+see that \eqref{eq:div-diff-mat} corresponds to the matrix $\mD{F}$.
+More generally, a DFA consisting of a sequence of $n$ states with
+self-loops chained together by |h| transitions will have a
+transition matrix corresponding to an order-$n$ matrix of divided
+differences.  In general, $F_{ij}$ will consist of $j-i$ holes
+interspersed among sequences of consecutive alphabet elements.
+
+By analogy with the binary dissection case, we would expect
+\eqref{eq:div-diff-rec} to yield an isomorphism with type \[
+\dissect_{x_{n-1} \dots x_0} F + (\dissect_{x_n \dots x_0}, x_n) \to
+(x_0, \dissect_{x_n \dots x_0} F) + \dissect_{x_n \dots x_1} F. \] We
+have not yet been able to fully make sense of this, but hope to
+understand it better in the future.  In particular, our intuition is
+that this will yield a tail-recursive implementation of a structure
+being processed by multiple coroutines.
+
+\section{Discussion and future work}
+
+This paper arose out of several blog posts by both authors
+\citep{piponi2009finite, piponi2010tomography, piponi2010regular,
+  yorgey2010onaproblem}, although the content of this paper is not a
+strict superset of the content of the blog posts.  There is much
+remaining to be explored, in particular understanding the isomorphisms
+induced by higher-order divided differences, and generalizing this
+framework to $n$-ary functors and partial differentiation.  It seems
+likely that $q$-derivatives can also fruitfully be seen in a similar
+light \citep{stay2014q}.
+
+Some of the ideas in this paper are implicitly present in earlier
+work; we note in particular \citet[p. 590]{duchon2004boltzmann} who
+mention generating Boltzmann samplers for strings corresponding to
+regular expressions, also via their DFAs.  It would be interesting to
+explore the relationship in more detail.
+
+\section*{Acknowledgments}
+\label{sec:acknowledgments}
+
+This work was partially supported by the National Science Foundation,
+under NSF 1218002, CCF-SHF Small: \emph{Beyond Algebraic Data Types:
+  Combinatorial Species and Mathematically-Structured Programming}.
+
+%% \printbibliography
+\bibliographystyle{plainnat}
+\bibliography{type-matrices}
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Text that we might want to do something with eventually
+
+
+%% One point worth mentioning is that \todo{Write about uniqueness of
+%%   representation, see stuff in comments}
+
+% There's a detail whose importance I'm not 100\% sure of. There are
+% multiple solutions to the problem of 'lifting' a type to be
+% constrained by a regexp. Compare
+
+% data S a b = Apple a || Banana b || Fork (S a b) (S a b)
+
+% vs.
+
+% data S a b = Apple a || Apple' a || Banana b || Fork (S a b) (S a b)
+
+% Both will end up with the same regular language. (Basically because we
+% have idempotence in languages, x+x=x.) Is here anything you think that
+% needs to be said about this? Some solutions are nice in that every
+% string in the language is represented precisely once. I think the
+% matrix construction gives us these because it's coming from a DFA so
+% there's only one path you can take through it. Does that sound right?
+% So we're actually doing slightly better than just constraining the
+% leaves with regular expressions. We're getting the best such type, in
+% some sense. Or at least I hope we are.
+
+%% \todo{We need a better story about finite vs. infinite.  The above
+%%   gives the standard presentation of DFAs for finite strings, but
+%%   Haskell types can include infinite values.  So we want to do
+%%   something like use the \emph{greatest} fixed point of $\Sigma^* =
+%%   \varepsilon \union \Sigma \Sigma^*$ and say that an infinite string
+%%   is in the language recognized by a DFA if it never causes the DFA to
+%%   reject.  I'm not quite sure how this relates to the fact that
+%%   least+greatest fixedpoints coincide in Haskell.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Consider now the DFA for the regular expression $a^*1b^*$.
 %% The corresponding diagram is
@@ -1669,26 +1708,109 @@ divided differences? \todo{finish}
 %% this definition carries over to types.
 %% Notice how in the limit as $x_1\rightarrow x_0$ we recover the derivative.
 
-\section{Discussion}
 
-Technique for constructing types with constraints. Ad hoc rules formalized.
-In some sense we've given an explanation for derivatives and dissections.
-Hope they can find new applications eg. trees with constraints in the style of
-2-3/red-black trees (though maybe it's not the same kind of thing actually).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section*{Acknowledgments}
-\label{sec:acknowledgments}
+%% Consider constructing a type of binary trees with data of two
+%% different types, $a$ and $b$, at internal nodes---but with the
+%% restriction that two values of type $a$ may never occur consecutively
+%% in an inorder traversal.  This restriction corresponds to the DFA
+%% shown in \pref{fig:DFA-no-consec-a}, with the transition matrix
+%% \[ \m{X} =
+%% \begin{bmatrix}
+%%   X_|b| & X_|a| \\
+%%   X_|b| & 0
+%% \end{bmatrix}.
+%% \]
+%% \begin{figure}
+%%   \centering
+%%   \begin{diagram}[width=100]
+%% import TypeMatricesDiagrams
 
-Acknowledgments.
+%% noAA :: DFA (Diagram B R2)
+%% noAA = dfa
+%%   [ 1 --> (True, origin)
+%%   , 2 --> (True, 5 ^& 0)
+%%   ]
+%%   [ 1 >-- txt "b" --> 1
+%%   , 1 >-- txt "a" --> 2
+%%   , 2 >-- txt "b" --> 1
+%%   ]
 
-\todo{should cite our blog posts on the topic}
+%% dia = drawDFA noAA # frame 0.5
+%%   \end{diagram}
+%%   \caption{A DFA for avoiding consecutive $a$'s}
+%%   \label{fig:DFA-no-consec-a}
+%% \end{figure}
 
-\todo{should cite Duchon, Flajolet, Louchard, Schaeffer, ``Boltzmann
-  Samplers for Random Generation'' --- they hint at something related
-  to this idea on p. 590}.
+%% Beginning with $T = 1 + TXT$ and applying the homomorphism, we obtain
+%% \[
+%%   \begin{bmatrix}
+%%     |T11| & |T12| \\
+%%     |T21| & |T22|
+%%   \end{bmatrix}
+%%   =
+%%   \begin{bmatrix}
+%%     1 & 0 \\
+%%     0 & 1
+%%   \end{bmatrix}
+%%   +
+%%   \begin{bmatrix}
+%%     |T11| & |T12| \\
+%%     |T21| & |T22|
+%%   \end{bmatrix}
+%%   \begin{bmatrix}
+%%     X_b & X_a \\
+%%     X_b & 0
+%%   \end{bmatrix}
+%%   \begin{bmatrix}
+%%     |T11| & |T12| \\
+%%     |T21| & |T22|.
+%%   \end{bmatrix}
+%% \]
+%% Expanding the right-hand side and equating elementwise yields
+%% \begin{align*}
+%%   |T11| &= 1 + (|T11| + |T12|)b|T11| + |T11|a|T21| \\
+%%   |T12| &=     (|T11| + |T12|)b|T12| + |T11|a|T22| \\
+%%   |T21| &=     (|T21| + |T22|)b|T11| + |T21|a|T21| \\
+%%   |T22| &= 1 + (|T21| + |T22|)b|T12| + |T21|a|T22|,
+%% \end{align*}
+%% or in Haskell notation,
 
-%% \printbibliography
-\bibliographystyle{plainnat}
-\bibliography{type-matrices}
+%% %format Empty11
+%% %format B11
+%% %format A11
+%% %format B12
+%% %format A12
+%% %format B21
+%% %format A21
+%% %format Empty22
+%% %format B22
+%% %format A22
 
-\end{document}
+%% > data T11 a b
+%% >   =  Empty11
+%% >   |  B11 (Either (T11 a b) (T12 a b)) b (T11 a b)
+%% >   |  A11 (T11 a b) a (T21 a b)
+%% >
+%% > data T12 a b
+%% >   =  B12 (Either (T11 a b) (T12 a b)) b (T12 a b)
+%% >   |  A12 (T11 a b) a (T22 a b)
+%% >
+%% > data T21 a b
+%% >   =  B21 (Either (T21 a b) (T22 a b)) b (T11 a b)
+%% >   |  A21 (T21 a b) a (T21 a b)
+%% >
+%% > data T22 a b
+%% >   =  Empty22
+%% >   |  B22 (Either (T21 a b) (T22 a b)) b (T12 a b)
+%% >   |  A22 (T21 a b) a (T22 a b)
+
+%% (We could also equivalently distribute out products such as $(|T11| +
+%% |T12|)b|T11| = |T11| b |T11| + |T12| b |T11|$ and end up with more
+%% constructors for each data type.) Since both states in the DFA are
+%% accept states, we are actually looking for the sum type
+
+%% > type T' a b = Either (T11 a b) (T12 a b)

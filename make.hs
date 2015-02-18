@@ -18,7 +18,7 @@ main = shake shakeOptions $ do
 
     "*.pdf" %> \output -> do
         let input = replaceExtension output "tex"
-        need [input]
+        need [input, output -<.> "bib"]
 
         symbols <- getDirectoryFiles "" ["symbols/*.hs"]
         need (map (-<.> "pdf") symbols)
