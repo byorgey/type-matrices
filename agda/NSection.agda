@@ -6,7 +6,7 @@ open import Data.Sum     hiding (map)
 open import Data.Product hiding (map)
 open import Data.Nat
 open import Data.Fin
-open import Data.Vec     hiding (map)
+open import Data.Vec     renaming (map to vecMap ; foldr to vecFoldr)
 
 open import Function
 
@@ -244,47 +244,16 @@ mutual
 -- Generalized n-dissection
 ------------------------------------------------------------
 
-record Semiring {ℓ : Level} (A : Set ℓ) : Set ℓ where
-  field _⊞_ : A → A → A
-  field id⊞ : A
-  field _⊡_ : A → A → A
-  field id⊡ : A
+Mat : {ℓ : Level} → ℕ → ℕ → Set ℓ → Set ℓ
+Mat m n A = Fin m → Fin n → A
 
-open Semiring {{...}}
+mapMat : {ℓ : Level} {m n : ℕ} {A B : Set ℓ} → (A → B) → Mat m n A → Mat m n B
+mapMat f m = λ i j → f (m i j)
 
--- instance 
---   VecSemiring : {ℓ : Level} {A : Set ℓ} {n : ℕ} {{Semiring A}} → Semiring (Vec A n)
---   VecSemiring = ?
+matSum : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → (A → A → A) → Mat m n A → Mat m n A → Mat m n A
+matSum _⊞_ m₁ m₂ = λ i j → m₁ i j ⊞ m₂ i j
 
--- Matrices
-vecSum : {ℓ : Level} {n : ℕ} {A : Set ℓ} → (A → A → A) → Vec A n → Vec A n → Vec A n
-vecSum = zipWith
-
-dot : {ℓ : Level} {n : ℕ} {A : Set ℓ} → (A → A → A) → (A → A → A) → Vec A n → Vec A n → Vec A n
-dot _⊞_ _⊡_ v₁ v₂ = {!!} -- zipWith _⊡_ v₁ v₂
-
--- M : {ℓ : Laevel} → ℕ → ℕ → Set ℓ → Set ℓ
--- M m n A = Fin m → Fin n → A
-
--- row : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → Fin m → M m n A → Vec A n
--- row i m = m i
-
--- col : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → Fin n → M m n A → Vec A m
--- col j m = λ i → m i j
-
--- matSum : {ℓ : Level} {m n : ℕ} {A : Set ℓ} → (A → A → A) → M m n A → M m n A → M m n A
--- matSum _⊞_ m₁ m₂ = λ i j → m₁ i j ⊞ m₂ i j
-
--- matProd : {ℓ : Level} {m n p : ℕ} {A : Set ℓ} → (A → A → A) → (A → A → A)
---         → M m n A → M n p A → M m p A
--- matProd = {!!}
-
--- D : {n : ℕ} → F 1 → F (suc (suc n))
--- D Zero = Zero
--- D (K _) = Zero
--- D {zero} (X _) = One
--- D {_} (X _) = Zero
--- D (f ⊕ g) = D f ⊕ D g
--- D (f ⊗ g) = {!!}  -- hmm, this is the hard/interesting case!
--- D (L f) = D f
--- D (R f) = D f
+matProd : {ℓ : Level} {m n p : ℕ} {A : Set ℓ} → (A → A → A) → A → (A → A → A)
+        → Mat m n A → Mat n p A → Mat m p A
+matProd {n = n} {A = A} _⊞_ z _⊡_ m₁ m₂ = λ i j → vecFoldr (λ _ → A) _⊞_ z
+                                                    (vecMap (λ k → m₁ i k ⊡ m₂ k j) (allFin n))
