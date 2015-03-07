@@ -14,18 +14,6 @@ open import Relation.Binary.PropositionalEquality hiding ( [_] )
 
 open import Level using (Level)
 
--- Some utilities.
-
-data SnocVecView {τ : Set₁} : {n : ℕ} → Vec τ n → Set₁ where
-  NilV  : SnocVecView []
-  SnocV : {n : ℕ} → (xs : Vec τ n) → (x : τ) → SnocVecView (xs ++ [ x ])
-
-view : {τ : Set₁} {n : ℕ} → (v : Vec τ n) → SnocVecView v
-view [] = NilV
-view (x ∷ v)                with view v
-view (x ∷ .[])              | NilV = SnocV [] x
-view (x₁ ∷ .(xs ++ x ∷ [])) | SnocV xs x = SnocV (x₁ ∷ xs) x
-
 -- Universe/algebra of n-ary functors.
 data F : ℕ → Set₁ where
   Zero : {n : ℕ} → F n                -- void
@@ -33,8 +21,6 @@ data F : ℕ → Set₁ where
   X    : {n : ℕ} → Fin n → F n        -- projection, i.e. Id
   _⊕_  : {n : ℕ} → F n → F n → F n    -- sum
   _⊗_  : {n : ℕ} → F n → F n → F n    -- product
-  L    : {n : ℕ} → F 1 → F (suc n)    -- "all clowns", i.e. (C F) A_0 ... A_n = F A_0
-  R    : {n : ℕ} → F 1 → F (suc n)    -- "all jokers", i.e. (J F) A_0 ... A_n = F A_n
 
   -- Can't do least fixed point because it makes Agda unhappy, and I don't
   -- want to move to full-fledged containers right now
@@ -44,8 +30,11 @@ infixl 6 _⊕_
 infixl 7 _⊗_
 
 -- One is a synonym for the constantly ⊤ functor
-One : ∀ {n} → F n
-One = K ⊤
+pattern One = K ⊤
+
+pattern X₀ = X zero
+pattern X₁ = X (suc zero)
+pattern X₂ = X (suc (suc zero))
 
 -- Sets n = Set → Set → ... → Set  with n arrows
 Sets : ℕ → Set₁
@@ -66,10 +55,6 @@ Curry {suc n} f A = Curry (f ∘ _∷_ A)
 ⟦_⟧ (X (suc i)) As = ⟦ X i ⟧ (tail As)
 ⟦_⟧ (f ⊕ g) As = ⟦ f ⟧ As ⊎ ⟦ g ⟧ As
 ⟦_⟧ (f ⊗ g) As = ⟦ f ⟧ As × ⟦ g ⟧ As
-⟦_⟧ (L f) As = ⟦ f ⟧ [ head As ]
-⟦_⟧ (R f) (A ∷ As) with view As
-⟦_⟧ (R f) (A ∷ .[]) | NilV = ⟦ f ⟧ [ A ]
-⟦_⟧ (R f) (A ∷ .(As′ ++ A′ ∷ [])) | SnocV As′ A′ = ⟦ f ⟧ [ A′ ]
 
 -- Interpretation as Set → ... → Set
 ⟦_⟧′ : {n : ℕ} → F n → Sets n
@@ -99,11 +84,6 @@ map {As = _ ∷ _} {_ ∷ _} (X zero) (A→B , _) fAs = A→B fAs
 map {As = _ ∷ _} {_ ∷ _} (X (suc i)) (_ , m) fAs = map (X i) m fAs
 map (f ⊕ g) m fAs = Data.Sum.map (map f m) (map g m) fAs
 map (f ⊗ g) m fAs = Data.Product.map (map f m) (map g m) fAs
-map {As = A ∷ _} {B ∷ _} (L f) (A→B , _) fAs = map f (A→B , tt) fAs
--- map {As = A ∷ As} {Bs = B ∷ Bs} (R f) m fAs with view As | view Bs
--- map {.(suc 0)} {A ∷ .[]} {B ∷ .[]} (R f) m fAs | NilV | NilV = {!!}
--- map {._} {A ∷ .(As′ ++ A′ ∷ [])} {B ∷ .(Bs′ ++ B′ ∷ [])} (R f) m fAs | SnocV As′ A′ | SnocV Bs′ B′ = {!!}
-map (R f) = {!!}
 
 -- Functor law: preservation of identity
 pres-id : ∀ {n : ℕ} {As : Vec Set n} → (f : F n) → {fAs : ⟦ f ⟧ As}
@@ -115,10 +95,6 @@ pres-id {As = _ ∷ _} (X (suc i)) = pres-id (X i)
 pres-id (f ⊕ g) {inj₁ fAs} = cong inj₁ (pres-id f)
 pres-id (f ⊕ g) {inj₂ gAs} = cong inj₂ (pres-id g)
 pres-id (f ⊗ g) {fAs , gAs} = cong₂ _,_ (pres-id f) (pres-id g)
-pres-id {As = A ∷ _} (L f) = pres-id f
--- pres-id {As = A ∷ As} (R f) with view As
--- ... | q = ?
-pres-id (R f) = {!!}
 
 postulate ext : ∀ {A B : Set} {f g : A → B} → ({x : A} → f x ≡ g x) → f ≡ g
 
@@ -136,8 +112,6 @@ pres-∘ {As = _ ∷ _} {Bs = _ ∷ _} {Cs = _ ∷ _} (X (suc i)) = pres-∘ (X 
 pres-∘ (f ⊕ g) {fAs = inj₁ fAs} = cong inj₁ (pres-∘ f)
 pres-∘ (f ⊕ g) {fAs = inj₂ gAs} = cong inj₂ (pres-∘ g)
 pres-∘ (f ⊗ g) {fAs = fAs , gAs} = cong₂ _,_ (pres-∘ f) (pres-∘ g)
-pres-∘ {As = A ∷ _} {Bs = B ∷ _} {Cs = C ∷ _} (L f) = pres-∘ f
-pres-∘ (R f) = {!!}
 
 pres-∘-ext : ∀ {n : ℕ} {As Bs Cs : Vec Set n} → (f : F n)
        → {g : Map As Bs} → {h : Map Bs Cs} → {fAs : ⟦ f ⟧ As}
@@ -150,14 +124,14 @@ pres-∘-ext f = ext (pres-∘ f)
 
 -- Start with basic 2-dissection, as in Jokers & Clowns paper
 
-D₂ : F 1 → F 2
-D₂ Zero = Zero
-D₂ (K _) = Zero
-D₂ (X _) = One
-D₂ (f ⊕ g) = D₂ f ⊕ D₂ g
-D₂ (f ⊗ g) = (D₂ f ⊗ R g) ⊕ (L f ⊗ D₂ g)
-D₂ (L f) = D₂ f
-D₂ (R f) = D₂ f
+-- D₂ : F 1 → F 2
+-- D₂ Zero = Zero
+-- D₂ (K _) = Zero
+-- D₂ (X _) = One
+-- D₂ (f ⊕ g) = D₂ f ⊕ D₂ g
+-- D₂ (f ⊗ g) = (D₂ f ⊗ R g) ⊕ (L f ⊗ D₂ g)
+-- D₂ (L f) = D₂ f
+-- D₂ (R f) = D₂ f
 
 -- Should try redoing this with pointed things.  Also, seems like this is doing a lot of repeated work.
 
@@ -202,40 +176,40 @@ D₂ (R f) = D₂ f
 
 -- The below implementation more closely matches Conor's from "Jokers & Clowns"
 
-⊕f : (f g : F 1) {j c : Set} → (j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c → (j × ⟦ D₂ (f ⊕ g) ⟧′ c j) ⊎ ⟦ f ⊕ g ⟧′ c
-⊕f _ _ (inj₁ (j , f'cj)) = inj₁ (j , inj₁ f'cj)
-⊕f _ _ (inj₂ fc) = inj₂ (inj₁ fc)
+-- ⊕f : (f g : F 1) {j c : Set} → (j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c → (j × ⟦ D₂ (f ⊕ g) ⟧′ c j) ⊎ ⟦ f ⊕ g ⟧′ c
+-- ⊕f _ _ (inj₁ (j , f'cj)) = inj₁ (j , inj₁ f'cj)
+-- ⊕f _ _ (inj₂ fc) = inj₂ (inj₁ fc)
 
-⊕g : (f g : F 1) {j c : Set} → (j × ⟦ D₂ g ⟧′ c j) ⊎ ⟦ g ⟧′ c → (j × ⟦ D₂ (f ⊕ g) ⟧′ c j) ⊎ ⟦ f ⊕ g ⟧′ c
-⊕g _ _ (inj₁ (j , g'cj)) = inj₁ (j , inj₂ g'cj)
-⊕g _ _ (inj₂ gc) = inj₂ (inj₂ gc)
+-- ⊕g : (f g : F 1) {j c : Set} → (j × ⟦ D₂ g ⟧′ c j) ⊎ ⟦ g ⟧′ c → (j × ⟦ D₂ (f ⊕ g) ⟧′ c j) ⊎ ⟦ f ⊕ g ⟧′ c
+-- ⊕g _ _ (inj₁ (j , g'cj)) = inj₁ (j , inj₂ g'cj)
+-- ⊕g _ _ (inj₂ gc) = inj₂ (inj₂ gc)
 
-mutual
-  ⊗f : (f g : F 1) {j c : Set} → (j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c → ⟦ g ⟧′ j → (j × ⟦ D₂ (f ⊗ g) ⟧′ c j) ⊎ ⟦ f ⊗ g ⟧′ c
-  ⊗f f g (inj₁ (j , f'cj)) gj = inj₁ (j , (inj₁ (f'cj , gj)))
-  ⊗f f g (inj₂ fc) gj = ⊗g f g fc (right g (inj₁ gj))
+-- mutual
+--   ⊗f : (f g : F 1) {j c : Set} → (j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c → ⟦ g ⟧′ j → (j × ⟦ D₂ (f ⊗ g) ⟧′ c j) ⊎ ⟦ f ⊗ g ⟧′ c
+--   ⊗f f g (inj₁ (j , f'cj)) gj = inj₁ (j , (inj₁ (f'cj , gj)))
+--   ⊗f f g (inj₂ fc) gj = ⊗g f g fc (right g (inj₁ gj))
 
-  ⊗g : (f g : F 1) {j c : Set} → ⟦ f ⟧′ c → (j × ⟦ D₂ g ⟧′ c j) ⊎ ⟦ g ⟧′ c → (j × ⟦ D₂ (f ⊗ g) ⟧′ c j) ⊎ ⟦ f ⊗ g ⟧′ c
-  ⊗g f g fc (inj₁ (j , g'cj)) = inj₁ (j , (inj₂ (fc , g'cj)))
-  ⊗g f g fc (inj₂ gc) = inj₂ (fc , gc)
+--   ⊗g : (f g : F 1) {j c : Set} → ⟦ f ⟧′ c → (j × ⟦ D₂ g ⟧′ c j) ⊎ ⟦ g ⟧′ c → (j × ⟦ D₂ (f ⊗ g) ⟧′ c j) ⊎ ⟦ f ⊗ g ⟧′ c
+--   ⊗g f g fc (inj₁ (j , g'cj)) = inj₁ (j , (inj₂ (fc , g'cj)))
+--   ⊗g f g fc (inj₂ gc) = inj₂ (fc , gc)
 
-  right : (f : F 1) → {j c : Set} → (⟦ f ⟧′ j ⊎ (⟦ D₂ f ⟧′ c j × c)) → ((j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c)
-  right Zero (inj₁ ())
-  right Zero (inj₂ (() , _))
-  right (K A) (inj₁ a) = inj₂ a
-  right (K A) (inj₂ (() , _))
-  right (X zero) (inj₁ j) = inj₁ (j , tt)
-  right (X (suc ()))
-  right (X zero) (inj₂ (tt , c)) = inj₂ c
-  right (f ⊕ g) (inj₁ (inj₁ fj)) = ⊕f f g (right f (inj₁ fj))
-  right (f ⊕ g) (inj₁ (inj₂ gj)) = ⊕g f g (right g (inj₁ gj))
-  right (f ⊕ g) (inj₂ (inj₁ f'cj , c)) = ⊕f f g (right f (inj₂ (f'cj , c)))
-  right (f ⊕ g) (inj₂ (inj₂ g'cj , c)) = ⊕g f g (right g (inj₂ (g'cj , c)))
-  right (f ⊗ g) (inj₁ (fj , gj)) = ⊗f f g (right f (inj₁ fj)) gj
-  right (f ⊗ g) (inj₂ (inj₁ (f'cj , gj) , c)) = ⊗f f g (right f (inj₂ (f'cj , c))) gj
-  right (f ⊗ g) (inj₂ (inj₂ (fc , g'cj) , c)) = ⊗g f g fc (right g (inj₂ (g'cj , c)))
-  right (L f) x = right f x
-  right (R f) x = right f x
+--   right : (f : F 1) → {j c : Set} → (⟦ f ⟧′ j ⊎ (⟦ D₂ f ⟧′ c j × c)) → ((j × ⟦ D₂ f ⟧′ c j) ⊎ ⟦ f ⟧′ c)
+--   right Zero (inj₁ ())
+--   right Zero (inj₂ (() , _))
+--   right (K A) (inj₁ a) = inj₂ a
+--   right (K A) (inj₂ (() , _))
+--   right (X zero) (inj₁ j) = inj₁ (j , tt)
+--   right (X (suc ()))
+--   right (X zero) (inj₂ (tt , c)) = inj₂ c
+--   right (f ⊕ g) (inj₁ (inj₁ fj)) = ⊕f f g (right f (inj₁ fj))
+--   right (f ⊕ g) (inj₁ (inj₂ gj)) = ⊕g f g (right g (inj₁ gj))
+--   right (f ⊕ g) (inj₂ (inj₁ f'cj , c)) = ⊕f f g (right f (inj₂ (f'cj , c)))
+--   right (f ⊕ g) (inj₂ (inj₂ g'cj , c)) = ⊕g f g (right g (inj₂ (g'cj , c)))
+--   right (f ⊗ g) (inj₁ (fj , gj)) = ⊗f f g (right f (inj₁ fj)) gj
+--   right (f ⊗ g) (inj₂ (inj₁ (f'cj , gj) , c)) = ⊗f f g (right f (inj₂ (f'cj , c))) gj
+--   right (f ⊗ g) (inj₂ (inj₂ (fc , g'cj) , c)) = ⊗g f g fc (right g (inj₂ (g'cj , c)))
+--   right (L f) x = right f x
+--   right (R f) x = right f x
 
 -- Next: try making types for pointed dissections?  Or go ahead and try generalizing to n-section?
 
@@ -247,6 +221,9 @@ mutual
 Mat : {ℓ : Level} → ℕ → ℕ → Set ℓ → Set ℓ
 Mat m n A = Fin m → Fin n → A
 
+mkMat : {ℓ : Level} {A : Set ℓ} {m n : ℕ} → Vec (Vec A n) m → Mat m n A
+mkMat v i j = lookup j (lookup i v)
+
 mapMat : {ℓ : Level} {m n : ℕ} {A B : Set ℓ} → (A → B) → Mat m n A → Mat m n B
 mapMat f m = λ i j → f (m i j)
 
@@ -257,3 +234,34 @@ matProd : {ℓ : Level} {m n p : ℕ} {A : Set ℓ} → (A → A → A) → A �
         → Mat m n A → Mat n p A → Mat m p A
 matProd {n = n} {A = A} _⊞_ z _⊡_ m₁ m₂ = λ i j → vecFoldr (λ _ → A) _⊞_ z
                                                     (vecMap (λ k → m₁ i k ⊡ m₂ k j) (allFin n))
+
+ifeq : {ℓ : Level} {n : ℕ} {A : Set ℓ} → Fin n → Fin n → A → A → A
+ifeq zero zero x _ = x
+ifeq zero (suc j) _ y = y
+ifeq (suc i) zero _ y = y
+ifeq (suc i) (suc j) x y = ifeq i j x y
+
+DFA-hom : {n k : ℕ} → Mat n n (F k) → F 1 → Mat n n (F k)
+DFA-hom _ Zero _ _ = Zero
+DFA-hom _ (K A) i j = ifeq i j (K A) Zero
+DFA-hom trans (X _) = trans
+DFA-hom trans (f ⊕ g) = matSum _⊕_ (DFA-hom trans f) (DFA-hom trans g)
+DFA-hom trans (f ⊗ g) = matProd _⊕_ Zero _⊗_ (DFA-hom trans f) (DFA-hom trans g)
+
+-- transition matrix for derivative
+trans-2-dissect : Mat 2 2 (F 2)
+trans-2-dissect = mkMat ( ( X zero ∷ X (suc zero) ∷ [] )
+                        ∷ ( Zero   ∷ X zero       ∷ [] )
+                        ∷ []
+                        )
+
+∂ : F 1 → F 2
+∂ f = DFA-hom trans-2-dissect f zero (suc zero)
+
+∂X² : Vec Set 2 → Set
+∂X² = ⟦ ∂ (X₀ ⊗ X₀) ⟧
+
+  -- ∂X² (ℕ ∷ ⊤ ∷ []) = ℕ × ⊤ ⊎ ⊤ × ℕ ⊎ ⊥
+  -- It works!
+
+-- Next step: can we express something like 'right' generically?
