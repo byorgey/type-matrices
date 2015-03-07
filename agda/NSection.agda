@@ -36,6 +36,13 @@ pattern X₀ = X zero
 pattern X₁ = X (suc zero)
 pattern X₂ = X (suc (suc zero))
 
+sucX : {n : ℕ} → F n → F (suc n)
+sucX Zero = Zero
+sucX (K A) = K A
+sucX (X i) = X (suc i)
+sucX (f ⊕ g) = sucX f ⊕ sucX g
+sucX (f ⊗ g) = sucX f ⊗ sucX g
+
 -- Sets n = Set → Set → ... → Set  with n arrows
 Sets : ℕ → Set₁
 Sets zero = Set
@@ -59,6 +66,11 @@ Curry {suc n} f A = Curry (f ∘ _∷_ A)
 -- Interpretation as Set → ... → Set
 ⟦_⟧′ : {n : ℕ} → F n → Sets n
 ⟦ f ⟧′ = Curry ⟦ f ⟧
+
+open import Function.Inverse as Inv using (_↔_; module Inverse)
+
+_≅_ : {n : ℕ} → F n → F n → Set₁
+_≅_ {n} f g = ∀ (As : Vec Set n) → ⟦ f ⟧ As ↔ ⟦ g ⟧ As
 
 -- n-ary maps between Set^n
 Map : {n : ℕ} → Vec Set n → Vec Set n → Set
@@ -248,20 +260,67 @@ DFA-hom trans (X _) = trans
 DFA-hom trans (f ⊕ g) = matSum _⊕_ (DFA-hom trans f) (DFA-hom trans g)
 DFA-hom trans (f ⊗ g) = matProd _⊕_ Zero _⊗_ (DFA-hom trans f) (DFA-hom trans g)
 
--- transition matrix for derivative
-trans-2-dissect : Mat 2 2 (F 2)
-trans-2-dissect = mkMat ( ( X zero ∷ X (suc zero) ∷ [] )
-                        ∷ ( Zero   ∷ X zero       ∷ [] )
-                        ∷ []
-                        )
+module 2-deriv where
+    -- transition matrix for derivative
+    trans-2-deriv : Mat 2 2 (F 2)
+    trans-2-deriv = mkMat ( ( X zero ∷ X (suc zero) ∷ [] )
+                            ∷ ( Zero   ∷ X zero       ∷ [] )
+                            ∷ []
+                            )
 
-∂ : F 1 → F 2
-∂ f = DFA-hom trans-2-dissect f zero (suc zero)
+    ∂ : F 1 → F 2
+    ∂ f = DFA-hom trans-2-deriv f zero (suc zero)
 
-∂X² : Vec Set 2 → Set
-∂X² = ⟦ ∂ (X₀ ⊗ X₀) ⟧
+    ∂X² : Set → Set
+    ∂X² A = ⟦ ∂ (X₀ ⊗ X₀) ⟧′ A ⊤
 
-  -- ∂X² (ℕ ∷ ⊤ ∷ []) = ℕ × ⊤ ⊎ ⊤ × ℕ ⊎ ⊥
-  -- It works!
+      -- ∂X² ℕ = ℕ × ⊤ ⊎ ⊤ × ℕ ⊎ ⊥
+      -- It works!
 
--- Next step: can we express something like 'right' generically?
+module 2-dissect where
+    trans-2-dissect : Mat 2 2 (F 3)
+    trans-2-dissect = mkMat ( ( X zero ∷ X (suc (suc zero)) ∷ [] )
+                            ∷ ( Zero   ∷ X (suc zero)       ∷ [] )
+                            ∷ []
+                            )
+
+    Δ : F 1 → F 3
+    Δ f = DFA-hom trans-2-dissect f zero (suc zero)
+
+    ΔX² : Set → Set → Set
+    ΔX² B A = ⟦ Δ (X₀ ⊗ X₀) ⟧′ B A ⊤
+
+-- Next step: can we express something like 'right' generically, for
+-- n-dissection?
+
+-- General transition matrix for n-dissection.
+--
+-- [ X_0 X_{n+1}   0       0     ...
+-- [  0   X_1    X_{n+1}   0     ...
+-- [  0    0      X_2    X_{n+1}  ...
+-- [  0    0       0       X_3    ....
+--
+--  etc.
+trans-n-dissect : (n : ℕ) → Mat n n (F (suc n))
+trans-n-dissect zero () ()
+trans-n-dissect (suc _) zero zero = X zero
+trans-n-dissect (suc n) zero (suc j) = X (fromℕ (suc n))
+trans-n-dissect (suc _) (suc _) zero = Zero
+trans-n-dissect (suc n) (suc i) (suc j) = mapMat sucX (trans-n-dissect n) i j
+
+D : (n : ℕ) → F 1 → Mat n n (F (suc n))
+D n = DFA-hom (trans-n-dissect n)
+
+_⋆ : {n : ℕ} → Fin n → Fin (suc n)
+_⋆ = raise 1
+
+right : {n : ℕ} {i j : Fin n} → (f : F 1)
+      → ((D (suc n) f (i ⋆) (suc j) ⊗ X (suc j ⋆)) ⊕ D (suc n) f (i ⋆) (j ⋆))
+         ≅
+         (D (suc n) f (suc i) (suc j) ⊕ (X (i ⋆ ⋆) ⊗ D (suc n) f (i ⋆) (suc j)))
+right Zero As = {!!}
+right (K A) As = {!!}
+right (X i) As = {!!}
+right (f ⊕ g) As = {!!}
+right (f ⊗ g) As = {!!}
+-- Oh goodness.  The type typechecks. Now what?
