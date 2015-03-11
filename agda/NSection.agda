@@ -324,3 +324,7 @@ right (X i) As = {!!}
 right (f ⊕ g) As = {!!}
 right (f ⊗ g) As = {!!}
 -- Oh goodness.  The type typechecks. Now what?
+
+-- ugghhhhh
+lemma1 : {ℓ : Level} {A : Set ℓ} → (⊥ × A) ↔ ⊥
+lemma1 = record { to = record { _⟨$⟩_ = proj₁ ; cong = {!!} } ; from = record { _⟨$⟩_ = λ () ; cong = {!!} } ; inverse-of = record { left-inverse-of = λ x → {!!} ; right-inverse-of = {!!} } }
