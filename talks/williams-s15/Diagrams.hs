@@ -77,3 +77,6 @@ drawNList l = nodes #
 
 drawList l = drawNList (map Value l ++ [Nil])
 
+ls = [[1::Int,1], [1,2,4], [2,1,4,3,1,2]]
+drawLists ls = vsep 1 (map drawList ls ++ [ellipsis # rotateBy (1/4)])
+lsD = drawLists ls

@@ -124,25 +124,32 @@
 
 \begin{xframe}{}
    \titlepage
-   %% XXX picture of dissected tree from paper
-%   \hfill \includegraphics[width=0.5in]{plclub}
 \end{xframe}
-
-%%% Fun to be here.  Work I do is at the intersection of math & CS.
-%%% Please ask questions!  Part of my challenge is to translate some
-%%% CS things for mathematicians and vice versa.
-
-%%% First two parts: get you to understand title, i.e. problem
-%%% statement.  Part 3: our solution.  Based on joint work with Dan
-%%% Piponi.
 
 \begin{xframe}
   \begin{center}
     Joint work with: \bigskip
 
-    \includegraphics[width=2in]{dan} \\
+    \includegraphics[width=3in]{dan} \\
     Dan Piponi
   \end{center}
+\end{xframe}
+
+\begin{xframe}
+  %%% Fun to be here.  Work I do is at the intersection of math & CS.
+%%% Please ask questions!  Part of my challenge is to translate some
+%%% CS things for mathematicians and vice versa.
+
+\begin{itemize}
+\item Please ask questions!
+\item Part I: get you to understand the title/problem statement
+\item Part II: our solution (sketch)
+\end{itemize}
+
+%%% First two parts: get you to understand title, i.e. problem
+%%% statement.  Part 3: our solution.  Based on joint work with Dan
+%%% Piponi.
+
 \end{xframe}
 
 %% XXX section image: binary tree
@@ -152,25 +159,23 @@
 \begin{xframe}{Polynomial functors}
   \begin{center}
   \[ F : \Set \to \Set \]
+  elements $\to$ structures \bigskip
 
 \begin{diagram}[width=200]
 import           Data.List.Split
 import           Diagrams
 
-elts = map node "abcd"
+elts = map node [1,2,3,4::Int]
 eltSet = atop (roundedRect 6 6 0.5)
        . centerXY
        . vsep 1 . map (hsep 1)
        . chunksOf 2
        $ elts    -- $
 
-ls = ["aa", "abd", "badcab"]
-lsD = vsep 1 (map drawList ls ++ [ellipsis # rotateBy (1/4)])
-
 dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
 \end{diagram}
 
-  think: \emph{parameterized combinatorial families}
+  think: \emph{(parameterized) combinatorial families}
   \end{center}
 \end{xframe}
 
@@ -196,17 +201,18 @@ dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
 \begin{xframe}{Polynomial functor isomorphisms}
   Note that
   \begin{gather*}
-    F + G \cong G + F
+    F + G \cong G + F \\
     F + (G + H) \cong (F + G) + H \\
     0 + F \cong F \cong F + 0 \\
-    F \cdot G \cong G \cdot F
+    F \cdot G \cong G \cdot F \\
     F \cdot (G \cdot H) \cong (F \cdot G) \cdot H \\
-    1 \cdot F \cong F \cong F \cdot 1
+    1 \cdot F \cong F \cong F \cdot 1 \\
+    F \cdot (G + H) \cong F \cdot G + F \cdot H
   \end{gather*}
 \end{xframe}
 
 \begin{xframe}{Polynomial functor isomorphisms}
-\[ 1 \cdot F \cong F \cong F \cdot 1 \]
+\[ 1 \cdot F \cong F \]
 
 Example proof:
 
@@ -218,6 +224,20 @@ Example proof:
   \end{align*}
 \end{xframe}
 
+\begin{xframe}{Semirings}
+  Up to isomorphism, polynomial functors form a (commutative) \emph{semiring}:
+
+  \begin{itemize}
+  \item Associative operations $+$, $\cdot$ with identities $0$, $1$
+  \item $+$ is commutative
+  \item $\cdot$ distributes over $+$
+  \item $+$ does \emph{not} necessarily have inverses!
+  \end{itemize}
+
+  Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
+  \lor, \land)$, $(\R_{\geq 0}, \max, +)$
+\end{xframe}
+
 \begin{xframe}{Implicit/recursive definition}
   We also allow mutually recursive definitions:
   \begin{align*}
@@ -227,8 +247,28 @@ Example proof:
   \end{align*}
 \end{xframe}
 
+\begin{xframe}{Example: lists}
+  \[ L = 1 + X \cdot L \]
+
+  \onslide<2->
+  \[ L(A) = \{\star\} \uplus A \times L(A) \]
+  \begin{center}
+  \begin{tabular}{c m{3in}}
+    $L(\N) =$ &
+  \begin{diagram}[width=200]
+    import           Diagrams
+
+    dia = lsD # frame 0.5
+  \end{diagram}
+  \end{tabular}
+  \end{center}
+\end{xframe}
+
 \begin{xframe}{Example: binary trees}
   \[ T = 1 + X \cdot T \cdot T \]
+
+  \onslide<2->
+  \[ T(A) = \{\star\} \uplus A \times T(A) \times T(A) \]
   \begin{center}
   \begin{tabular}{c m{3in}}
     $T(\N) =$ &
@@ -248,9 +288,13 @@ Example proof:
 \end{xframe}
 
 \begin{xframe}{Example: binary trees}
+  Polynomial functors can be \textbf{directly encoded} in programming
+  languages with \textbf{algebraic data types} (Haskell, OCaml, SML,
+  Scala, F\#):
   \[ T = 1 + X \cdot T \cdot T \]
+  \[ T(A) = \{\star\} \uplus A \times T(A) \times T(A) \]
   \begin{verbatim}
-  data Tree a = Empty | Node a (Tree a) (Tree a)
+       data T a = Empty | Node a (T a) (T a)
   \end{verbatim}
 \end{xframe}
 
@@ -265,14 +309,14 @@ Example proof:
     $E(\N) =$ &
   \begin{diagram}[width=200]
     import Diagrams
-    dia = hsep 2 (map drawList [[], [3,7], [3,7,2,8]] ++ [ellipsis])
+    dia = hsep 2 (map drawList [[], [3 :: Int,7], [3,7,2,8]] ++ [ellipsis])
         # frame 0.5
   \end{diagram}
   \\
   $O(\N) =$ &
   \begin{diagram}[width=150]
     import Diagrams
-    dia = hsep 2 (map drawList [[3], [3,7,2]] ++ [ellipsis])
+    dia = hsep 2 (map drawList [[3 :: Int], [3,7,2]] ++ [ellipsis])
         # frame 0.5
   \end{diagram}
   \end{tabular}
@@ -293,7 +337,8 @@ Example proof:
 %%% sweep that under the rug?
 
 \begin{xframe}{``Functors''?}
-  These are actually \emph{functors} $\Set \to \Set$.  E.g.:
+  These are actually \emph{functors} $\Set \to \Set$: given a function
+  we can apply it to every element in a structure (``map'').  E.g.:
   \[ T(x \mapsto x + 1) \]
   \begin{center}
   \begin{diagram}[width=200]
@@ -308,18 +353,6 @@ Example proof:
       # frame 0.5
   \end{diagram}
   \end{center}
-\end{xframe}
-
-\begin{xframe}{Semirings}
-  Polynomial functors form a (commutative) \emph{semiring} (up to isomorphism).
-
-  \begin{itemize}
-  \item Associative operations $+$, $\cdot$ with identities $0$, $1$
-  \item $+$ is commutative (so is $\cdot$)
-  \item $\cdot$ distributes over $+$:   \[ F \cdot (G + H) \cong F \cdot G + F \cdot H \]
-
-  \end{itemize}
-
 \end{xframe}
 
 \begin{xframe}{Calculus!?}
@@ -378,7 +411,15 @@ Example proof:
   % XXX picture
 \end{xframe}
 
-\begin{xframe}{Who cares?}
+\begin{xframe}
+  \begin{itemize}
+  \item Note this proof is also an \emph{algorithm} for computing $\dd
+    T X$ from the definition of $T$. \bigskip
+  \item These ``one-hole contexts'' turn out to be quite useful in the
+    context of functional programming (``zippers''); the theory gives
+    an automatic way to generate them.
+  \end{itemize}
+
   \begin{center}
     \begin{diagram}[width=100]
       import Diagrams
@@ -387,13 +428,15 @@ Example proof:
   \end{center}
 \end{xframe}
 
-\begin{xframe}
-  \begin{align*}
-    T &= 1 + X \cdot T \cdot T \\
-    \dd T X &= 0 + T^2 + X \dd T X T + X T \dd T X \\
-  \end{align*}
-  %% picture: three kinds of trees with a hole
-\end{xframe}
+% XXX if I have time.
+%
+% \begin{xframe}
+%   \begin{align*}
+%     T &= 1 + X \cdot T \cdot T \\
+%     \dd T X &= 0 + T^2 + X \dd T X T + X T \dd T X \\
+%   \end{align*}
+%   %% picture: three kinds of trees with a hole
+% \end{xframe}
 
 % \begin{xframe}
 %   \begin{align*}
@@ -431,26 +474,69 @@ Example proof:
 \end{xframe}
 
 \begin{xframe}{Constraining polynomial functors}
-  XXX consider $T = 1 + XT^2$ again.
-
-  XXX Constrain by $(aa)^*$.  Even-size structures.
+  \begin{itemize}
+  \item Generalize to multivariate polynomial functors \[ F : \Set^n
+    \to \Set \] i.e. $F(A_1, A_2, \dots, A_n)$
+  \item Given a (univariate) $F$ and some regular expression $R$ over
+    $\Sigma = \{A_1, \dots, A_n\}$
+  \item Find a multivariate $F_R$ with the ``same shape'' as $F$ but
+    whose sequences of elements come from a sequence of sets
+    corresponding to $R$
+  \end{itemize}
 \end{xframe}
 
-\begin{xframe}
-  XXX Show some example structures for $T$.  Constrain them by
-  $a^*ha^*$.  Derivative!
+\begin{xframe}{Example}
+     \begin{center}
+       \[ L(A) = 1 + A \times L(A) \]
+       \[ R = (AA)^* \]
+
+  \begin{tabular}{c m{3in}}
+  %   $L(\N) =$ &
+  % \begin{diagram}[width=200]
+  %   import           Diagrams
+
+  %   dia = lsD # frame 0.5
+  % \end{diagram}
+  % \\
+  $L_R(\N) =$ &
+  \begin{diagram}[width=200]
+    import           Diagrams
+
+    ls2 = [[], [3,4 :: Int], [1,4,2,6], [3,9,2,0,8,4]]
+
+    dia = vsep 1 (map drawList ls2) # frame 0.5
+  \end{diagram}
+  \end{tabular}
+  \end{center}
+
 \end{xframe}
 
-\begin{xframe}
-  XXX Constrain by $b^*ha^*$.  Like being halfway through a ``map''
-  operation.
+\begin{xframe}{Example}
+  \[ P = X + P^2 \]
+  \[ R = a^*ha^* \]
+  \begin{center}
+    \includegraphics[width=2in]{deriv-tree}
+
+    \onslide<2-> \dots this is just differentiation!
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Example}
+  \[ P = X + P^2 \]
+  \[ R = b^*ha^* \]
+  \begin{center}
+    \includegraphics[width=2in]{dissect-tree}
+
+  \onslide<2-> This is called a ``dissection'' and corresponds to
+  \emph{divided difference}.
+  \end{center}
 \end{xframe}
 
 \begin{xframe}{The problem}
   \begin{center}
   \textbf{Given a polynomial functor $F$ and regular expression $R$, compute
   a (system of mutually recursive, multivariate) polynomial functor(s)
-  corresponding to $F$ constrained by $R$}
+  corresponding to $F$ constrained by $R$.}
   \end{center}
 \end{xframe}
 
@@ -508,41 +594,81 @@ Example proof:
   Ultimately we are interested in $\sum_{q \in \mathrm{final}(D)} F_{1q}$.
 \end{xframe}
 
-\begin{xframe}{Example}
-  XXX Show derivative DFA and all $T_{ij}$
-\end{xframe}
+% XXX if time
+% \begin{xframe}{Example}
+%   XXX Show derivative DFA and all $T_{ij}$
+% \end{xframe}
 
 \begin{xframe}
-  %% XXX combine these into a single slide
-  \[ 0_{ij} = 0 \]
-\end{xframe}
+  \begin{itemize}
+  \item<+-> $0_{ij} = 0$
+  \item<+-> $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
+      j \end{cases}$
+  \item<+-> $X_{ij} = \text{(sum of) edge(s) from $i$ to $j$}$
+  \item<+-> $(F + G)_{ij} = F_{ij} + G_{ij}$
+  \item<+-> $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
+  \end{itemize} \bigskip
 
-\begin{xframe}
-  \[ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
-    j \end{cases} \]
-\end{xframe}
-
-\begin{xframe}
-  \[ X_{ij} = ? \]
-\end{xframe}
-
-\begin{xframe}
-  \[ (F + G)_{ij} = F_{ij} + G_{ij} \]
-\end{xframe}
-
-\begin{xframe}
-  \[ (F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj} \]
+  \onslide<6-> These are just the definitions of matrix operations!
 \end{xframe}
 
 \begin{xframe}
   %% XXX reword etc.
-  This is a \emph{semiring homomorphism} from the semiring of
-  polynomial functors to the semiring of $n \times n$ matrices of
-  (arity-$|\Sigma|$) polynomial functors
+  \begin{center}
+    This is a \emph{semiring homomorphism} from polynomial functors to
+    $n \times n$ matrices of (arity-$|\Sigma|$) polynomial functors!
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Example}
+\[ L = 1 + XL, R = (aa)^* \]
+\begin{center}
+\includegraphics[width=1in]{even-DFA} \\
+Transition matrix = $\begin{bmatrix}
+  0 & a \\ a & 0
+\end{bmatrix}$
+
+\begin{multline*}
+  \begin{bmatrix}
+    L_{11} & L_{12} \\
+    L_{21} & L_{22}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    0 & a \\
+    a & 0
+  \end{bmatrix}
+  \begin{bmatrix}
+    L_{11} & L_{12} \\
+    L_{21} & L_{22}
+  \end{bmatrix}
+  \\
+  =
+  \begin{bmatrix}
+    1 + a L_{21} & a L_{22} \\
+    a L_{11} & 1+ a L_{12}
+  \end{bmatrix}.
+\end{multline*}
+\end{center}
 \end{xframe}
 
 \begin{xframe}
-  XXX examples!
+  \begin{center}
+    Thank you! \bigskip
+
+    \includegraphics[width=1in]{deriv-tree}
+  \end{center}
 \end{xframe}
+
+% \begin{xframe}{Example}
+%   \includegraphics[width=2in]{deriv-DFA}
+
+%   \[ a^*ha^* \]
+% \end{xframe}
 
 \end{document}
