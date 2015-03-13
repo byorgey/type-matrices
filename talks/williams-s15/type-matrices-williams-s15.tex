@@ -1,4 +1,4 @@
-%% -*- mode: LaTeX; compile-command: "runhaskell Shake" -*-
+%% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams/cabal.sandbox.config exec runhaskell Shake" -*-
 \documentclass[xcolor=svgnames,12pt]{beamer}
 
 \usepackage[all]{xy}
@@ -10,6 +10,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Math typesetting
+
+%% a bit more space for matrices
+\setlength{\arraycolsep}{5pt}
+
+% regular expression alternation/choice operator
+\newcommand{\realt}{+}
+
+\newcommand{\sem}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+
+% \newcommand{\m}[1]{\mathbf{#1}}
+\newcommand{\m}[1]{\left[ {#1} \right]}
+\newcommand{\mD}[1]{\m{#1}_D}
+
+\newcommand{\dissect}{\includegraphics{Dissect}}
+\newcommand{\clowns}{\includegraphics{Clowns}}
+\newcommand{\jokers}{\includegraphics{Jokers}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,8 +63,8 @@
       \frametitle{}
 
       \begin{center}
-        \includegraphics[width=2in]{\sectionimg}
-        \bigskip
+%        \includegraphics[width=2in]{\sectionimg}
+%        \bigskip
 
         {\Huge \insertsectionhead}
       \end{center}
@@ -100,7 +116,7 @@
 \title{Polynomial Functors Constrained by Regular Expressions}
 \date{\theschool \\ \thedate}
 \author{Brent Yorgey}
-\titlegraphic{XXX}
+\titlegraphic{\includegraphics[width=1in]{deriv-tree}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -122,23 +138,39 @@
 
 \begin{xframe}
   \begin{center}
-    \includegraphics[width=2in]{dan}
+    Joint work with: \bigskip
 
-    Joint work with Dan Piponi
+    \includegraphics[width=2in]{dan} \\
+    Dan Piponi
   \end{center}
 \end{xframe}
 
-\def\sectionimg{dan.jpg}
+%% XXX section image: binary tree
+%\def\sectionimg{dan.jpg}
 \section{Polynomial functors}
 
 \begin{xframe}{Polynomial functors}
   \begin{center}
   \[ F : \Set \to \Set \]
 
-  XXX picture here of a set of elements being sent to set of
-  structures built from them.
+\begin{diagram}[width=200]
+import           Data.List.Split
+import           Diagrams
 
-  \emph{(parameterized) combinatorial families}
+elts = map node "abcd"
+eltSet = atop (roundedRect 6 6 0.5)
+       . centerXY
+       . vsep 1 . map (hsep 1)
+       . chunksOf 2
+       $ elts    -- $
+
+ls = ["aa", "abd", "badcab"]
+lsD = vsep 1 (map drawList ls ++ [ellipsis # rotateBy (1/4)])
+
+dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
+\end{diagram}
+
+  think: \emph{parameterized combinatorial families}
   \end{center}
 \end{xframe}
 
@@ -164,8 +196,10 @@
 \begin{xframe}{Polynomial functor isomorphisms}
   Note that
   \begin{gather*}
+    F + G \cong G + F
     F + (G + H) \cong (F + G) + H \\
     0 + F \cong F \cong F + 0 \\
+    F \cdot G \cong G \cdot F
     F \cdot (G \cdot H) \cong (F \cdot G) \cdot H \\
     1 \cdot F \cong F \cong F \cdot 1
   \end{gather*}
@@ -185,20 +219,330 @@ Example proof:
 \end{xframe}
 
 \begin{xframe}{Implicit/recursive definition}
-  XXX also allow implicit/recursive definitions
+  We also allow mutually recursive definitions:
+  \begin{align*}
+    F_1 &= \Phi_1(F_1, \dots, F_n) \\
+    &\vdots \\
+    F_n &= \Phi_n(F_1, \dots, F_n)
+  \end{align*}
 \end{xframe}
 
 \begin{xframe}{Example: binary trees}
-  XXX Example: binary trees
-  (show Haskell)
+  \[ T = 1 + X \cdot T \cdot T \]
+  \begin{center}
+  \begin{tabular}{c m{3in}}
+    $T(\N) =$ &
+  \begin{diagram}[width=200]
+    import           Diagrams.TwoD.Layout.Tree
+
+    import           Diagrams
+
+    dia = frame 0.5
+        . hsep 3
+        . (++ [ellipsis])
+        . map (centerY . drawTree)
+        $ trees  -- $
+  \end{diagram}
+  \end{tabular}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Example: binary trees}
+  \[ T = 1 + X \cdot T \cdot T \]
+  \begin{verbatim}
+  data Tree a = Empty | Node a (Tree a) (Tree a)
+  \end{verbatim}
 \end{xframe}
 
 \begin{xframe}{Example: even/odd lists}
-  XXX example: even/odd lists
+  \begin{align*}
+    E &= 1 + X \cdot O \\
+    O &= X \cdot E
+  \end{align*}
+
+  \begin{center}
+  \begin{tabular}{c m{3in}}
+    $E(\N) =$ &
+  \begin{diagram}[width=200]
+    import Diagrams
+    dia = hsep 2 (map drawList [[], [3,7], [3,7,2,8]] ++ [ellipsis])
+        # frame 0.5
+  \end{diagram}
+  \\
+  $O(\N) =$ &
+  \begin{diagram}[width=150]
+    import Diagrams
+    dia = hsep 2 (map drawList [[3], [3,7,2]] ++ [ellipsis])
+        # frame 0.5
+  \end{diagram}
+  \end{tabular}
+  \end{center}
 \end{xframe}
 
 \begin{xframe}{``Polynomial''?}
-  
+  All polynomial functors are isomorphic to \[ a_0 + a_1 X + a_2 X^2 +
+  a_3 X^3 + \dots \] with $a_i \in \N$ ($n = 1 + \dots + 1$)
+  \vspace{0.75in}
+
+  \begin{center}
+  {\small (mumble generating functions mumble blah \dots)}
+  \end{center}
+\end{xframe}
+
+%%% Do I need to say something about arbitrary arities?  OR can I just
+%%% sweep that under the rug?
+
+\begin{xframe}{``Functors''?}
+  These are actually \emph{functors} $\Set \to \Set$.  E.g.:
+  \[ T(x \mapsto x + 1) \]
+  \begin{center}
+  \begin{diagram}[width=200]
+    import Diagrams
+    dia =
+      [ drawTree (trees !! 2)
+      , arrowV (4 ^& 0)
+      , drawTree (fmap succ (trees !! 2))
+      ]
+      # map centerY
+      # hsep 2
+      # frame 0.5
+  \end{diagram}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Semirings}
+  Polynomial functors form a (commutative) \emph{semiring} (up to isomorphism).
+
+  \begin{itemize}
+  \item Associative operations $+$, $\cdot$ with identities $0$, $1$
+  \item $+$ is commutative (so is $\cdot$)
+  \item $\cdot$ distributes over $+$:   \[ F \cdot (G + H) \cong F \cdot G + F \cdot H \]
+
+  \end{itemize}
+
+\end{xframe}
+
+\begin{xframe}{Calculus!?}
+  \begin{center}
+  Analysis $\leftrightarrow$ Combinatorics \bigskip
+
+  Example: \emph{differentiation}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \begin{center}
+    \includegraphics[width=3in]{diff-page1}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \begin{center}
+  \begin{tabular}{c m{2in}}
+    $T(\N)$ &
+    \begin{diagram}[width=100]
+      import Diagrams
+      dia = drawTree (trees !! 3) # frame 0.5
+    \end{diagram}
+    \\
+    $\displaystyle \left(\dd T X \right)(\N)$ &
+    \begin{diagram}[width=100]
+      import Diagrams
+      dia = drawNTree (poke 3 (trees !! 3)) # frame 0.5
+    \end{diagram}
+  \end{tabular}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Proof!}
+  \[ \dd 1 X \cong 0 \]
+  % XXX if time, a picture
+  \begin{center}
+    $1$-structures have nowhere for a hole to go (they contain no
+    data)
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \[ \dd{X}{X} \cong 1 \]
+  % XXX picture
+\end{xframe}
+
+\begin{xframe}
+  \[ \dd{(F+G)}{X} \cong \dd F X + \dd G X \]
+  % XXX picture
+\end{xframe}
+
+\begin{xframe}
+  \[ \dd{(F \cdot G)}{X} \cong \dd F X \cdot G + F \cdot \dd G X \]
+  % XXX picture
+\end{xframe}
+
+\begin{xframe}{Who cares?}
+  \begin{center}
+    \begin{diagram}[width=100]
+      import Diagrams
+      dia = drawNTree (poke 3 (trees !! 3)) # frame 0.5
+    \end{diagram}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \begin{align*}
+    T &= 1 + X \cdot T \cdot T \\
+    \dd T X &= 0 + T^2 + X \dd T X T + X T \dd T X \\
+  \end{align*}
+  %% picture: three kinds of trees with a hole
+\end{xframe}
+
+% \begin{xframe}
+%   \begin{align*}
+%     \dd T X &= T^2 + X \dd T X T + X T \dd T X \\
+%     &= T^2 + 2XT \dd T X
+%     &= \mathsf{List}(2XT) \cdot T^2
+%   \end{align*}
+%   %% picture: chain of contexts etc.  Put this in if I have time.
+% \end{xframe}
+
+%% XXX section image: DFA
+%% \def\sectionimg{dan.jpg}
+\section{Regular expressions}
+
+\begin{xframe}{Regular expressions}
+  Regular expressions are a language of ``patterns'' for strings in
+  $\Sigma^*$ (finite sequences of elements from ``alphabet'' $\Sigma$)
+
+  \begin{align*}
+    R &::= \varnothing && \text{never matches} \\
+    &\mid \varepsilon && \text{empty string} \\
+    &\mid a \in \Sigma && \text{``a''} \\
+    &\mid R_1 \realt R_2 && \text{$R_1$ or $R_2$} \\
+    &\mid R_1R_2 && \text{$R_1$ followed by $R_2$} \\
+    &\mid R^* && \text{sequence of zero or more $R$}
+  \end{align*}
+\end{xframe}
+
+\begin{xframe}{Examples}
+  \begin{itemize}
+  \item $a^*b^*$ \quad matches ``b'', ``aaa'', ``aaaabbb'', \dots
+  \item $a^* b (c+d)$ \quad matches ``abd'', ``bd'', ``aaaabc'', \dots
+  \item $((a+b)^*c)^*$ \quad matches ``aababcacaabbabc'', \dots
+  \end{itemize}
+\end{xframe}
+
+\begin{xframe}{Constraining polynomial functors}
+  XXX consider $T = 1 + XT^2$ again.
+
+  XXX Constrain by $(aa)^*$.  Even-size structures.
+\end{xframe}
+
+\begin{xframe}
+  XXX Show some example structures for $T$.  Constrain them by
+  $a^*ha^*$.  Derivative!
+\end{xframe}
+
+\begin{xframe}
+  XXX Constrain by $b^*ha^*$.  Like being halfway through a ``map''
+  operation.
+\end{xframe}
+
+\begin{xframe}{The problem}
+  \begin{center}
+  \textbf{Given a polynomial functor $F$ and regular expression $R$, compute
+  a (system of mutually recursive, multivariate) polynomial functor(s)
+  corresponding to $F$ constrained by $R$}
+  \end{center}
+\end{xframe}
+
+\section{The solution}
+
+\begin{xframe}{DFAs}
+  \begin{center}
+    \textbf{D}eterministic \textbf{F}inite \textbf{A}utomata \bigskip
+
+    \includegraphics[width=2in]{example-DFA}
+
+    DFAs = machines for identifying sequences
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Punchline \#1}
+  DFAs and regular expressions are ``about the same thing''! (Kleene,
+  1951) \bigskip
+
+  Every regular expression has a corresponding DFA (and vice versa).
+\end{xframe}
+
+\begin{xframe}{Example}
+  \begin{center}
+    \includegraphics[width=2in]{even-DFA}
+
+    \[ (aa)^* \]
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Example}
+  \begin{center}
+    \includegraphics[width=2in]{deriv-DFA}
+
+    \[ a^*ha^* \]
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{The setup}
+  Given:
+  \begin{itemize}
+  \item Polynomial functor $F$
+  \item DFA $D$
+  \end{itemize} \medskip
+
+  \onslide<2->
+  Let $F_{ij}$ denote the (multivariate) polynomial functor
+  \begin{itemize}
+    \item with same shape as $F$
+    \item constrained by sequences which take the DFA from state $i$
+      to state $j$
+  \end{itemize} \medskip
+
+  \onslide<3->
+  Ultimately we are interested in $\sum_{q \in \mathrm{final}(D)} F_{1q}$.
+\end{xframe}
+
+\begin{xframe}{Example}
+  XXX Show derivative DFA and all $T_{ij}$
+\end{xframe}
+
+\begin{xframe}
+  %% XXX combine these into a single slide
+  \[ 0_{ij} = 0 \]
+\end{xframe}
+
+\begin{xframe}
+  \[ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
+    j \end{cases} \]
+\end{xframe}
+
+\begin{xframe}
+  \[ X_{ij} = ? \]
+\end{xframe}
+
+\begin{xframe}
+  \[ (F + G)_{ij} = F_{ij} + G_{ij} \]
+\end{xframe}
+
+\begin{xframe}
+  \[ (F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj} \]
+\end{xframe}
+
+\begin{xframe}
+  %% XXX reword etc.
+  This is a \emph{semiring homomorphism} from the semiring of
+  polynomial functors to the semiring of $n \times n$ matrices of
+  (arity-$|\Sigma|$) polynomial functors
+\end{xframe}
+
+\begin{xframe}
+  XXX examples!
 \end{xframe}
 
 \end{document}
