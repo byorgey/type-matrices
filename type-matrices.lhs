@@ -1403,6 +1403,8 @@ values of type $b$ to the left of the hole and values of type $a$ to
 the right (\pref{fig:divided-tree}).\footnote{Typically we substitute
   the unit type for |h|, but it makes the theory work more smoothly if
   we represent it initially with a unique type variable.}
+
+\todo{make sure this gets the right figure!}
 \begin{figure}
   \centering
 \begin{diagram}[width=150]
@@ -1534,6 +1536,7 @@ fact, we conjecture that the computational content of the proof, in
 the $n=2$ case, essentially consists of (the interesting part of) the
 impementation of the isomorphism |right|.
 
+\todo{make sure this gets the right figure!}
 \begin{figure}
   \centering
   \begin{diagram}[width=150]
