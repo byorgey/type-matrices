@@ -245,10 +245,10 @@ or contain a value of type |a|, followed by a value of type |b|,
 followed recursively by another |AList a b|.
 
 In fact, we can think of |AList a b| as containing values whose
-\term{shape} corresponds to the original |List| type (that is, we have
-the isomorphism $|AList a a| \cong |List a|$), but whose sequence of
-element types corresponds to the \term{regular expression} $(ab)^*$,
-that is, any number of repetitions of the sequence $ab$.
+\term{shape} corresponds to the original |List| type (that is, there
+is a natural embedding from |AList a a| into |List a|), but whose
+sequence of element types corresponds to the \term{regular expression}
+$(ab)^*$, that is, any number of repetitions of the sequence $ab$.
 
 We can easily generalize this idea to regular expressions other than
 $(ab)^*$ (though constructing the corresponding types may be
