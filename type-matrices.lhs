@@ -545,7 +545,7 @@ receives an input.  \pref{fig:dfa-example} shows an example.
   \begin{diagram}[width=200]
 import TypeMatricesDiagrams
 
-exampleDFA :: DFA (Diagram B R2, Bool)
+exampleDFA :: DFA (Diagram B, Bool)
 exampleDFA = dfa
   [ 1 --> (False, origin)
   , 2 --> (False, 5 ^& 0)
@@ -586,7 +586,7 @@ yielded such a sink state.  For example, the DFA from
   \begin{diagram}[width=200]
 import TypeMatricesDiagrams
 
-exampleDFA :: DFA (Diagram B R2)
+exampleDFA :: DFA (Diagram B)
 exampleDFA = dfa
   [ 1 --> (False, origin)
   , 2 --> (False, 5 ^& 0)
@@ -653,7 +653,7 @@ are precisely those matching the regular expression $b^*ha^*$.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-bstarhastar :: DFA (Diagram B R2)
+bstarhastar :: DFA (Diagram B)
 bstarhastar = dfa
   [ 1 --> (False, origin)
   , 2 --> (True, 5 ^& 0)
@@ -745,7 +745,7 @@ in \pref{fig:ab-star-dfa}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-abStar :: DFA (Diagram B R2)
+abStar :: DFA (Diagram B)
 abStar = dfa
   [ 1 --> (True, origin)
   , 2 --> (False, 5 ^& 0)
@@ -1080,7 +1080,7 @@ expression $(aa)^*$, corresponding to the DFA shown in
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-aaStar :: DFA (Diagram B R2)
+aaStar :: DFA (Diagram B)
 aaStar = dfa
   [ 1 --> (True, origin)
   , 2 --> (False, 5 ^& 0)
@@ -1270,7 +1270,7 @@ expression $a^*ha^*$, shown in~\pref{fig:DFA-deriv}.
   \begin{diagram}[width=100]
 import TypeMatricesDiagrams
 
-deriv :: DFA (Diagram B R2)
+deriv :: DFA (Diagram B)
 deriv = dfa
   [ 1 --> (False, origin)
   , 2 --> (True , 5 ^& 0)
@@ -1542,7 +1542,7 @@ impementation of the isomorphism |right|.
   \begin{diagram}[width=150]
 import TypeMatricesDiagrams
 
-deriv :: DFA (Diagram B R2)
+deriv :: DFA (Diagram B)
 deriv = dfa
   [ 1 --> (False, origin)
   , 2 --> (False, 5 ^& 0)
@@ -1732,7 +1732,7 @@ under NSF 1218002, CCF-SHF Small: \emph{Beyond Algebraic Data Types:
 %%   \begin{diagram}[width=100]
 %% import TypeMatricesDiagrams
 
-%% noAA :: DFA (Diagram B R2)
+%% noAA :: DFA (Diagram B)
 %% noAA = dfa
 %%   [ 1 --> (True, origin)
 %%   , 2 --> (True, 5 ^& 0)

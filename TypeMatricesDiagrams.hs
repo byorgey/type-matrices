@@ -3,18 +3,20 @@
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE TypeSynonymInstances      #-}
-{-# LANGUAGE ViewPatterns              #-}
 
 module TypeMatricesDiagrams where
 
-import qualified Data.Map                       as M
-import           Data.Maybe                     (fromMaybe)
+import qualified Data.Map                  as M
+import           Data.Maybe                (fromMaybe)
 import           Data.Tree
 import           Diagrams.Backend.Cairo
 import           Diagrams.Core.Envelope
 import           Diagrams.Prelude
 import           Diagrams.TwoD.Layout.Tree
 import           Diagrams.TwoD.Text
+import           Linear.V2                 (perp)
+
+type Dia = QDiagram Cairo V2 Double Any
 
 data Type = A | B | H
 
@@ -22,7 +24,7 @@ drawType A = text "a" # italic # centerX <> square 2 # fc yellow
 drawType B = text "b" # italic # centerX <> circle 1 # fc red
 drawType H = text "h" # italic # centerX <> circle 1 # fc white # dashingG [0.2,0.2] 0
 
-renderT :: (Renderable Text b, Renderable (Path R2) b) => Tree (Maybe Type) -> Diagram b R2
+renderT :: Tree (Maybe Type) -> Diagram B
 renderT
   = renderTree
       (\x -> case x of
@@ -32,18 +34,17 @@ renderT
       (~~)
   . symmLayout' (with & slHSep .~ 4 & slVSep .~ 3)
 
-arcArrow :: Renderable (Path R2) b => P2 -> P2 -> Double -> Double -> Diagram b R2 -> Diagram b R2
+arcArrow :: P2 Double -> P2 Double -> Double -> Double -> Diagram B -> Diagram B
 arcArrow p1 p2 ht offs label
     =  aDia
     <> label
-       # moveTo (alerp p1 p2 0.5 .+^ (signum ht *^ ((abs ht + envelopeS ((-signum ht) *^ perp v) label) *^ normalized (perp v))))
+       # moveTo (lerp 0.5 p1 p2 .+^ (signum ht *^ ((h + envelopeS ((-signum ht) *^ perp v) label) *^ signorm (perp v))))
   where
-    perp (coords -> x :& y) = (-y) ^& x
     h = abs ht
     straight = h < 0.00001
     v  = p2 .-. p1
-    d = magnitude (p2 .-. p1)
-    th  = acos ((d*d - 4*h*h)/(d*d + 4*h*h))
+    d  = norm (p2 .-. p1)
+    th = acos ((d*d - 4*h*h)/(d*d + 4*h*h))
     r = d/(2*sin th)
     phi | straight = 0 @@ rad
         | otherwise = (offs/r) @@ rad
@@ -54,7 +55,7 @@ arcArrow p1 p2 ht offs label
     a | straight
       = hrule (d - 2*offs) # alignL # translateX offs
       | otherwise
-      = arc st end
+      = arc (xDir # rotate st) (end ^-^ st)
       # scale r
       # translateY ((if ht > 0 then negate else id) (r-h))
       # translateX (d/2)
@@ -67,20 +68,20 @@ arcArrow p1 p2 ht offs label
         <>
           a  # stroke
         )
-        # rotate (direction v)
+        # rotate (signedAngleBetween v unitX)
         # moveTo p1
 
-data DFA e = DFA (M.Map Int (Bool,P2)) (M.Map (Int,Int) e)
+data DFA e = DFA (M.Map Int (Bool, P2 Double)) (M.Map (Int,Int) e)
 
-class DrawableEdge b e where
-  drawEdge :: M.Map Int (Bool,P2) -> (Int,Int) -> e -> Diagram b R2
+class DrawableEdge e where
+  drawEdge :: M.Map Int (Bool, P2 Double) -> (Int,Int) -> e -> Diagram B
 
-instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2, Bool) where
+instance DrawableEdge (Dia, Bool) where
   drawEdge states (i,j) (label,flp)
     | i == j
     = arcArrow
-        (pti # translateY (-1.4) # rotateAbout pti (negateV theta))
-        (pti # translateY (-1.4) # rotateAbout pti theta)
+        (pti # translateY (-1.4) # rotateAround pti (negated theta))
+        (pti # translateY (-1.4) # rotateAround pti theta)
         (-1.3)
         0
         label
@@ -92,7 +93,7 @@ instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2, Bool) where
       pti = stPos i
       ptj = stPos j
 
-instance Renderable (Path R2) b => DrawableEdge b (Diagram b R2) where
+instance DrawableEdge Dia where
   drawEdge states e label = drawEdge states e (label, False)
 
 infixr 3 >--
@@ -102,8 +103,7 @@ i >-- (a,j) = ((i,j),a)
 
 dfa states edges = DFA (M.fromList states) (M.fromList edges)
 
-drawDFA :: (Renderable Text b, Renderable (Path R2) b, DrawableEdge b e)
-        => DFA e -> Diagram b R2
+drawDFA :: (DrawableEdge e) => DFA e -> Diagram B
 drawDFA (DFA states edges) =
   drawEdges states (M.assocs edges) <> drawStates (M.assocs states)
 
