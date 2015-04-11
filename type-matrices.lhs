@@ -475,8 +475,8 @@ semirings which, though not novel, may not be as familiar to readers.
 \subsection{Regular expressions}
 \label{sec:regexps}
 
-A \term{regular expression} over an alphabet $\Sigma$ is a term of the
-following grammar:
+A \term{regular expression} \citep{kleene1951representation} over an
+alphabet $\Sigma$ is a term of the following grammar:
 \[ R ::= \bullet \mid \varepsilon \mid a \in \Sigma \mid R \alt R  \mid RR \mid R^* \]
 
 When writing regular expressions, we allow parentheses for
@@ -713,7 +713,7 @@ elements in $R$ is also a semiring, where matrix addition and
 multiplication are defined in the usual manner in terms of addition
 and multiplication in $R$.  If $R$ is a star semiring, then a star
 operator can also be defined for matrices; for details see
-\citet{dolan2013fun}.
+\citet{lehmann1977algebraic} and \citet{dolan2013fun}.
 
 Finally, a \term{semiring homomorphism} is a mapping from the elements
 of one semiring to another that preserves the semiring structure, that
@@ -985,19 +985,20 @@ paths is the sum of such paths over all possible $k$; this is exactly
 what is computed by the matrix multiplication $M_G^{m-1} M = M_G^m$.
 
 However, as observed independently by \citet{oconnor2011shortestpaths}
-and \citet{dolan2013fun}, this can be generalized by parameterizing
+and \citet{dolan2013fun}, and as is standard weighted automata theory
+\citep{droste2009handbook}, this can be generalized by parameterizing
 the construction over an arbitrary semiring.  In particular, we may
-suppose that the edges of $G$ are labeled by elements of some
-semiring $R$, and form the adjacency matrix $M_G$ as before, but using
-the labels on edges, and $0 \in R$ for missing edges.  The $m$th power
-of $M_G$ still encodes information about length-$m$ paths, but the
+suppose that the edges of $G$ are labeled by elements of some semiring
+$R$, and form the adjacency matrix $M_G$ as before, but using the
+labels on edges, and $0 \in R$ for missing edges.  The $m$th power of
+$M_G$ still encodes information about length-$m$ paths, but the
 interpretation depends on the specific choice of $R$ and on the edge
-labeling.  Choosing the semiring $(\N,+,\cdot)$ with all edges
-labeled by $1$ gives us a count of distinct paths, as before.  If we
-choose $(|Bool|, \lor, \land)$ and label each edge with |True|, the
-$i,j$ entry of $M_G^m$ tells us whether there exists any path of
-length $m$ from $i$ to $j$.  Choosing $(\R, \min, +)$ and labeling
-edges with costs yields the minimum cost of length-$m$ paths; choosing
+labeling.  Choosing the semiring $(\N,+,\cdot)$ with all edges labeled
+by $1$ gives us a count of distinct paths, as before.  If we choose
+$(|Bool|, \lor, \land)$ and label each edge with |True|, the $i,j$
+entry of $M_G^m$ tells us whether there exists any path of length $m$
+from $i$ to $j$.  Choosing $(\R, \min, +)$ and labeling edges with
+costs yields the minimum cost of length-$m$ paths; choosing
 $(\mathcal{P}(\Sigma^*), \cup, \cdot)$ (that is, languages over some
 alphabet $\Sigma$ under union and pairwise concatenation) and labeling
 edges with elements from $\Sigma$ yields sets of words corresponding
