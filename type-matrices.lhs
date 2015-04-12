@@ -695,8 +695,9 @@ Examples of semirings include:
 \begin{itemize}
 \item $(|Bool|, \lor, |False|, \land, |True|)$, boolean values under disjunction and conjunction;
 \item $(\N, +, 0, \cdot, 1)$, the natural numbers under addition and multiplication;
-\item $(\R^+, \max, 0, +, 0)$, the nonnegative real numbers under maximum and addition;
-\item the set of regular languages form a semiring under the operations of union
+\item $(\R^+ \cup \{-\infty\}, \max, -\infty, +, 0)$, the nonnegative
+  real numbers (adjoined with $-\infty$) under maximum and addition;
+\item the set of regular languages forms a semiring under the operations of union
   and pairwise concatenation, with $0 = \varnothing$ and $1 = \{\varepsilon\}$.
 \end{itemize}
 
@@ -1603,6 +1604,8 @@ explore the relationship in more detail.
 This work was partially supported by the National Science Foundation,
 under NSF 1218002, CCF-SHF Small: \emph{Beyond Algebraic Data Types:
   Combinatorial Species and Mathematically-Structured Programming}.
+
+Thanks to Lukas Mai for pointing out some errors in a draft.
 
 %% \printbibliography
 \bibliographystyle{plainnat}
