@@ -9,6 +9,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %include polycode.fmt
+%include forall.fmt
 %include lhs2TeX.sty
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,7 +76,7 @@
 % Notes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newif\ifcomments\commentsfalse
+\newif\ifcomments\commentstrue
 
 \ifcomments
 \newcommand{\authornote}[3]{\textcolor{#1}{[#3 ---#2]}}
@@ -113,7 +114,8 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\R}{\mathbb{R}}
 
-\newcommand{\leafseq}[1]{\mathcal{S}(#1)}
+\newcommand{\leafseqsym}{\mathcal{S}}
+\newcommand{\leafseq}[1]{\leafseqsym(#1)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,14 +179,15 @@
 
   The primary interest of this result lies in the fact that certain
   regular languages correspond to previously studied derivative-like
-  operations on polynomial functors.  For example, the regular
-  language $a^*ha^*$ yields the \emph{derivative} of a polynomial
-  functor, and $b^*ha^*$ its \emph{dissection}.  Using our framework,
-  we are able to unify and lend new perspective on this previous work.
-  For example, it turns out that dissection of polynomial functors
-  corresponds to taking \emph{divided differences} of real or complex
-  functions, and, guided by this parallel, we show how to generalize
-  binary dissection to $n$-ary dissection.
+  operations on polynomial functors, which have proven useful in
+  program construction.  For example, the regular language $a^*ha^*$
+  yields the \emph{derivative} of a polynomial functor, and $b^*ha^*$
+  its \emph{dissection}.  Using our framework, we are able to unify
+  and lend new perspective on this previous work.  For example, it
+  turns out that dissection of polynomial functors corresponds to
+  taking \emph{divided differences} of real or complex functions, and,
+  guided by this parallel, we show how to generalize binary dissection
+  to $n$-ary dissection.
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -234,19 +237,26 @@ dia = lst # frame 0.5
 One way to encode such an
 alternating list is with a pair of mutually recursive types, as follows:
 
-> data AList a b  =  ANil
->                 |  ACons a (BList a b)
+%format List1
+%format List2
+%format Nil1
+%format Cons1
+%format Cons2
+
+> data List1 a b  =  Nil1
+>                 |  Cons1 a (List2 a b)
 >
-> data BList a b  =  BCons b (AList a b)
+> data List2 a b  =  Cons2 b (List1 a b)
 
 The required type is
-|AList a b|: a value of type |AList a b| must be either empty (|ANil|)
+|List1 a b|: a value of type |List1 a b| must be either empty (|Nil1|)
 or contain a value of type |a|, followed by a value of type |b|,
-followed recursively by another |AList a b|.
+followed recursively by another |List1 a b|.
 
-In fact, we can think of |AList a b| as containing values whose
+In fact, we can think of |List1 a b| as containing values whose
 \term{shape} corresponds to the original |List| type (that is, there
-is a natural embedding from |AList a a| into |List a|), but whose
+is a natural embedding from |List1 a a| into |List a|, \ie an
+injective polymorphic function |forall a. List1 a a -> List a|), but whose
 sequence of element types corresponds to the \term{regular expression}
 $(ab)^*$, that is, any number of repetitions of the sequence $ab$.
 
@@ -261,24 +271,24 @@ of constructing a corresponding algebraic data type ``of the same
 shape'' but with sequences of element types matching the regular
 expression.
 
-%format TreeAB = Tree "_{AB}"
-%format TreeAA = Tree "_{AA}"
-%format TreeBB = Tree "_{BB}"
-%format TreeBA = Tree "_{BA}"
+%format Tree12
+%format Tree11
+%format Tree22
+%format Tree21
 
-%format ForkAB = Fork "_{AB}"
-%format ForkAB' = Fork "_{AB}^\prime"
-%format ForkAA = Fork "_{AA}"
-%format ForkAA' = Fork "_{AA}^\prime"
-%format ForkBB = Fork "_{BB}"
-%format ForkBB' = Fork "_{BB}^\prime"
-%format ForkBA = Fork "_{BA}"
-%format ForkBA' = Fork "_{BA}^\prime"
+%format Fork12
+%format Fork12' = Fork12 "^\prime"
+%format Fork11
+%format Fork11' = Fork11 "^\prime"
+%format Fork22
+%format Fork22' = Fork22 "^\prime"
+%format Fork21
+%format Fork21' = Fork21 "^\prime"
 
-%format LeafAB = Leaf "_{AB}"
-%format LeafAA = Leaf "_{AA}"
-%format LeafBB = Leaf "_{BB}"
-%format LeafBA = Leaf "_{BA}"
+%format Leaf12
+%format Leaf11
+%format Leaf22
+%format Leaf21
 
 For example, consider the following type |Tree| of nonempty binary
 trees with data stored in the leaves:
@@ -325,71 +335,71 @@ dia = renderT t # frame 0.5
   \label{fig:alt-tree}
 \end{figure}
 
-Suppose |TreeAB a b| is such a type. Values of type |TreeAB a b|
+Suppose |Tree12 a b| is such a type. Values of type |Tree12 a b|
 cannot consist solely of a leaf node: there must be at least two
 elements, one of type |a| and one of type |b|.  Hence a value of type
-|TreeAB a b| must be a fork consisting of two subtrees.  There are two
+|Tree12 a b| must be a fork consisting of two subtrees.  There are two
 ways this could happen.  The left subtree could start with |a| and end
 with |b|, in which case the right subtree must also start with |a| and
 end with |b|.  Or the left subtree could start with |a| and end with
 |a|, in which case the right subtree must start with |b| and end with
 |b|. So we are led to define
-> data TreeAB a b  =  ForkAB  (TreeAB a b)  (TreeAB a b)
->                  |  ForkAB' (TreeAA a b)  (TreeBB a b)
+> data Tree12 a b  =  Fork12  (Tree12 a b)  (Tree12 a b)
+>                  |  Fork12' (Tree11 a b)  (Tree22 a b)
 %if False
 >                     deriving Show
 %endif
-where |TreeAA a b| represents alternating trees with left and
-rightmost elements both of type |a|, and similarly for |TreeBB|.
+where |Tree11 a b| represents alternating trees with left and
+rightmost elements both of type |a|, and similarly for |Tree22|.
 
-Of course, we are now left with the task of defining |TreeAA| and
-|TreeBB|, but we can carry out similar reasoning: for example a
-|TreeAA| value can either be a single leaf of type |a|, or a branch
-with a |TreeAB| and |TreeAA|, or a |TreeAA| and |TreeBA|.  All told,
+Of course, we are now left with the task of defining |Tree11| and
+|Tree22|, but we can carry out similar reasoning: for example a
+|Tree11| value can either be a single leaf of type |a|, or a branch
+with a |Tree12| and |Tree11|, or a |Tree11| and |Tree21|.  All told,
 we obtain
-> data TreeAA a b  =  LeafAA a
->                  |  ForkAA  (TreeAB a b)  (TreeAA a b)
->                  |  ForkAA' (TreeAA a b)  (TreeBA a b)
+> data Tree11 a b  =  Leaf11 a
+>                  |  Fork11  (Tree12 a b)  (Tree11 a b)
+>                  |  Fork11' (Tree11 a b)  (Tree21 a b)
 %if False
 >                     deriving Show
 %endif
-> data TreeBB a b  =  LeafBB b
->                  |  ForkBB  (TreeBB a b)  (TreeAB a b)
->                  |  ForkBB' (TreeBA a b)  (TreeBB a b)
+> data Tree22 a b  =  Leaf22 b
+>                  |  Fork22  (Tree22 a b)  (Tree12 a b)
+>                  |  Fork22' (Tree21 a b)  (Tree22 a b)
 %if False
 >                     deriving Show
 %endif
-> data TreeBA a b  =  ForkBA  (TreeBB a b)  (TreeAA a b)
->                  |  ForkBA' (TreeBA a b)  (TreeBA a b)
+> data Tree21 a b  =  Fork21  (Tree22 a b)  (Tree11 a b)
+>                  |  Fork21' (Tree21 a b)  (Tree21 a b)
 %if False
 >                     deriving Show
 %endif
-Any tree of type |TreeAB a b| is now constrained to have alternating
-leaf node types.  For example, here are two values of type |TreeAB Int
+Any tree of type |Tree12 a b| is now constrained to have alternating
+leaf node types.  For example, here are two values of type |Tree12 Int
 Char|:
 
 %format ex1
 %format ex2
 
-> ex1, ex2 :: TreeAB Int Char
-> ex1 = ForkAB' (LeafAA 1) (LeafBB 'a')
-> ex2 = ForkAB' (ForkAA ex1 (LeafAA 2)) (LeafBB 'b')
+> ex1, ex2 :: Tree12 Int Char
+> ex1 = Fork12' (Leaf11 1) (Leaf22 'a')
+> ex2 = Fork12' (Fork11 ex1 (Leaf11 2)) (Leaf22 'b')
 
 |ex2| can also be seen in pictorial form in \pref{fig:alt-tree-hs}.
 
 \begin{figure}
   \centering
 \begin{tikzpicture}[level/.style={sibling distance=50mm/#1}]
-\node {|ForkAB'|}
+\node {|Fork12'|}
   child {
-      node {|ForkAA|}
-          child {node {|ForkAB'|}
-                    child {node {|LeafAA 1|}}
-                    child {node {|LeafBB "a"|}}
+      node {|Fork11|}
+          child {node {|Fork12'|}
+                    child {node {|Leaf11 1|}}
+                    child {node {|Leaf22 "a"|}}
           }
-          child {node {|LeafAA 1|}}
+          child {node {|Leaf11 1|}}
   }
-  child {node {|LeafBB "b"|}};
+  child {node {|Leaf22 "b"|}};
 \end{tikzpicture}
   \caption{A tree with alternating leaf types}
   \label{fig:alt-tree-hs}
@@ -494,7 +504,7 @@ particular,
   containing the empty string.
 \item $\sem a = \{a\}$ denotes the singleton set containing the
   length-$1$ sequence $a$.
-\item $\sem{R_1 \union R_2} = \sem{R_1} \union \sem{R_2}$.
+\item $\sem{R_1 + R_2} = \sem{R_1} \union \sem{R_2}$.
 \item $\sem{R_1 R_2} = \sem{R_1} \sem{R_2}$, where $L_1 L_2$ denotes
   pairwise concatenation of sets, \[ L_1 L_2 = \{ s_1 s_2 \mid s_1 \in
   L_1, s_2 \in L_2 \}. \]
@@ -513,21 +523,26 @@ some regular expression $R$.
 \subsection{DFAs}
 \label{sec:dfas}
 
+\newcommand{\accept}{\mathcal{A}}
+
 A {\it deterministic finite automaton} (DFA) is a quintuple $(Q,
-\Sigma, \delta, q_0, F)$ consisting of
+\Sigma, \delta, q_0, \accept)$ consisting of
 \begin{itemize}
 \item a nonempty set of states $Q$,
 \item a set of input symbols $\Sigma$,
 \item a \term{transition function} $\delta : Q\times\Sigma \to Q$,
 \item a distinguished \term{start state} $q_0 \in Q$, and
-\item a set $F \subseteq Q$ of \term{accept states}.
+\item a set $\accept \subseteq Q$ of \term{accept states}. (One often
+  sees $F$ used to represent the set of accept or ``final'' states,
+  but this would conflict with our use of $F$ to represent functors
+  later.)
 \end{itemize}
 
 We can ``run'' a DFA on an input string by feeding it symbols from the
 string one by one.  When encountering the symbol $s$ in state $q$, the
 DFA changes to state $\delta(q,s)$.  If a DFA beginning in its start
 state $q_0$ ends in state $q'$ after being fed a string in this way,
-we say the DFA \term{accepts} the string if $q' \in F$, and
+we say the DFA \term{accepts} the string if $q' \in \accept$, and
 \term{rejects} the string otherwise.  Thus, a DFA $D$ can be seen as
 defining a subset $L_D \subseteq \Sigma^*$ of the set of all possible
 strings, namely, those strings which it accepts.
@@ -605,7 +620,9 @@ dia = drawDFA exampleDFA # frame 0.5
   \label{fig:dfa-example-simpl}
 \end{figure}
 
-As is standard, we may define $\delta^* : Q \times \Sigma^* \to Q$ as
+\newcommand{\pfun}{\rightharpoonup}
+
+As is standard, we may define $\delta^* : Q \times \Sigma^* \pfun Q$ as
 an iterated version of $\delta$:
 \begin{align*}
   \delta^*(q,\varepsilon) & = q \\
@@ -615,9 +632,10 @@ an iterated version of $\delta$:
 If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
 ``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.  More
 generally, given a string $\omega$, we can partially apply $\delta^*$
-to obtain a ``driving function'' $\chi : Q \to Q$ which encodes how the string
-$\omega$ drives the DFA: if the DFA starts in state $q$ then after
-processing $\omega$ it will end in state $\chi(q)$.
+to obtain a ``driving function'' $\chi : Q \pfun Q$ which encodes how
+the string $\omega$ drives the DFA: if the DFA starts in state $q$
+then after processing $\omega$ it will either halt with an error or
+end in state $\chi(q)$.
 
 % Given any pair
 % of states $q_1$ and $q_2$ in $Q$ we can consider the set of strings
@@ -673,6 +691,11 @@ dia = drawDFA bstarhastar # frame 0.5
 The precise details of these constructions are not important for the
 purposes of this paper; interested readers should consult a reference
 such as \citet{sipser2012introduction}.
+We note in passing that one can also associate \emph{nondeterministic}
+finite automata (NFAs) to regular expressions, and the remainder of
+the story of this paper could probably be retold using NFAs.  However,
+it is not clear whether we would gain any benefit from making this
+generalization, so we will stick with the simpler notion of DFAs.
 
 \subsection{Semirings}
 \label{sec:semirings}
@@ -707,7 +730,11 @@ satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r, \]
 for all $r \in R$.  Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$
 (although such infinite sums do not necessarily make sense in all
 semirings).  The semiring of regular languages is closed, via Kleene
-star.
+star.\footnote{In fact, regular languages (and several of the other
+  examples above) form \term{Kleene algebras}, which essentially add
+  to a star semiring the requirement that $+$ is idempotent ($a + a =
+  a$). However, for our purposes we do not need the extra
+  restriction.}
 
 If $R$ is a semiring, then the set of $n \times n$ matrices with
 elements in $R$ is also a semiring, where matrix addition and
@@ -730,8 +757,12 @@ multiplication.
 
 Viewing regular expressions through the lens of DFAs gives us exactly the
 tools we need to generalize our \emph{ad hoc} analysis from the
-introduction.   Consider again the task of encoding a type with the
-same shape as
+introduction.
+
+\subsection{A more principled derivation}
+\label{sec:principled}
+
+Consider again the task of encoding a type with the same shape as
 \begin{spec}
 data Tree a  =  Leaf a
              |  Fork (Tree a) (Tree a)
@@ -794,38 +825,48 @@ fact, we have already carried out this exact analysis in the
 introduction, but it is now a bit less ad hoc.  In particular, we can
 now see that we end up with four mutually recursive types precisely
 because the DFA for $(ab)^*$ has two states, and we need one type for
-each ordered pair of states.\footnote{In general, we will end up with
-  \emph{at most} $||Q||^2$ mutually recursive types.  Depending on the
-  DFA and on which types we are particularly interested in, some of
-  the generated types may be uninhabited or irrelevant.}
+each ordered pair of states.
+
+In general, given a DFA with states $Q$ and alphabet $\Sigma = \{a_1,
+\dots, a_n\}$, we get a mutually recursive family of types \[ T_{ij}\
+a_1\ \dots\ a_n \] indexed by a pair of states from $Q$ and by one
+type argument for each alphabet symbol. We are ultimately interested
+in types of the form $T_{q_0 k}$ where $k \in \accept$, that is, types
+which are indexed by the start state and some accept state of the DFA.
 
 Though shifting our point of view to DFAs has given us a better
 framework for determining which types we must define, we still had to
 reason on a case-by-case basis to determine the definitions of these
-types.  It turns out that we can concisely and elegantly formalize
-this process in terms of \emph{matrices}.
+types.  The next two sections show how we can concisely and elegantly
+formalize this process in terms of \emph{matrices}.
+
+\subsection{Polynomial Functors}
+\label{sec:polynomial-functors}
+
+\newcommand{\Fun}{\ensuremath{\mathbf{Fun}}}
 
 We now abstract away from the particular details of Haskell data types
-and work in terms of a simple language of \term{polynomial
-  functors}.
+and work in terms of a simple language of \term{polynomial functors}.
+We inductively define the universe \Fun\ of polynomial functors as
+follows, simultaneously giving both syntax and semantics.
 \begin{itemize}
-\item $K_A$ denotes the constant functor $K_A\ a = A$ which ignores
-  its argument and yields $A$.
-\item $X$ denotes the identity functor $X\ a = a$.
-\item Given two functors $F$ and $G$, we can form their sum, $(F + G)\
-  a = F\ a + G\ a$.
+\item $K_A \in \Fun$ denotes the constant functor $K_A\ a = A$,
+  which ignores its argument and yields $A$.
+\item $X \in \Fun$ denotes the identity functor $X\ a = a$.
+\item Given $F, G \in \Fun$, we can form their sum, $F + G \in \Fun$,
+  with $(F + G)\ a = F\ a + G\ a$.
 \item We can also form products of functors, $(F \times G)\ a = F\ a
   \times G\ a$.  We often abbreviate $F \times G$ as $FG$.
-\item We also allow functors to be defined by mutually recursive
-  systems of equations \[ 
+\item Finally, we allow functors to be defined by mutually recursive
+  systems of equations \[
   \begin{cases}
     F_1 = \Phi_1(F_1, \dots, F_n) \\
     \vdots \\
     F_n = \Phi_n(F_1, \dots, F_n),
   \end{cases}
   \]
-  where each $\Phi_k$ is a polynomial functor expression which is
-  allowed to mention $F_1, \dots, F_n$, and interpret them using a
+  where each $\Phi_k$ is a polynomial functor expression with free
+  variables in $\{F_1, \dots, F_n\}$, and interpret them using a
   standard least fixed point semantics.  For example, the single
   recursive equation $L = 1 + X \times L$ denotes the standard type of
   (finite) polymorphic lists.  As another example, the pair of
@@ -844,18 +885,20 @@ K_{|Void|}$ (|Void| denotes the type with no inhabitants).  We
 therefore will simply write $0$ and $1$ in place of $K_{|Unit|}$ and
 $K_{|Void|}$.  In fact, functors also form a star semiring, with the
 polymorphic list type playing the role of the star
-operator.
+operator, that is, $F^* = 1 + F \times F^*$.
 
 The above language also generalizes naturally from unary to $n$-ary
-functors:
+functors.  We write $\Fun_n$ for the universe of $n$-ary polynomial
+functors, so $\Fun = \Fun_1$.
 \begin{itemize}
 \item $K_A\ a_1\ \dots\ a_n = A$.
 \item The identity functor $X$ generalizes to the family of
-  projections $X_k$, where \[ X_k\ a_1\ \dots\ a_n = a_k. \] That is,
-  $X_k$ is the functor which yields its $k$th argument, and may be
-  regarded as an $n$-ary functor for any $n \geq k$.  More generally,
+  projections $X_m$, where \[ X_m\ a_1\ \dots\ a_n = a_m. \] That is,
+  $X_m$ is the functor which yields its $m$th argument, and may be
+  regarded as an $n$-ary functor for any $n \geq m$.  More generally,
   the arguments to a functor can be labeled by the elements of some
-  alphabet $\Sigma$, instead of being numbered positionally.  In that
+  alphabet $\Sigma$, instead of being numbered positionally, and we
+  write $\Fun_\Sigma$ for the universe of such functors.  In that
   case, for $a \in \Sigma$ we write $X_a$ for the projection which
   picks out the argument labeled by $a$.
 \item $(F + G)\ a_1\ \dots\ a_n = (F\ a_1\ \dots\ a_n) +
@@ -871,10 +914,15 @@ As an example, the Haskell type
 data S a b = Apple a | Banana b | Fork (S a b) (S a b)
 \end{spec}
 corresponds to the bifunctor (that is, $2$-ary functor) $S = X_a + X_b
-+ S \times S$; we may also abbreviate $S \times S$ as $S^2$.  
++ S \times S$; we may also abbreviate $S \times S$ as $S^2$.
 
-Given a functor $F$ we may define its potential sequences of leaf
-types, $\leafseq{F}$, by an inorder traversal, that is,
+\newcommand{\power}{\mathcal{P}}
+
+By induction over functor descriptions, we may define $\leafseqsym :
+\Fun_\Sigma \to \power(\Sigma^*)$ which gives the sequences of leaf
+types that can occur in the values of a given functor.  Thinking of
+values of a given functor as trees, $\leafseq{-}$ corresponds to an
+inorder traversal.  That is:
 \begin{align*}
 \leafseq{0}   &= \varnothing \\
 \leafseq{K_A} &= \{\varepsilon\} \quad (A \neq |Void|) \\
@@ -882,20 +930,26 @@ types, $\leafseq{F}$, by an inorder traversal, that is,
 \leafseq{F + G} &= \leafseq{F} \union \leafseq{G} \\
 \leafseq{F \times G} &= \leafseq{F}\leafseq{G}
 \end{align*}
-Finally, given a system $F_k = \Phi_k(F_1, \dots, F_n)$ we simply set
-\[ \leafseq{F_k} = \leafseq{\Phi_k(F_1, \dots, F_n)} \]
-for each $k$, and take the least fixed point (ordering sets by
+Finally, given a system $F_m = \Phi_m(F_1, \dots, F_n)$ we simply set
+\[ \leafseq{F_m} = \leafseq{\Phi_m(F_1, \dots, F_n)} \]
+for each $m$, and take the least fixed point (ordering sets by
 inclusion).  For example, given the list functor $L = 1 + XL$, we
 obtain \[ \leafseq{L} = \{ \varepsilon \} \union \{ 1\sigma \mid
 \sigma \in \leafseq{L} \} \] whose least fixed point is the infinite
 set $\{ \varepsilon, 1, 11, 111, \dots \}$ as expected.
 
-Suppose we have a unary functor $F$ and some DFA $D =
-(Q,\Sigma,\delta,q_o,F)$.  Let $F_{ij}$ denote the type with the same
-shape as $F$ but whose sequences of leaf types take $D$ from state $i$
-to state $j$.  Note that $F_{ij}$ has arity $||\Sigma||$, that is,
-there is a leaf type corresponding to each alphabet symbol of $D$.  We
-can deduce $F_{ij}$ compositionally, by recursion on the syntax of
+\subsection{Matrices of Functors}
+\label{sec:matrices-of-functors}
+
+Now suppose we have a unary functor $F$ and some DFA $D =
+(Q,\Sigma,\delta,q_0,\accept)$.  Let $F_{ij} \in \Fun_\Sigma$ denote the type with the
+same shape as $F$ but whose sequences of leaf types take $D$ from
+state $i$ to state $j$.  We are ultimately interested in
+constructing \[ \sum_{k \in \accept} T_{q_0 k}, \] the sum of all
+types $T_{ij}$ whose leaf sequences start in state $q_0$ and tahe the
+DFA to some accept state. Note that $F_{ij}$ has arity $\Sigma$, that
+is, there is a leaf type corresponding to each alphabet symbol of $D$.
+We can deduce $F_{ij}$ compositionally, by recursion on the syntax of
 functor expressions.
 
 \begin{itemize}
@@ -910,7 +964,7 @@ functor expressions.
     0 & i \neq j
   \end{cases}
 \end{equation}
-As a special case, the functor $1 = K_{|Unit|}$ yields 
+As a special case, the functor $1 = K_{|Unit|}$ yields
 \begin{equation}
 \label{eq:unit-functor}
 1_{ij} =
@@ -934,17 +988,17 @@ As a special case, the functor $1 = K_{|Unit|}$ yields
   the DFA in sequence. Hence, in order to take the DFA from state $i$
   to state $j$ overall, the $F$-structure must take the DFA from state
   $i$ to some state $k$, and then the $G$-structure must take it from
-  $k$ to $j$.  This works for any state $k$, and $(FG)_{ij}$ is the
+  $k$ to $j$.  This works for any state $k$, so $(FG)_{ij}$ is the
   sum over all such possibilities.  Thus,
   \begin{equation}
     \label{eq:product-of-functors}
     (FG)_{ij} = \sum_{k \in Q} F_{ik} G_{kj}.
   \end{equation}
 
-\item For a recursive system of functors \[ F_k = \Phi_k(F_1, \dots,
-  F_n), \] we may mutually define \[ (F_k)_{ij} = \left( \Phi_k(F_1,
-  \dots, F_n) \right)_{ij}, \] interpreted via the same least fixed
-  point semantics.
+\item Finally, for a recursive system of functors \[ \overline{F_m} =
+  \overline{\Phi_m(F_1, \dots, F_n)}, \] we may mutually define \[
+  (F_m)_{ij} = \left( \Phi_m(F_1, \dots, F_n) \right)_{ij}, \]
+  interpreted via the same least fixed point semantics.
 \end{itemize}
 
 The above rules for $1$, sums, and products might look familiar: in
@@ -952,7 +1006,7 @@ fact, they are just the definitions of the identity matrix, matrix
 addition, and matrix product.  That is, given some functor $F$ and DFA
 $D$, we can arrange all the $F_{ij}$ in a matrix, $\mD{F}$, whose
 $(i,j)$th entry is $F_{ij}$. (We also write simply $\m{F}$ when $D$
-can be inferred from context.)  Then we can rephrase
+can be inferred.)  Then we can rephrase
 \eqref{eq:unit-functor}--\eqref{eq:product-of-functors} above as
 
 \begin{itemize}
@@ -965,7 +1019,7 @@ can be inferred from context.)  Then we can rephrase
 
 So far, given a DFA $D$, we have the makings of a homomorphism from
 the semiring of arity-$1$ functors to the semiring of $||Q|| \times
-||Q||$ matrices of arity-$||\Sigma||$ functors.  However, there is
+||Q||$ matrices of arity-$\Sigma$ functors.  However, there is
 still some unfinished business, namely, the interpretation of
 $\mD{X}$.  This gets at the heart of the matter, and to understand it,
 we must take a slight detour.
@@ -1047,8 +1101,8 @@ semiring of regular languages, we obtain the transition matrix \[
 complete set of strings that drives the DFA between each pair of
 states.
 
-We can now see how to interpret $\mD{X}$: it is simply the transition
-matrix for $D$, taken over the semiring of arity-$||\Sigma||$
+We can now see how to interpret $\mD{X}$: it is the transition
+matrix for $D$, taken over the semiring of arity-$\Sigma$
 functors, where each transition $a$ is replaced by the functor
 $X_a$. That is, in general, each entry of $\mD X$ will consist of a
 (possibly empty) sum of functors \[ \sum_{\substack{a \in \Sigma
@@ -1173,7 +1227,7 @@ This yields
   =
   \begin{bmatrix}
     |T11|^2 + |T12| |T21| & X_|a| + |T11| |T12| + |T12| |T22| \\
-    X_|b| + |T21| |T12| + |T22| |T21| & |T21| |T12| + |T22|^2
+    X_|b| + |T21| |T11| + |T22| |T21| & |T21| |T12| + |T22|^2
   \end{bmatrix}.
 \end{multline*}
 Equating the left- and right-hand sides elementwise yields precisely
@@ -1212,10 +1266,10 @@ look empty at first sight: we have $|T21| = |T21| |T11| + |T22|
 recursively defined functors via a least fixed point semantics, and it
 is not hard to see that $0$ is in fact a fixed point of the above
 equation for |T21|.  In practice, we can perform a reachability
-analysis for a DFA beforehand (by taking the star of its transition
-matrix under $(|Bool|, \lor, \land)$) to see which states are
-reachable from which other states; if there is no path from $i$ to $j$
-then we know $|Tij| = 0$, which can simplify calculations.  For
+analysis for a DFA beforehand (\eg by taking the star of its
+transition matrix under $(|Bool|, \lor, \land)$) to see which states
+are reachable from which other states; if there is no path from $i$ to
+$j$ then we know $|Tij| = 0$, which can simplify calculations.  For
 example, substituting $|T21| = 0$ into the above equation and
 simplifying yields
 \[
@@ -1260,13 +1314,14 @@ Encoding driving functions and their composition requires only natural
 numbers and lists, so they can be encoded in any language (such as
 Haskell) which allows encoding these at the level of types.
 
+\todo{Add an example here, mention encoding via relations.}
+
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
 Now that we have seen the general framework, let's return to the
 specific application of computing \emph{derivatives} of data types.
 In order to compute a derivative, we need the DFA for the regular
 expression $a^*ha^*$, shown in~\pref{fig:DFA-deriv}.
-
 \begin{figure}
   \centering
   \begin{diagram}[width=100]
@@ -1287,7 +1342,6 @@ dia = drawDFA deriv # frame 0.5
   \caption{A DFA for derivatives}
   \label{fig:DFA-deriv}
 \end{figure}
-
 The corresponding transition matrix is
 \[ \m{X} =
 \begin{bmatrix}
@@ -1344,7 +1398,7 @@ differentiating polynomials. So $F_{12}$ is the derivative of $F$.
 
 There is another way to look at this. Write
 \[
-\m{X} = 
+\m{X} =
 \begin{bmatrix}
   X_a & X_h \\ 0 & X_a
 \end{bmatrix}
@@ -1358,15 +1412,16 @@ where
   |0| & |0|
 \end{bmatrix}
 \]
-Note that $d^2 = 0$.  Note also that \[ (X_a I) d = 
+Note that $d^2 = 0$.  Note also that \[ (X_a I) d =
 \begin{bmatrix}
   0 & X_a X_h \\ 0 & 0
 \end{bmatrix}
-\] and \[ d (X_a I) = 
+\] and \[ d (X_a I) =
 \begin{bmatrix}
   0 & X_h X_a \\ 0 & 0
 \end{bmatrix}.
-\] 
+\]
+\todo{better story here}
 Treating the product of functors as commutative is problematic in our
 setting, since we care about the precise sequence of leaf types.
 However, in this particular instance, letting $X_a$ and $X_h$ commute
