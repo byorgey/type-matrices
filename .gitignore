@@ -43,3 +43,6 @@ diagrams/*.eps
 TAGS
 *_flymake.*
 *.agdai
+
+.cabal-sandbox
+cabal.sandbox.config
