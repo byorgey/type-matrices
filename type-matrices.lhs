@@ -19,7 +19,8 @@
 %% \usepackage[style=authoryear]{biblatex}
 %% \bibliography{type-matrices}
 
-\usepackage[authoryear]{natbib}
+% \usepackage[authoryear]{natbib}
+\newcommand{\citep}[1]{\cite{#1}}
 
 \usepackage{amsmath}
 \usepackage{mathtools}
@@ -46,6 +47,7 @@
 
 \newcommand{\ie}{i.e.\xspace}
 \newcommand{\eg}{e.g.\xspace}
+\newcommand{\etal}{\emph{et al.}\xspace}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Prettyref
@@ -76,7 +78,7 @@
 % Notes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newif\ifcomments\commentstrue
+\newif\ifcomments\commentsfalse
 
 \ifcomments
 \newcommand{\authornote}[3]{\textcolor{#1}{[#3 ---#2]}}
@@ -188,6 +190,9 @@
   taking \emph{divided differences} of real or complex functions, and,
   guided by this parallel, we show how to generalize binary dissection
   to $n$-ary dissection.
+
+  \keywords{polynomial, functors, regular expressions,
+    differentiation, dissection}
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -472,7 +477,7 @@ alternative encoding which can be more convenient in practice
 derivatives (\pref{sec:derivatives-again}) and divided differences
 (\pref{sec:divided-differences}).
 
-\section{Regular expressions and DFAs}
+\section{Regular Expressions and DFAs}
 \label{sec:regexp-and-dfas}
 
 We begin with a review of the basic theory of regular languages
@@ -482,12 +487,15 @@ familiar with this theory may safely skip these sections.  In Section
 \ref{sec:semirings} we introduce some preliminary material on star
 semirings which, though not novel, may not be as familiar to readers.
 
-\subsection{Regular expressions}
+\subsection{Regular Expressions}
 \label{sec:regexps}
 
 A \term{regular expression} \citep{kleene1951representation} over an
 alphabet $\Sigma$ is a term of the following grammar:
-\[ R ::= \bullet \mid \varepsilon \mid a \in \Sigma \mid R \alt R  \mid RR \mid R^* \]
+\begin{equation}
+R ::= \bullet \mid \varepsilon \mid a \in \Sigma \mid R \alt R  \mid
+RR \mid R^*
+\end{equation}
 
 When writing regular expressions, we allow parentheses for
 disambiguation, and adopt the common convention that Kleene star
@@ -624,10 +632,10 @@ dia = drawDFA exampleDFA # frame 0.5
 
 As is standard, we may define $\delta^* : Q \times \Sigma^* \pfun Q$ as
 an iterated version of $\delta$:
-\begin{align*}
+\begin{align}
   \delta^*(q,\varepsilon) & = q \\
   \delta^*(q, s \omega)   & = \delta^*(\delta(q,s), \omega)
-\end{align*}
+\end{align}
 
 If $\delta^*(q_0, \omega) = q_1$, then we say that the string $\omega$
 ``takes'' or ``drives'' the DFA from state $q_0$ to state $q_1$.  More
@@ -690,7 +698,7 @@ dia = drawDFA bstarhastar # frame 0.5
 
 The precise details of these constructions are not important for the
 purposes of this paper; interested readers should consult a reference
-such as \citet{sipser2012introduction}.
+such as Sipser \citep{sipser2012introduction}. %% citet
 We note in passing that one can also associate \emph{nondeterministic}
 finite automata (NFAs) to regular expressions, and the remainder of
 the story of this paper could probably be retold using NFAs.  However,
@@ -726,7 +734,10 @@ Examples of semirings include:
 
 A \term{star semiring} or \term{closed semiring}
 \citep{lehmann1977algebraic} has an additional operation, $(-)^*$,
-satisfying the axiom \[ r^* = 1 + r \cdot r^* = 1 + r^* \cdot r, \]
+satisfying the axiom
+\begin{equation}
+r^* = 1 + r \cdot r^* = 1 + r^* \cdot r\,,
+\end{equation}
 for all $r \in R$.  Intuitively, $r^* = 1 + r + r^2 + r^3 + \dots$
 (although such infinite sums do not necessarily make sense in all
 semirings).  The semiring of regular languages is closed, via Kleene
@@ -741,7 +752,8 @@ elements in $R$ is also a semiring, where matrix addition and
 multiplication are defined in the usual manner in terms of addition
 and multiplication in $R$.  If $R$ is a star semiring, then a star
 operator can also be defined for matrices; for details see
-\citet{lehmann1977algebraic} and \citet{dolan2013fun}.
+Lehmann \citep{lehmann1977algebraic} and Dolan
+\citep{dolan2013fun}. %% citet x 2
 
 Finally, a \term{semiring homomorphism} is a mapping from the elements
 of one semiring to another that preserves the semiring structure, that
@@ -752,14 +764,14 @@ multiplication.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{DFAs and matrices of functors}
+\section{DFAs and Matrices of Functors}
 \label{sec:dfas-matrices}
 
 Viewing regular expressions through the lens of DFAs gives us exactly the
 tools we need to generalize our \emph{ad hoc} analysis from the
 introduction.
 
-\subsection{A more principled derivation}
+\subsection{A More Principled Derivation}
 \label{sec:principled}
 
 Consider again the task of encoding a type with the same shape as
@@ -1024,7 +1036,7 @@ still some unfinished business, namely, the interpretation of
 $\mD{X}$.  This gets at the heart of the matter, and to understand it,
 we must take a slight detour.
 
-\subsection{Transition matrices}
+\subsection{Transition Matrices}
 \label{sec:transition-matrices}
 
 Given a simple directed graph $G$ with $n$ nodes, its \term{adjacency
@@ -1039,8 +1051,10 @@ followed by an edge from $k$ to $j$, so the total number of length-$m$
 paths is the sum of such paths over all possible $k$; this is exactly
 what is computed by the matrix multiplication $M_G^{m-1} M = M_G^m$.
 
-However, as observed independently by \citet{oconnor2011shortestpaths}
-and \citet{dolan2013fun}, and as is standard weighted automata theory
+However, as observed independently by O'Connor
+\citep{oconnor2011shortestpaths} and Dolan
+\citep{dolan2013fun}, % citet x 2
+and as is standard weighted automata theory
 \citep{droste2009handbook}, this can be generalized by parameterizing
 the construction over an arbitrary semiring.  In particular, we may
 suppose that the edges of $G$ are labeled by elements of some semiring
@@ -1284,7 +1298,7 @@ simplifying yields
 \end{bmatrix}.
 \]
 
-\section{An alternative representation}
+\section{An Alternative Representation}
 \label{sec:alternative}
 
 One way to look at the examples shown so far is that we have
@@ -1303,18 +1317,49 @@ problem is that each constructor may correspond to \emph{multiple}
 possible pairs of states.  In fact, what we need is to index by an
 entire \emph{driving function}.  Given some functor $T$, the idea is
 to produce just a \emph{single} $n$-ary functor $T_\chi$ indexed by a
-driving function $\chi : Q \to Q$. A value of type $|T|_\chi$ is a
-structure with a shape allowed by |T|, whose sequence of leaf types,
-taken together, drives the DFA in the way encoded by $\chi$.  The
-desired type can then be selected as the sum of all types indexed by
-driving functions taking the start state to some accepting state.
+(total!) driving function $\chi : Q \to Q$. A value of type $|T|_\chi$
+is a structure with a shape allowed by |T|, whose sequence of leaf
+types, taken together, drives the DFA in the way encoded by $\chi$.
+The desired type can then be selected as the sum of all types indexed
+by driving functions taking the start state to some accepting state.
 
-For details of this encoding, see \citet{yorgey2010onaproblem}.
+For details of this encoding, see Yorgey
+\citep{yorgey2010onaproblem}. % citet
 Encoding driving functions and their composition requires only natural
-numbers and lists, so they can be encoded in any language (such as
-Haskell) which allows encoding these at the level of types.
+numbers and lists, so they can be encoded in any language which allows
+encoding these at the level of types.
 
-\todo{Add an example here, mention encoding via relations.}
+The above approach requires indexing by \emph{total} driving
+functions.  As pointed out by an anonymous reviewer, one can also
+index by \emph{relations} which can encode partial driving functions.
+For example, considering again the DFA for $b^*ha^*$ shown in
+\pref{fig:bstar-h-astar}, and the tree type $T = X + T^2$, we have the
+following Haskell code.  |States| encodes the states of the DFA, and
+|Trans| encodes a relation on states, with each constructor
+corresponding to an edge in the DFA.  The original |Tree a| type is
+transformed into |Tree'|, where the |Leaf| constructor is
+parameterized by a transition, and the |Fork| constructor encodes a
+sum via existential quantification of |k|.  |Tree'| could also be
+parameterized over an arbitrary relation of the appropriate kind,
+which allows constructing |Tree| variants constrained by any DFA over
+an alphabet of size $3$.
+%format S1
+%format S2
+%format ^^ = "\;"
+\begin{spec}
+{-# LANGUAGE DataKinds, GADTs, KindSignatures, PolyKinds #-}
+
+data States = S1 | S2
+
+data Trans b h a :: State -> State -> * ^^ where
+  B  ::  b  -> Trans b h a S1 S1
+  H  ::  h  -> Trans b h a S1 S2
+  A  ::  a  -> Trans b h a S2 S2
+
+data Tree' :: * -> * -> * -> State -> State -> * ^^ where
+  Leaf  :: Trans b h a i j -> Tree' r b h a i j
+  Fork  :: Tree' r b h a i k -> Tree' r b h a k j -> Tree' r b h a i j
+\end{spec}
 
 \section{Derivatives, Again}
 \label{sec:derivatives-again}
@@ -1421,11 +1466,11 @@ Note that $d^2 = 0$.  Note also that \[ (X_a I) d =
   0 & X_h X_a \\ 0 & 0
 \end{bmatrix}.
 \]
-\todo{better story here}
-Treating the product of functors as commutative is problematic in our
-setting, since we care about the precise sequence of leaf types.
-However, in this particular instance, letting $X_a$ and $X_h$ commute
-corresponds to letting the ``hole'' of type |h| ``float'' to the
+Treating the product of functors as
+commutative is problematic in our setting, since we care about the
+precise sequence of leaf types.  However, in this particular instance,
+we can specify that $X_h$ commutes with everything, which corresponds
+to letting the ``hole'' of type |h| ``float'' to the
 outside---typically, when constructing a zipper structure, one does
 this anyway, storing the focused element separately from the rest of
 the structure.  Under this interpretation, then, $(X_a I)$ and $d$
@@ -1451,7 +1496,7 @@ in calculus, where the expression $dx$ is manipulated informally as if
 $(dx)^2=0$.  (Compare with the dual numbers described by
 \cite{DBLP:journals/lisp/SiskindP08}.)
 
-\section{Divided Differences}
+\section{Dissection and Divided Differences}
 \label{sec:divided-differences}
 
 Consider again the regular expression $b^*ha^*$.  Data structures with
@@ -1493,20 +1538,44 @@ dia = renderT t # frame 0.5
   \caption{A tree with leaf sequence matching $b^*ha^*$}
   \label{fig:divided-tree}
 \end{figure}
-Such structures have been considered by \citet{mcbride-dissection},
+
+\subsection{Dissection}
+\label{sec:dissection}
+
+Such structures have been considered by McBride
+\citep{mcbride-dissection}, % citet
 who refers to them as \term{dissections} and shows how they can be used,
 for example, to generically derive tail-recursive maps and folds.
 
 Given a functor $F$, McBride uses $\dissect F$ to denote the bifunctor
-which is the dissection of $F$, and also defines bifunctors $(\clowns
-F)\ b\ a = F\ b$ and $(\jokers F)\ b\ a = F\ a$.  The central
-construction is the Leibniz rule for dissection of a product, \[
-\dissect (F \times G) = \clowns F \times \dissect G + \dissect F
-\times \jokers G. \] That is, a dissection of a $(F \times
-G)$-structure consists either of a $F$-structure containing only
-elements of the first type paired with a $G$-dissection, or a
+which is the dissection of $F$ (where the unit type has been
+substituted for $h$).  We have \[ \dissect X\ b\ a = 1, \] since a
+dissected $X$ consists merely of a hole, \[ \dissect 1\ b\ a = 0, \]
+and \[ \dissect (F + G)\ b\ a = \dissect F\ b\ a + \dissect G\ b\
+a. \] The central construction is the Leibniz rule for dissection of a
+product, \[ \dissect (F \times G) = \clowns F \times \dissect G +
+\dissect F \times \jokers G, \] where $(\clowns F)\ b\ a = F\ b$ and
+$(\jokers F)\ b\ a = F\ a$.  That is, a dissection of an $(F \times
+G)$-structure consists either of an $F$-structure containing only
+elements of the first type paired with a $G$-dissection, or an
 $F$-dissection paired with a $G$-structure containing only elements of
 the second type.
+
+As a simple example, consider the polynomial functor $L = 1 + XL$ of
+finite lists.  Intuitively, the dissection of a list should consist of
+a list of |b|'s, followed by a hole, and then a list of |a|'s, that
+is, \[ \dissect L\ b\ a \cong L\ b \times L\ a. \] Applying the rules
+above, we can derive
+\begin{align*}
+  \dissect L\ b\ a &= \dissect (1 + XL)\ b\ a \\
+  &= (0 + \clowns X \times \dissect L + \dissect X \times \jokers L)\
+  b\ a \\
+  &= b \times (\dissect L\ b\ a) + L\ a
+\end{align*}
+and thus $\dissect L\ b\ a \cong L\ b \times L\ a$ as expected.
+
+\subsection{Dissection via Matrices}
+\label{sec:dissection-via-matrices}
 
 The DFA recognizing $b^*ha^*$ is illustrated in
 \pref{fig:bstar-h-astar}, and has transition matrix
@@ -1528,6 +1597,9 @@ matrices indeed yields
   \\ 0 & \jokers F \times \jokers G \end{bmatrix}, \]
 \endgroup
 as expected.
+
+\subsection{Divided Differences}
+\label{sec:divided-diff}
 
 Just as differentiation of types has an analytic analogue, dissection
 has an analogue as well, known as \term{divided difference}.  Let $f :
@@ -1562,6 +1634,9 @@ it moves the focus right by one step, either focusing on the first
 unprocessed |a|, or yielding a structure full of |b|s in the case that
 all the values have been processed.
 
+\subsection{Higher-Order Divided Differences}
+\label{sec:higher-order-div-diff}
+
 Higher-order divided differences, corresponding to higher derivatives,
 are defined by the recurrence
 \begin{equation} \label{eq:div-diff-rec}
@@ -1591,7 +1666,7 @@ f_{x_n \dots x_0} = \sum_{j=0}^n g_{x_n \dots x_j} h_{x_j \dots
 Proving \eqref{eq:div-diff-prod} is not entirely straightforward; in
 fact, we conjecture that the computational content of the proof, in
 the $n=2$ case, essentially consists of (the interesting part of) the
-impementation of the isomorphism |right|.
+implementation of the isomorphism |right|.
 
 \todo{make sure this gets the right figure!}
 \begin{figure}
@@ -1635,35 +1710,45 @@ understand it better in the future.  In particular, our intuition is
 that this will yield a tail-recursive implementation of a structure
 being processed by multiple coroutines.
 
-\section{Discussion and future work}
+\section{Discussion and Future Work}
 
 This paper arose out of several blog posts by both authors
-\citep{piponi2009finite, piponi2010tomography, piponi2010regular,
-  yorgey2010onaproblem}, although the content of this paper is not a
-strict superset of the content of the blog posts.  There is much
-remaining to be explored, in particular understanding the isomorphisms
-induced by higher-order divided differences, and generalizing this
-framework to $n$-ary functors and partial differentiation.  It seems
-likely that $q$-derivatives can also fruitfully be seen in a similar
-light \citep{stay2014q}.
+\cite{piponi2009finite}\cite{piponi2010tomography}\cite{piponi2010regular}\cite{yorgey2010onaproblem},
+although the content of this paper is neither a strict subset nor
+superset of the content of the blog posts.  There is much remaining to
+be explored, in particular understanding the isomorphisms induced by
+higher-order divided differences, and generalizing this framework to
+$n$-ary functors and partial differentiation.  It seems likely that
+$q$-derivatives can also fruitfully be seen in a similar light
+\citep{stay2014q}.
+
+There are several more practical aspects to this work that remain to
+be explored.  At a fundamental level, there would be some interesting
+engineering work involved in turning this into a practical library.
+One might also wonder to what extent it is possible to take
+\emph{operations} on some polynomial functor $T$ and automatically
+lift them into operations on a constrained version of $T$.  At the
+very least this would require checking that the operation actually
+preserves the given constraints.
 
 Some of the ideas in this paper are implicitly present in earlier
-work; we note in particular \citet[p. 590]{duchon2004boltzmann} who
-mention generating Boltzmann samplers for strings corresponding to
+work; we note in particular Duchon \etal
+\cite[p. 590]{duchon2004boltzmann}, % citet
+who mention generating Boltzmann samplers for strings corresponding to
 regular expressions, also via their DFAs.  It would be interesting to
-explore the relationship in more detail.
+explore the relationship in more detail. \bigskip
 
-\section*{Acknowledgments}
-\label{sec:acknowledgments}
+\noindent \textbf{Acknowledgements.} This work was partially supported by the
+National Science Foundation, under NSF 1218002, CCF-SHF Small:
+\emph{Beyond Algebraic Data Types: Combinatorial Species and
+  Mathematically-Structured Programming}.
 
-This work was partially supported by the National Science Foundation,
-under NSF 1218002, CCF-SHF Small: \emph{Beyond Algebraic Data Types:
-  Combinatorial Species and Mathematically-Structured Programming}.
-
-Thanks to Lukas Mai for pointing out some errors in a draft.
+Our sincere thanks to the anonymous reviewers, who had many helpful
+suggestions.  Thanks also to Lukas Mai for pointing out some errors in
+a draft.
 
 %% \printbibliography
-\bibliographystyle{plainnat}
+\bibliographystyle{plain}
 \bibliography{type-matrices}
 
 \end{document}
