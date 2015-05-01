@@ -167,9 +167,9 @@
 
 %% XXX section image: binary tree
 %\def\sectionimg{dan.jpg}
-\section{Algebraic Data Types}
+\section{Polynomial functors}
 
-\begin{xframe}{Algebraic data types}
+\begin{xframe}{Polynomial functors}
 
   \begin{center}
   \[ F : \Set \to \Set \]
@@ -190,12 +190,12 @@ dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
 \end{diagram}
 \bigskip
 
-\onslide<2> aka \emph{polynomial functors}
+\onslide<2> aka \emph{algebraic data types}
   % think: \emph{(parameterized) combinatorial families}
   \end{center}
 \end{xframe}
 
-\begin{xframe}{Building algebraic data types}
+\begin{xframe}{Building polynomial functors}
   Polynomial functors are those $F : \Set \to \Set$ which can be built
   up out of:
   \begin{align*}
@@ -219,10 +219,10 @@ dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
   \begin{gather*}
     F + G \cong G + F \\
     F + (G + H) \cong (F + G) + H \\
-    0 + F \cong F \cong F + 0 \\
+    0 + F \cong F \cong F + 0 \\ \\
     F \cdot G \cong G \cdot F \\
     F \cdot (G \cdot H) \cong (F \cdot G) \cdot H \\
-    1 \cdot F \cong F \cong F \cdot 1 \\
+    1 \cdot F \cong F \cong F \cdot 1 \\ \\
     F \cdot (G + H) \cong F \cdot G + F \cdot H
   \end{gather*}
 \end{xframe}
@@ -251,7 +251,7 @@ Example proof:
   \end{itemize}
 
   Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
-  \lor, \land)$, $(\R_{\geq 0}, \max, +)$
+  \lor, \land)$, $(\R \union \{\infty\}, \max, +)$
 \end{xframe}
 
 \begin{xframe}{Implicit/recursive definition}
@@ -267,7 +267,7 @@ Example proof:
   \[ L = 1 + X \cdot L \]
 
   \onslide<2->
-  \[ L(A) = \{\star\} \uplus A \times L(A) \]
+  \[ L(A) = \{\star\} \uplus (A \times L(A)) \]
   \begin{center}
   \begin{tabular}{c m{3in}}
     $L(\N) =$ &
@@ -284,7 +284,7 @@ Example proof:
   \[ T = 1 + X \cdot T \cdot T \]
 
   \onslide<2->
-  \[ T(A) = \{\star\} \uplus A \times T(A) \times T(A) \]
+  \[ T(A) = \{\star\} \uplus (A \times T(A) \times T(A)) \]
   \begin{center}
   \begin{tabular}{c m{3in}}
     $T(\N) =$ &
@@ -308,7 +308,7 @@ Example proof:
   languages with \textbf{algebraic data types} (Haskell, OCaml, SML,
   Scala, F\#):
   \[ T = 1 + X \cdot T \cdot T \]
-  \[ T(A) = \{\star\} \uplus A \times T(A) \times T(A) \]
+  \[ T(A) = \{\star\} \uplus (A \times T(A) \times T(A)) \]
   \begin{verbatim}
        data T a = Empty | Node a (T a) (T a)
   \end{verbatim}
@@ -344,9 +344,9 @@ Example proof:
   a_3 X^3 + \dots \] with $a_i \in \N$ ($n = 1 + \dots + 1$)
   \vspace{0.75in}
 
-  \begin{center}
-  {\small (mumble generating functions mumble blah \dots)}
-  \end{center}
+  % \begin{center}
+  % {\small (mumble generating functions mumble blah \dots)}
+  % \end{center}
 \end{xframe}
 
 %%% Do I need to say something about arbitrary arities?  OR can I just

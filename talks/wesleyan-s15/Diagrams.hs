@@ -22,7 +22,7 @@ trees =
   [ Empty
   , leaf 3
   , BNode 7 (leaf 2) Empty
-  , BNode 4 (leaf 17) (BNode 3 (leaf (-6)) Empty)
+  , BNode 4 (leaf 17) (BNode 3 (leaf 6) Empty)
   ]
 
 poke :: Eq a => a -> BTree a -> BTree (NodeType a)
