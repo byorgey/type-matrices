@@ -144,17 +144,21 @@
     Joint work with: \bigskip
 
     \includegraphics[width=3in]{dan} \\
-    Dan Piponi
+    Dan Piponi \medskip
+
+    ``Polynomial Functors Constrained by Regular Expressions'',
+    Mathematics of Program Construction 2015.
   \end{center}
 \end{xframe}
 
-\begin{xframe}
+\begin{xframe}{Outline/warnings/encouragements}
   %%% Fun to be here.  Work I do is at the intersection of math & CS.
 %%% Please ask questions!  Part of my challenge is to translate some
 %%% CS things for mathematicians and vice versa.
 
 \begin{itemize}
 \item Please ask questions!
+\item Math!
 \item Part I: get you to understand the title/problem statement
 \item Part II: our solution (sketch)
 \end{itemize}
@@ -190,7 +194,8 @@ dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
 \end{diagram}
 \bigskip
 
-\onslide<2> aka \emph{algebraic data types}
+\onslide<2> aka \emph{algebraic data types}, aka \emph{container
+  types} \dots
   % think: \emph{(parameterized) combinatorial families}
   \end{center}
 \end{xframe}
@@ -208,23 +213,40 @@ dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
 \end{xframe}
 
 \begin{xframe}{Example}
-  \begin{gather*}
-    1 + ((X \cdot X) + X) : \Set \to \Set \\
-    (1 + ((X \cdot X) + X))(A) = \{\star\} \uplus ((A \times A) \uplus A)
-  \end{gather*}
+  \[ 1 + ((X \cdot X) + X) : \Set \to \Set \]
+
+  \onslide<2->
+  \[ (1 + ((X \cdot X) + X))(A) = \{\star\} \uplus ((A \times A)
+  \uplus A) \]
+
+  \begin{center}
+    \begin{diagram}[width=150]
+      import Diagrams
+
+      dia = hsep 3
+        [ square 1 # fc black
+        , drawNList (map Value [3,5 :: Int])
+        , drawNList [Value (2 :: Int)]
+        ]
+        # frame 0.5
+    \end{diagram}
+  \end{center}
 \end{xframe}
 
 \begin{xframe}{Polynomial functor isomorphisms}
-  Note that
   \begin{gather*}
     F + G \cong G + F \\
     F + (G + H) \cong (F + G) + H \\
-    0 + F \cong F \cong F + 0 \\ \\
+    0 + F \cong F \cong F + 0
+  \end{gather*}
+  \onslide<2->
+  \begin{gather*}
     F \cdot G \cong G \cdot F \\
     F \cdot (G \cdot H) \cong (F \cdot G) \cdot H \\
-    1 \cdot F \cong F \cong F \cdot 1 \\ \\
-    F \cdot (G + H) \cong F \cdot G + F \cdot H
+    1 \cdot F \cong F \cong F \cdot 1
   \end{gather*}
+  \onslide<3->
+  \[ F \cdot (G + H) \cong F \cdot G + F \cdot H \]
 \end{xframe}
 
 \begin{xframe}{Polynomial functor isomorphisms}
@@ -247,11 +269,12 @@ Example proof:
   \item Associative operations $+$, $\cdot$ with identities $0$, $1$
   \item $+$ is commutative
   \item $\cdot$ distributes over $+$
-  \item $+$ does \emph{not} necessarily have inverses!
+  \item $+$ and $\cdot$ do \emph{not} necessarily have inverses!
   \end{itemize}
 
-  Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
-  \lor, \land)$, $(\R \union \{\infty\}, \max, +)$
+  Other examples:
+  \[ (\N,+,\cdot)\quad (\{\mathit{true},\mathit{false}\}, \lor, \land)\quad
+  (\R \union \{\infty\}, \max, +) \]
 \end{xframe}
 
 \begin{xframe}{Implicit/recursive definition}
@@ -303,10 +326,9 @@ Example proof:
   \end{center}
 \end{xframe}
 
-\begin{xframe}{Example: binary trees}
-  Polynomial functors can be \textbf{directly encoded} in programming
-  languages with \textbf{algebraic data types} (Haskell, OCaml, SML,
-  Scala, F\#):
+\begin{xframe}{Algebraic data types}
+  Polynomial functors model \textbf{algebraic data types} in languages
+  like Haskell, OCaml, SML, Scala, F\#\dots
   \[ T = 1 + X \cdot T \cdot T \]
   \[ T(A) = \{\star\} \uplus (A \times T(A) \times T(A)) \]
   \begin{verbatim}
@@ -314,35 +336,37 @@ Example proof:
   \end{verbatim}
 \end{xframe}
 
-\begin{xframe}{Example: even/odd lists}
-  \begin{align*}
-    E &= 1 + X \cdot O \\
-    O &= X \cdot E
-  \end{align*}
+% \begin{xframe}{Example: even/odd lists}
+%   \begin{align*}
+%     E &= 1 + X \cdot O \\
+%     O &= X \cdot E
+%   \end{align*}
 
-  \begin{center}
-  \begin{tabular}{c m{3in}}
-    $E(\N) =$ &
-  \begin{diagram}[width=200]
-    import Diagrams
-    dia = hsep 2 (map drawList [[], [3 :: Int,7], [3,7,2,8]] ++ [ellipsis])
-        # frame 0.5
-  \end{diagram}
-  \\
-  $O(\N) =$ &
-  \begin{diagram}[width=150]
-    import Diagrams
-    dia = hsep 2 (map drawList [[3 :: Int], [3,7,2]] ++ [ellipsis])
-        # frame 0.5
-  \end{diagram}
-  \end{tabular}
-  \end{center}
-\end{xframe}
+%   \begin{center}
+%   \begin{tabular}{c m{3in}}
+%     $E(\N) =$ &
+%   \begin{diagram}[width=200]
+%     import Diagrams
+%     dia = hsep 2 (map drawList [[], [3 :: Int,7], [3,7,2,8]] ++ [ellipsis])
+%         # frame 0.5
+%   \end{diagram}
+%   \\
+%   $O(\N) =$ &
+%   \begin{diagram}[width=150]
+%     import Diagrams
+%     dia = hsep 2 (map drawList [[3 :: Int], [3,7,2]] ++ [ellipsis])
+%         # frame 0.5
+%   \end{diagram}
+%   \end{tabular}
+%   \end{center}
+% \end{xframe}
 
 \begin{xframe}{``Polynomial''?}
   All polynomial functors are isomorphic to \[ a_0 + a_1 X + a_2 X^2 +
-  a_3 X^3 + \dots \] with $a_i \in \N$ ($n = 1 + \dots + 1$)
-  \vspace{0.75in}
+  a_3 X^3 + \dots \] with $a_i \in \N$ (where $n = 1 + \dots + 1$) \bigskip
+
+  \onslide<2->
+  Proof: distribute all products over sums and collect like terms!
 
   % \begin{center}
   % {\small (mumble generating functions mumble blah \dots)}
@@ -371,11 +395,22 @@ Example proof:
   \end{center}
 \end{xframe}
 
+\begin{xframe}{Polynomials\dots}
+  Things we can do with polynomials: \bigskip
+
+  \begin{itemize}
+  \item<2-> Add and multiply
+  \item<3-> Factor
+  \item<4-> Find zeros?
+  \item<5-> Calculus??
+  \end{itemize}
+\end{xframe}
+
 \begin{xframe}{Calculus!?}
   \begin{center}
-  Analysis $\leftrightarrow$ Combinatorics \bigskip
+    Many fruitful connections between analysis \& combinatorics! \bigskip
 
-  Example: \emph{differentiation}
+    Example: \emph{differentiation}
   \end{center}
 \end{xframe}
 
@@ -430,38 +465,80 @@ single $X$ replaced by a hole.
 \end{xframe}
 
 \begin{xframe}{Proof!}
-  \[ \dd{1}{X} \cong 0 \]
+  \[ \dd{1}{X} = 0 \]
+
   \begin{center}
     $1$-structures have nowhere for a hole to go (they contain no
     data)
   \end{center}
-  XXX picture?
 \end{xframe}
 
 \begin{xframe}
-  \[ \dd{X}{X} \cong 1 \]
+  \[ \dd{X}{X} = 1 \]
+
   \begin{center}
-    An $X$-structure with a hole is just a hole.
+    An $X$-structure with a hole is just a hole. \bigskip
+
+    \begin{diagram}[width=100]
+      import Diagrams
+
+      dia = hsep 1
+        [ abstractTree "X" # withHole
+        , text "≅"
+        , hole # scale 0.5
+        ]
+    \end{diagram}
   \end{center}
 \end{xframe}
 
 \begin{xframe}
-  \[ \dd{(F+G)}{X} \cong \dd F X + \dd G X \]
-  XXX picture and/or text
+  \[ \dd{(F+G)}{X} = \dd F X + \dd G X \]
+
+  \begin{center}
+    An ($F$ or $G$)-structure with a hole is either an $F$-structure
+    with a hole, or a $G$-structure with a hole. \bigskip
+
+    \begin{diagram}[width=200]
+      import Diagrams
+
+      dia = hsep 1
+        [ abstractTree' 0.5 "F+G" # withHole
+        , text "≅"
+        , abstractTree "F" # withHole
+        , text "+"
+        , abstractTree "G" # withHole
+        ]
+    \end{diagram}
+  \end{center}
 \end{xframe}
 
 \begin{xframe}
-  \[ \dd{(F \cdot G)}{X} \cong \dd F X \cdot G + F \cdot \dd G X \]
+  \[ \dd{(F \cdot G)}{X} = \dd F X \cdot G + F \cdot \dd G X \]
 
   \begin{center}
-    XXX picture/text here
+    An $(F \cdot G)$-structure is an $F$-structure paired with a
+    $G$-structure.  If it has a hole, the hole can be either in the
+    $F$-structure or the $G$-structure. \bigskip
+
+    \begin{diagram}[width=200]
+      import Diagrams
+
+      dia = hsep 1
+        [ abstractTree' 0.7 "FG" # withHole
+        , text "≅"
+        , abstractTree "F" # withHole ||| abstractTree "G"
+        , text "+"
+        , abstractTree "F" ||| abstractTree "G" # withHole
+        ]
+    \end{diagram}
   \end{center}
 \end{xframe}
 
 \begin{xframe}
   \begin{itemize}
-  \item Note this proof is also an \emph{algorithm} for computing $\dd
-    T X$ from the definition of $T$. \bigskip
+  \item Note this (inductive) proof is also a (recursive)
+    \emph{algorithm} for computing $\dd T X$ from the definition of
+    $T$. \bigskip
   \item These ``one-hole contexts'' turn out to be quite useful in the
     context of functional programming (``zippers''); the theory gives
     an automatic way to generate them.
@@ -648,9 +725,10 @@ single $X$ replaced by a hole.
 
 \begin{xframe}
   \begin{itemize}
-  \item<+-> $0_{ij} = 0$
+  \item<+-> $0_{ij} = 0$ ($0$ is the only thing with the same shape
+    (i.e. none) as $0$)
   \item<+-> $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
-      j \end{cases}$
+      j \end{cases}$ 
   \item<+-> $X_{ij} = \text{(sum of) edge(s) from $i$ to $j$}$
   \item<+-> $(F + G)_{ij} = F_{ij} + G_{ij}$
   \item<+-> $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
@@ -704,6 +782,43 @@ Transition matrix = $\begin{bmatrix}
 \end{center}
 \end{xframe}
 
+\begin{xframe}{Example}
+  \[ T = 1 + XT^2, R = a^*ha^* \]
+  \begin{center}
+  \includegraphics[width=1in]{deriv-DFA} \\
+  Transition matrix = $\begin{bmatrix}
+    a & h \\ 0 & a
+  \end{bmatrix}$
+
+  \begin{multline*}
+  \begin{bmatrix}
+    T_{11} & T_{12} \\
+    0 & T_{22}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    a & h \\
+    0 & a
+  \end{bmatrix}
+  \begin{bmatrix}
+    T_{11} & T_{12} \\
+    0 & T_{22}
+  \end{bmatrix}^2
+  \\
+  =
+  \begin{bmatrix}
+    a T_{11}^2 & a(T_{11}T_{12} + T_{12}T_{22}) + hT_{22}^2 \\
+    0 & a T_{22}^2
+  \end{bmatrix}.
+  \end{multline*}
+  \end{center}
+\end{xframe}
+
 \begin{xframe}
   \begin{center}
     Thank you! \bigskip
@@ -713,11 +828,5 @@ Transition matrix = $\begin{bmatrix}
     % XXX TODO include picture of publication first page
   \end{center}
 \end{xframe}
-
-% \begin{xframe}{Example}
-%   \includegraphics[width=2in]{deriv-DFA}
-
-%   \[ a^*ha^* \]
-% \end{xframe}
 
 \end{document}

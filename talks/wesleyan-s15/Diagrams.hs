@@ -77,10 +77,11 @@ drawNList l = nodes #
 
 drawList l = drawNList (map Value l ++ [Nil])
 
-ls = [[1::Int,1], [1,2,4], [2,1,4,3,1,2]]
+ls = [[], [1::Int,1], [1,2,4], [2,1,4,3,1,2]]
 drawLists ls = vsep 1 (map drawList ls ++ [ellipsis # rotateBy (1/4)])
 lsD = drawLists ls
 
-abstractTree label = text label # italic # translateX (-0.1) <> triangle 3 # scaleY 1.2
+abstractTree = abstractTree' 1
+abstractTree' sz label = text label # scale sz # italic # translateX (-0.1) <> triangle 3 # scaleY 1.2
 
 withHole = atop (hole # scale 0.3 # translate (0.6 ^& (-0.5)))
