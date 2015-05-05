@@ -1,4 +1,4 @@
-%% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams-sandbox/cabal.sandbox.config exec runhaskell Shake.hs" -*-
+%% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams-sandbox/cabal.sandbox.config exec runhaskell Shake.hs && open type-matrices-wesleyan-s15.pdf" -*-
 \documentclass[xcolor=svgnames,12pt]{beamer}
 
 \usepackage[all]{xy}
@@ -387,14 +387,15 @@ Example proof:
 
 \begin{xframe}
   \begin{center}
-  \begin{tabular}{c m{2in}}
-    $T(\N)$ &
+  \begin{tabular}{c m{1in} m{2in}}
+    $T(\N)$ & trees of natural numbers, e.g. &
     \begin{diagram}[width=100]
       import Diagrams
       dia = drawTree (trees !! 3) # frame 0.5
     \end{diagram}
     \\
     $\displaystyle \left(\dd T X \right)(\N)$ &
+    trees of natural numbers \emph{with a hole}, e.g. &
     \begin{diagram}[width=100]
       import Diagrams
       dia = drawNTree (poke 3 (trees !! 3)) # frame 0.5
@@ -404,27 +405,57 @@ Example proof:
 \end{xframe}
 
 \begin{xframe}{Proof!}
-  \[ \dd 1 X \cong 0 \]
-  % XXX if time, a picture
+\begin{itemize}
+  \item Let $F$ be a polynomial functor.
+  \item $\dd{F}{X}$ means what we would expect it to mean from calculus.
+\end{itemize}
+\bigskip
+
+\onslide<2->
+\emph{To show}: $\dd{F}{X}$-structures are (isomorphic to) $F$-structures with a
+single $X$ replaced by a hole.
+
+\begin{center}
+\begin{diagram}[width=150]
+  import Diagrams
+
+  dia = hsep 1
+    [ abstractTree "∂F"
+    , text "≅"
+    , abstractTree "F" # withHole
+    ]
+    # frame 0.5
+\end{diagram}
+\end{center}
+\end{xframe}
+
+\begin{xframe}{Proof!}
+  \[ \dd{1}{X} \cong 0 \]
   \begin{center}
     $1$-structures have nowhere for a hole to go (they contain no
     data)
   \end{center}
+  XXX picture?
 \end{xframe}
 
 \begin{xframe}
   \[ \dd{X}{X} \cong 1 \]
-  % XXX picture
+  \begin{center}
+    An $X$-structure with a hole is just a hole.
+  \end{center}
 \end{xframe}
 
 \begin{xframe}
   \[ \dd{(F+G)}{X} \cong \dd F X + \dd G X \]
-  % XXX picture
+  XXX picture and/or text
 \end{xframe}
 
 \begin{xframe}
   \[ \dd{(F \cdot G)}{X} \cong \dd F X \cdot G + F \cdot \dd G X \]
-  % XXX picture
+
+  \begin{center}
+    XXX picture/text here
+  \end{center}
 \end{xframe}
 
 \begin{xframe}
