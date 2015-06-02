@@ -1,0 +1,45 @@
+Basic idea is to base it on the paper Dan P. and I just submitted.
+End goal: get them to understand way of constructing
+regular-expression-constrained types?
+
+Title: Polynomial Functors Constrained by Regular Expressions
+
+Abstract: Polynomial functors, also known as algebraic data
+types, are a well-studied class of combinatorial families that
+are foundational in strongly typed functional programming.  In
+the first half of the talk I will explain polynomial functors,
+what it means to constrain them by regular expressions, and why
+anyone---particularly programmers---might want to. Along the way,
+surprise appearances will be made by semirings and derivatives.
+In the second part of the talk I will show how to compute
+ constrained polynomial functors via an appropriate semiring
+homomorphism.  No particular background is assumed; my goal is
+to convey not a particular result per se, but rather an
+appreciation for some of the beautiful overlap between algebra,
+combinatorics, calculus, and computer science.
+
+     Outline
+
+     Preface: please ask questions.  Part of the interesting
+     challenge is to translate results & ideas; different terminology
+     and points of view.
+
+     Part I: algebraic data types
+
+     - algebraic data types, aka combinatorial families
+     - mention semirings --- algebraic data types form one up to iso
+     - derivatives of algebraic data types
+
+     Part II: regular expressions and DFAs
+
+     - regular expressions
+     - DFAs
+     - transition matrices for DFAs, with semirings
+
+     Part III: mix well
+
+     - idea: constrain an ADT by regular expression
+     - express derivative via regular expression
+     - related notions: e.g. dissection (divided difference -- don't
+       go into detail)
+     - show homomorphism to semiring of matrices.

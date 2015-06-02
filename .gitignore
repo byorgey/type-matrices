@@ -28,7 +28,6 @@
 *.mtc0
 *~
 *.pdf
-*.tex
 *.ptb
 *.fls
 *.exe
@@ -46,3 +45,7 @@ TAGS
 
 .cabal-sandbox
 cabal.sandbox.config
+
+talks/mpc-15/diagrams
+
+type-matrices.tex
