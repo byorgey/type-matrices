@@ -49,3 +49,4 @@ cabal.sandbox.config
 talks/mpc-15/diagrams
 
 type-matrices.tex
+type-matrices-mpc-15.tex

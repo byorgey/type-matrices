@@ -1,10 +1,14 @@
 %% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams/release/cabal.sandbox.config exec runhaskell Shake.hs" -*-
 \documentclass[xcolor=svgnames,12pt]{beamer}
 
+%include polycode.fmt
+
+%format Dissect = "\dissect"
+
 \usepackage[all]{xy}
 \usepackage{brent}
 \usepackage[backend=cairo,outputdir=diagrams]{diagrams-latex}
-\graphicspath{{images/}}
+\graphicspath{{images/}{../../symbols/}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,6 +152,9 @@
 %   \end{center}
 % \end{xframe}
 
+\section{Introduction \& Motivation}
+\label{sec:intro}
+
 \begin{xframe}{What this talk is about}
   XXX picture: connect polynomial functors, linear algebra, regular
   expressions, all unified by semirings
@@ -156,7 +163,7 @@
 \begin{xframe}{Motivation}
   \begin{center}
     Recall that ``the \emph{derivative} of a type is its type of
-    one-hole contexts''.
+    one-hole contexts''. (XXX cite)
   \end{center}
 
   XXX picture: $\partial$ of a leafy tree = tree with a hole
@@ -168,7 +175,7 @@
 
 \begin{xframe}{Motivation}
   \begin{center}
-    Recall also \emph{dissection}.
+    Recall also \emph{dissection}. (XXX cite C\&J)
   \end{center}
 XXX picture: dissection of tree = etc.
 
@@ -184,9 +191,120 @@ Questions:
 \begin{itemize}
 \item How are these related?
 \item Where does the definition of dissection come from?
-\item Where does $\mathit{right}$ come from?
+\item Where does |right| come from?
 \end{itemize}
 
+\begin{spec}
+  right :: p j + (Dissect p c j, c) -> (j, Dissect p c j) + p c
+\end{spec}
+
+\end{xframe}
+
+\section{Preliminaries}
+\label{sec:prelim}
+
+% \begin{xframe}{Polynomial functors}
+
+%   \begin{center}
+%   \[ F : \Set \to \Set \]
+%   elements $\to$ structures \bigskip
+
+% \begin{diagram}[width=200]
+% import           Data.List.Split
+% import           Diagrams
+
+% elts = map node [1,2,3,4::Int]
+% eltSet = atop (roundedRect 6 6 0.5)
+%        . centerXY
+%        . vsep 1 . map (hsep 1)
+%        . chunksOf 2
+%        $ elts    -- $
+
+% dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
+% \end{diagram}
+% \bigskip
+
+% \onslide<2> aka \emph{algebraic data types}
+%   % think: \emph{(parameterized) combinatorial families}
+%   \end{center}
+% \end{xframe}
+
+\begin{xframe}{Polynomial functors}
+  Polynomial functors are those functors $F : \Set \to \Set$
+  inductively built from:
+  \begin{align*}
+    0(A) &= \varnothing \\
+    1(A) &= \{\star\} \\
+    X(A) &= A \\
+    (F + G)(A) &= F(A) \uplus G(A) \\
+    (F \cdot G)(A) &= F(A) \times G(A)
+  \end{align*}
+
+  \onslide<2-> Can easily generalize to multivariate polynomial
+  functors \[ F : \Set^n \to \Set. \] $X$ generalizes to projections
+  $X_j(A_1,\dots,A_n) = A_j$.
+\end{xframe}
+
+\begin{xframe}{Implicit/recursive definition}
+  We also allow mutually recursive definitions:
+  \begin{align*}
+    F_1 &= \Phi_1(F_1, \dots, F_n) \\
+    &\vdots \\
+    F_n &= \Phi_n(F_1, \dots, F_n)
+  \end{align*}
+  interpreted as a least fixed point.
+\end{xframe}
+
+\begin{xframe}{Regular expressions}
+  Regular expressions are a language of ``patterns'' for strings in
+  $\Sigma^*$ (finite sequences of elements from ``alphabet'' $\Sigma$)
+
+  \begin{align*}
+    R &::= \varnothing && \text{never matches} \\
+    &\mid \varepsilon && \text{empty string} \\
+    &\mid a \in \Sigma && \text{``a''} \\
+    &\mid R_1 \realt R_2 && \text{$R_1$ or $R_2$} \\
+    &\mid R_1R_2 && \text{$R_1$ followed by $R_2$} \\
+    &\mid R^* && \text{sequence of zero or more $R$}
+  \end{align*}
+\end{xframe}
+
+\begin{xframe}{DFAs}
+  \begin{center}
+    \textbf{D}eterministic \textbf{F}inite \textbf{A}utomata \bigskip
+
+    \includegraphics[width=2in]{example-DFA}
+
+    DFAs = machines for identifying sequences
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Regular expressions \& DFAs}
+  Well-known: DFAs and regular expressions are ``about the same
+  thing'' (Kleene, 1951). Every regular expression has a corresponding
+  DFA, and vice versa.
+\end{xframe}
+
+\begin{xframe}{Semirings}
+  Up to isomorphism, both polynomial functors and regular expressions
+  form commutative \emph{semirings}:
+
+  \begin{itemize}
+  \item Associative operations $+$, $\cdot$ with identities $0$, $1$
+  \item $+$ is commutative
+  \item $\cdot$ distributes over $+$
+  \item $+$ does \emph{not} necessarily have inverses
+  \end{itemize}
+
+  Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
+  \lor, \land)$, $(\R \union \{\infty\}, \max, +)$
+\end{xframe}
+
+\section{Constrained polynomial functors}
+\label{sec:constrained}
+
+\begin{xframe}{Foo}
+  bar
 \end{xframe}
 
 % \begin{xframe}
