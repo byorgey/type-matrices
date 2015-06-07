@@ -46,6 +46,7 @@ TAGS
 .cabal-sandbox
 cabal.sandbox.config
 
+talks/wesleyan-s15/diagrams
 talks/mpc-15/diagrams
 
 type-matrices.tex
