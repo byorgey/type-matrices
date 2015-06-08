@@ -1,4 +1,4 @@
-%% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams/release/cabal.sandbox.config exec runhaskell Shake.hs" -*-
+%% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams-sandbox/cabal.sandbox.config exec runhaskell Shake.hs" -*-
 \documentclass[xcolor=svgnames,12pt]{beamer}
 
 %include polycode.fmt
@@ -33,6 +33,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\etc}{\textit{etc.}}
 
 \newcommand{\theschool}{Mathematics of Program Construction}
 \newcommand{\thelocation}{K\"onigswinter, Germany}
@@ -157,13 +159,13 @@
 
 \begin{xframe}{What this talk is about}
   XXX picture: connect polynomial functors, linear algebra, regular
-  expressions, all unified by semirings
+  expressions, all unified by semirings (use diagrams-pgf?)
 \end{xframe}
 
 \begin{xframe}{Motivation}
   \begin{center}
     Recall that ``the \emph{derivative} of a type is its type of
-    one-hole contexts''. (XXX cite)
+    one-hole contexts'' (Huet, McBride, Joyal, \etc).
   \end{center}
 
   XXX picture: $\partial$ of a leafy tree = tree with a hole
@@ -175,13 +177,15 @@
 
 \begin{xframe}{Motivation}
   \begin{center}
-    Recall also \emph{dissection}. (XXX cite C\&J)
+    Recall also \emph{dissection} (McBride, \textit{Clowns \& Jokers}).
   \end{center}
-XXX picture: dissection of tree = etc.
+  \begin{center}
+    \includegraphics[width=2in]{dissect-tree}
+  \end{center}
 
-\begin{center}
-  Application: tail-recursive traversals (maps and folds)
-\end{center}
+  \begin{center}
+    Application: tail-recursive traversals (maps and folds)
+  \end{center}
 \end{xframe}
 
 \begin{xframe}{Motivation}
@@ -300,12 +304,127 @@ Questions:
   \lor, \land)$, $(\R \union \{\infty\}, \max, +)$
 \end{xframe}
 
+\begin{xframe}{Transition matrices for DFAs}
+  XXX explain how we can interpret via semirings.
+\end{xframe}
+
 \section{Constrained polynomial functors}
 \label{sec:constrained}
 
-\begin{xframe}{Foo}
-  bar
+\begin{xframe}{Constrained polynomial functors}
+  \begin{itemize}
+  \item Given a (univariate) $F$ and some regular expression $R$ over
+    $\Sigma = \{A_1, \dots, A_n\}$
+  \item Find a multivariate $F_R$ with the ``same shape'' as $F$ but
+    whose sequences of element types come from a sequence of sets
+    corresponding to $R$
+  \item (``Same shape'' = natural injection $F_R\ A\ \dots\ A \to F\ A$)
+
+  \end{itemize}
 \end{xframe}
+
+\begin{xframe}{Example}
+     \begin{center}
+       \[ L(A) = 1 + A \times L(A) \]
+       \[ R = (AA)^* \]
+
+  \begin{tabular}{c m{3in}}
+  %   $L(\N) =$ &
+  % \begin{diagram}[width=200]
+  %   import           Diagrams
+
+  %   dia = lsD # frame 0.5
+  % \end{diagram}
+  % \\
+  $L_R(\N) =$ &
+  \begin{diagram}[width=200]
+    import           Diagrams
+
+    ls2 = [[], [3,4 :: Int], [1,4,2,6], [3,9,2,0,8,4]]
+
+    dia = vsep 1 (map drawList ls2) # frame 0.5
+  \end{diagram}
+  \end{tabular}
+  \end{center}
+
+\end{xframe}
+
+% XXX redo diagram
+\begin{xframe}{Example}
+  \[ P = X + P^2 \]
+  \[ R = a^*ha^* \]
+  \begin{center}
+    \includegraphics[width=2in]{deriv-tree}
+
+    \onslide<2-> \dots this is just differentiation!
+  \end{center}
+\end{xframe}
+
+% XXX redo diagram
+\begin{xframe}{Example}
+  \[ P = X + P^2 \]
+  \[ R = b^*ha^* \]
+  \begin{center}
+    \includegraphics[width=2in]{dissect-tree}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{The problem}
+  \begin{center}
+  \textbf{Given a polynomial functor $F$ and regular expression $R$, compute
+  a (system of mutually recursive, multivariate) polynomial functor(s)
+  corresponding to $F$ constrained by $R$.}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{The setup}
+  Given:
+  \begin{itemize}
+  \item Polynomial functor $F$
+  \item DFA $D$
+  \end{itemize} \medskip
+
+  \onslide<2->
+  Let $F_{ij}$ denote the (multivariate) polynomial functor
+  \begin{itemize}
+    \item with same shape as $F$
+    \item constrained by sequences which take the DFA from state $i$
+      to state $j$
+  \end{itemize} \medskip
+
+  \onslide<3->
+  Ultimately we are interested in $\sum_{q \in \mathrm{final}(D)} F_{1q}$.
+\end{xframe}
+
+\begin{xframe}
+  \begin{itemize}
+  \item<+-> $0_{ij} = 0$
+  \item<+-> $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
+      j \end{cases}$
+  \item<+-> $X_{ij} = \text{(sum of) edge(s) from $i$ to $j$}$
+  \item<+-> $(F + G)_{ij} = F_{ij} + G_{ij}$
+  \item<+-> $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
+  \end{itemize} \bigskip
+
+  \onslide<6-> These are matrix operations!
+\end{xframe}
+
+\begin{xframe}
+  \begin{center}
+    This is a semiring homomorphism from (unary) polynomial functors
+    to $n \times n$ matrices of (arity-$|\Sigma|$) polynomial
+    functors.
+  \end{center}
+\end{xframe}
+
+\begin{xframe}{Example}
+  XXX example derivation.  Just do one.
+\end{xframe}
+
+\section{Derivative and dissection}
+\label{sec:deriv-dissect}
+
+
 
 % \begin{xframe}
 
