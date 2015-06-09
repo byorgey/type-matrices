@@ -1,4 +1,4 @@
-%% -*- mode: LaTeX; compile-command: "cabal --sandbox-config-file=$HOME/src/diagrams-sandbox/cabal.sandbox.config exec runhaskell Shake.hs" -*-
+%% -*- mode: LaTeX; compile-command: "cabal exec runhaskell Shake.hs" -*-
 \documentclass[xcolor=svgnames,12pt]{beamer}
 
 %include polycode.fmt
@@ -7,7 +7,7 @@
 
 \usepackage[all]{xy}
 \usepackage{brent}
-\usepackage[backend=cairo,outputdir=diagrams]{diagrams-latex}
+\usepackage[backend=pgf,extension=pgf,input,outputdir=diagrams]{diagrams-latex}
 \graphicspath{{images/}{../../symbols/}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -277,7 +277,32 @@ Questions:
   \begin{center}
     \textbf{D}eterministic \textbf{F}inite \textbf{A}utomata \bigskip
 
-    \includegraphics[width=2in]{example-DFA}
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
+
+exampleDFA :: DFA (Diagram B, Bool)
+exampleDFA = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True,  10 ^& 0)
+  , 4 --> (False, 5 ^& (-5))
+  ]
+  [ 1 >-- txtN "a" --> 2
+  , 2 >-- txtN "b" --> 1
+
+  , 2 >-- txtN "a" --> 3
+  , 3 >-- txtN "b" --> 2
+
+  , 1 >-- (txt "b", True) --> 4
+  , 3 >-- txtN "a" --> 4
+
+  , 4 >-- txtN "a,b" --> 4
+  ]
+
+txtN s = (txt s, False)
+
+dia = drawDFA exampleDFA # frame 0.5
+  \end{diagram}
 
     DFAs = machines for identifying sequences
   \end{center}
@@ -329,13 +354,6 @@ Questions:
        \[ R = (AA)^* \]
 
   \begin{tabular}{c m{3in}}
-  %   $L(\N) =$ &
-  % \begin{diagram}[width=200]
-  %   import           Diagrams
-
-  %   dia = lsD # frame 0.5
-  % \end{diagram}
-  % \\
   $L_R(\N) =$ &
   \begin{diagram}[width=200]
     import           Diagrams
@@ -346,7 +364,6 @@ Questions:
   \end{diagram}
   \end{tabular}
   \end{center}
-
 \end{xframe}
 
 % XXX redo diagram
@@ -424,6 +441,53 @@ Questions:
 \section{Derivative and dissection}
 \label{sec:deriv-dissect}
 
+\begin{xframe}{Derivative}
+  XXX show DFA for derivative.
+\end{xframe}
+
+\begin{xframe}{Derivative}
+  XXX show corresponding matrix formulation.
+\end{xframe}
+
+\begin{xframe}{Derivative}
+  XXX show decomposition with infinitesimal.
+\end{xframe}
+
+\begin{xframe}{Dissection}
+  XXX remind of definition.  Show RE and transition matrix.
+\end{xframe}
+
+\begin{xframe}{Dissection}
+  XXX central rule is Leibniz rule for products.
+\end{xframe}
+
+\begin{xframe}{Dissection}
+  XXX show via matrices.
+\end{xframe}
+
+\begin{xframe}{Divided differences}
+  XXX define divided differences (for $n=2$)
+\end{xframe}
+
+\begin{xframe}{Divided differences}
+  XXX show equivalent matrix formulation
+\end{xframe}
+
+\begin{xframe}{Divided differences}
+  XXX derive isomorphism |right|
+\end{xframe}
+
+\begin{xframe}{Higher-order divided differences}
+  XXX show higher-order.
+\end{xframe}
+
+\begin{xframe}
+  \begin{center}
+    Thank you! \bigskip
+
+    \includegraphics[width=1in]{deriv-tree}
+  \end{center}
+\end{xframe}
 
 
 % \begin{xframe}
