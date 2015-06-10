@@ -18,11 +18,12 @@ import           Linear.V2                 (perp)
 
 type Dia = QDiagram PGF V2 Double Any
 
-data Type = A | B | H
+data Type = A | B | H | O
 
-drawType A = text "a" # italic # centerX <> square 2 # fc yellow
-drawType B = text "b" # italic # centerX <> circle 1 # fc red
-drawType H = text "h" # italic # centerX <> circle 1 # fc white # dashingG [0.2,0.2] 0
+drawType A = text "A" # italic # centerX # translateX (-0.05) <> square 2 # fc lightblue
+drawType B = text "B" # italic # centerX # translateX (-0.1) <> circle 1 # fc lightgreen
+drawType H = text "H" # italic # centerX # translateX (-0.1) <> drawType O
+drawType O = circle 1 # fc white # dashingG [0.2,0.2] 0
 
 renderT :: Tree (Maybe Type) -> Diagram B
 renderT

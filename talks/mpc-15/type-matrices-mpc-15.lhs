@@ -123,6 +123,8 @@
 \title{Polynomial Functors Constrained by Regular Expressions}
 \date{\theschool \\ \thelocation \\ \thedate}
 \author{Dan Piponi \and \usebeamercolor[fg]{title}{Brent Yorgey}}
+%% XXX todo fix title graphic to use same color scheme as the rest of
+%% the slides
 \titlegraphic{\includegraphics[width=1in]{deriv-tree}}
 
 % Abstract
@@ -158,8 +160,34 @@
 \label{sec:intro}
 
 \begin{xframe}{What this talk is about}
-  XXX picture: connect polynomial functors, linear algebra, regular
-  expressions, all unified by semirings (use diagrams-pgf?)
+  \begin{center}
+    \begin{diagram}[width=150]
+      dia = mconcat
+        [ atPoints (triangle 20)
+          $ map text    -- $
+            [ "polynomial functors"
+            , "linear algebra"
+            , "regular expressions" ]
+        , triangle 20
+          # explodePath
+          # concat
+          # map (strokeLocTrail . doAdjust)
+          # mconcat
+        , text "semirings"
+        ]
+        where
+          doAdjust locTr = adjust locTr opts
+            where
+              opts = with & adjMethod .~ ByAbsolute adjLen
+                          & adjSide .~ Both
+              adjLen || angleBetweenDirs
+                          xDir
+                          (direction (tangentAtStart locTr))
+                        < (1/20 @@@@ turn)
+                        = -15
+                     || otherwise = -5
+    \end{diagram}
+  \end{center}
 \end{xframe}
 
 \begin{xframe}{Motivation}
@@ -168,8 +196,15 @@
     one-hole contexts'' (Huet, McBride, Joyal, \etc).
   \end{center}
 
-  XXX picture: $\partial$ of a leafy tree = tree with a hole
-
+  \begin{center}
+    \begin{diagram}[width=200]
+      import Diagrams
+      tree1 = drawTree (trees !! 3) # frame 0.5
+      tree2 = drawNTree (poke 3 (trees !! 3)) # frame 0.5
+      dia = hsep 2 $ -- $
+        map centerY [text "$\\partial$" # scale 3, tree1, arrowV (5 ^& 0), tree2]
+    \end{diagram}
+  \end{center}
   \begin{center}
     Application: \emph{zippers}
   \end{center}
@@ -179,8 +214,34 @@
   \begin{center}
     Recall also \emph{dissection} (McBride, \textit{Clowns \& Jokers}).
   \end{center}
+
   \begin{center}
-    \includegraphics[width=2in]{dissect-tree}
+\begin{diagram}[width=150]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t = nd
+    [ nd
+      [ nd $
+          leaves [B, B]
+      , lf B
+      ]
+    , nd
+      [ nd
+        [ lf O
+        , nd $ leaves [A, A]
+        ]
+      , nd $ leaves [A, A]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
+
+dia = renderT t # frame 0.5
+\end{diagram}
+%$
   \end{center}
 
   \begin{center}
@@ -366,23 +427,69 @@ dia = drawDFA exampleDFA # frame 0.5
   \end{center}
 \end{xframe}
 
-% XXX redo diagram
 \begin{xframe}{Example}
   \[ P = X + P^2 \]
-  \[ R = a^*ha^* \]
+  \[ R = A^*HA^* \]
   \begin{center}
-    \includegraphics[width=2in]{deriv-tree}
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
+import Data.Tree
+
+t = Nothing ##
+    [ Nothing ##
+      [ Nothing ##
+          leaves [ Just A, Just A ]
+      , leaf $ Just A
+      ]
+    , Nothing ##
+      [ Nothing ##
+        [ leaf $ Just A
+        , Nothing ## leaves [Just H, Just A]
+        ]
+      , Nothing ## leaves [Just A, Just A]
+      ]
+    ]
+  where (##)   = Node
+        leaf x = Node x []
+        leaves = map leaf
+
+dia = renderT t # frame 0.5
+  \end{diagram}
 
     \onslide<2-> \dots this is just differentiation!
   \end{center}
 \end{xframe}
 
-% XXX redo diagram
 \begin{xframe}{Example}
   \[ P = X + P^2 \]
-  \[ R = b^*ha^* \]
+  \[ R = B^*HA^* \]
   \begin{center}
-    \includegraphics[width=2in]{dissect-tree}
+\begin{diagram}[width=150]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t = nd
+    [ nd
+      [ nd $
+          leaves [B, B]
+      , lf B
+      ]
+    , nd
+      [ nd
+        [ lf O
+        , nd $ leaves [A, A]
+        ]
+      , nd $ leaves [A, A]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
+
+dia = renderT t # frame 0.5
+\end{diagram}
+%$
   \end{center}
 \end{xframe}
 
@@ -429,7 +536,7 @@ dia = drawDFA exampleDFA # frame 0.5
 \begin{xframe}
   \begin{center}
     This is a semiring homomorphism from (unary) polynomial functors
-    to $n \times n$ matrices of (arity-$|\Sigma|$) polynomial
+    to $n \times n$ matrices of (arity-$||\Sigma||$) polynomial
     functors.
   \end{center}
 \end{xframe}
