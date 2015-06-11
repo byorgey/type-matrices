@@ -348,16 +348,16 @@ exampleDFA = dfa
   , 3 --> (True,  10 ^& 0)
   , 4 --> (False, 5 ^& (-5))
   ]
-  [ 1 >-- txtN "a" --> 2
-  , 2 >-- txtN "b" --> 1
+  [ 1 >-- txtN "A" --> 2
+  , 2 >-- txtN "B" --> 1
 
-  , 2 >-- txtN "a" --> 3
-  , 3 >-- txtN "b" --> 2
+  , 2 >-- txtN "A" --> 3
+  , 3 >-- txtN "B" --> 2
 
-  , 1 >-- (txt "b", True) --> 4
-  , 3 >-- txtN "a" --> 4
+  , 1 >-- (txt "B", True) --> 4
+  , 3 >-- txtN "A" --> 4
 
-  , 4 >-- txtN "a,b" --> 4
+  , 4 >-- txtN "A,B" --> 4
   ]
 
 txtN s = (txt s, False)
@@ -405,16 +405,16 @@ exampleDFA = dfa
   , 3 --> (True,  10 ^& 0)
   , 4 --> (False, 5 ^& (-5))
   ]
-  [ 1 >-- txtN "a" --> 2
-  , 2 >-- txtN "b" --> 1
+  [ 1 >-- txtN "A" --> 2
+  , 2 >-- txtN "B" --> 1
 
-  , 2 >-- txtN "a" --> 3
-  , 3 >-- txtN "b" --> 2
+  , 2 >-- txtN "A" --> 3
+  , 3 >-- txtN "B" --> 2
 
-  , 1 >-- (txt "b", True) --> 4
-  , 3 >-- txtN "a" --> 4
+  , 1 >-- (txt "B", True) --> 4
+  , 3 >-- txtN "A" --> 4
 
-  , 4 >-- txtN "a,b" --> 4
+  , 4 >-- txtN "A,B" --> 4
   ]
 
 txtN s = (txt s, False)
@@ -425,10 +425,10 @@ dia = drawDFA exampleDFA # frame 0.5
   &
 \[
 \begin{bmatrix}
-  \cdot & a & \cdot & b \\
-  b & \cdot & a & \cdot \\
-  \cdot & b & \cdot & a \\
-  \cdot & \cdot & \cdot & a+b
+  \cdot & A & \cdot & B \\
+  B & \cdot & A & \cdot \\
+  \cdot & B & \cdot & A \\
+  \cdot & \cdot & \cdot & A+B
 \end{bmatrix}
 \]
 \end{tabular}
@@ -504,7 +504,7 @@ dia = renderT t # frame 0.5
   \end{center}
 \end{xframe}
 
-\begin{xframe}{Example}
+\begin{xframe}{Example: Dissection}
   \[ P = X + P^2 \]
   \[ R = B^*HA^* \]
   \begin{center}
@@ -565,28 +565,87 @@ dia = renderT t # frame 0.5
 \end{xframe}
 
 \begin{xframe}
+  %% XXX todo: pictures for these?
   \begin{itemize}
   \item<+-> $0_{ij} = 0$
   \item<+-> $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
       j \end{cases}$
-  \item<+-> $X_{ij} = \text{(sum of) edge(s) from $i$ to $j$}$
+  \item<+-> $X_{ij} = \text{sum of edge(s) from $i$ to $j$}$
   \item<+-> $(F + G)_{ij} = F_{ij} + G_{ij}$
   \item<+-> $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
   \end{itemize} \bigskip
 
-  \onslide<6-> These are matrix operations!
-\end{xframe}
-
-\begin{xframe}
+  \onslide<6->
   \begin{center}
-    This is a semiring homomorphism from (unary) polynomial functors
-    to $n \times n$ matrices of (arity-$||\Sigma||$) polynomial
-    functors.
+    These are matrix operations!  $X_{ij}$ is the transition matrix
+    for the DFA, interpreted in the semiring of polynomial functors.
   \end{center}
 \end{xframe}
 
+\begin{xframe}
+    Given a DFA $D$,
+    \[ F \mapsto \begin{bmatrix} F_{11} & \dots & F_{1n} \\
+      \vdots & \ddots & \vdots \\ F_{n1} & \dots &
+      F_{nn} \end{bmatrix} \]
+    is a \emph{semiring homomorphism} from (unary) polynomial functors
+    to $n \times n$ matrices of (arity-$||\Sigma||$) polynomial
+    functors.
+\end{xframe}
+
 \begin{xframe}{Example}
-  XXX example derivation.  Just do one.
+\[ L = 1 + XL, R = (AA)^* \]
+\begin{center}
+  \begin{tabular}{m{1in}m{1in}}
+  \begin{center}
+  \begin{diagram}[width=75]
+import TypeMatricesDiagrams
+
+aaStar :: DFA (Diagram B)
+aaStar = dfa
+  [ 1 --> (True, origin)
+  , 2 --> (False, 5 ^& 0)
+  ]
+  [ 1 >-- txt "A" --> 2
+  , 2 >-- txt "A" --> 1
+  ]
+
+dia = drawDFA aaStar # frame 0.5
+  \end{diagram}
+  \end{center}
+  &
+  \[ \begin{bmatrix}
+     0 & A \\ A & 0
+     \end{bmatrix}
+  \]
+\end{tabular}
+
+\begin{multline*}
+  \begin{bmatrix}
+    L_{11} & L_{12} \\
+    L_{21} & L_{22}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    0 & A \\
+    A & 0
+  \end{bmatrix}
+  \begin{bmatrix}
+    L_{11} & L_{12} \\
+    L_{21} & L_{22}
+  \end{bmatrix}
+  \\
+  =
+  \begin{bmatrix}
+    1 + A L_{21} & A L_{22} \\
+    A L_{11} & 1+ A L_{12}
+  \end{bmatrix}.
+\end{multline*}
+\end{center}
 \end{xframe}
 
 \section{Derivative and dissection}
