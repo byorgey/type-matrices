@@ -365,7 +365,8 @@ txtN s = (txt s, False)
 dia = drawDFA exampleDFA # frame 0.5
   \end{diagram}
 
-    DFAs = machines for identifying sequences
+\onslide<2->
+(We can actually drop \emph{finite})
   \end{center}
 \end{xframe}
 
@@ -391,7 +392,51 @@ dia = drawDFA exampleDFA # frame 0.5
 \end{xframe}
 
 \begin{xframe}{Transition matrices for DFAs}
-  XXX explain how we can interpret via semirings.
+  \begin{center}
+  \begin{tabular}{m{2in}m{2in}}
+  \begin{center}
+  \begin{diagram}[width=130]
+import TypeMatricesDiagrams
+
+exampleDFA :: DFA (Diagram B, Bool)
+exampleDFA = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True,  10 ^& 0)
+  , 4 --> (False, 5 ^& (-5))
+  ]
+  [ 1 >-- txtN "a" --> 2
+  , 2 >-- txtN "b" --> 1
+
+  , 2 >-- txtN "a" --> 3
+  , 3 >-- txtN "b" --> 2
+
+  , 1 >-- (txt "b", True) --> 4
+  , 3 >-- txtN "a" --> 4
+
+  , 4 >-- txtN "a,b" --> 4
+  ]
+
+txtN s = (txt s, False)
+
+dia = drawDFA exampleDFA # frame 0.5
+  \end{diagram}
+  \end{center}
+  &
+\[
+\begin{bmatrix}
+  \cdot & a & \cdot & b \\
+  b & \cdot & a & \cdot \\
+  \cdot & b & \cdot & a \\
+  \cdot & \cdot & \cdot & a+b
+\end{bmatrix}
+\]
+\end{tabular}
+
+\onslide<2->
+Interpret edge labels in an arbitrary semiring $\to$ XXX
+XXX citations (Dolan, O'Connor, etc.)
+  \end{center}
 \end{xframe}
 
 \section{Constrained polynomial functors}
@@ -402,8 +447,7 @@ dia = drawDFA exampleDFA # frame 0.5
   \item Given a (univariate) $F$ and some regular expression $R$ over
     $\Sigma = \{A_1, \dots, A_n\}$
   \item Find a multivariate $F_R$ with the ``same shape'' as $F$ but
-    whose sequences of element types come from a sequence of sets
-    corresponding to $R$
+    whose allowed sequences of element types always match $R$
   \item (``Same shape'' = natural injection $F_R\ A\ \dots\ A \to F\ A$)
 
   \end{itemize}
@@ -411,7 +455,7 @@ dia = drawDFA exampleDFA # frame 0.5
 
 \begin{xframe}{Example}
      \begin{center}
-       \[ L(A) = 1 + A \times L(A) \]
+       \[ L = 1 + X \times L \]
        \[ R = (AA)^* \]
 
   \begin{tabular}{c m{3in}}
@@ -456,7 +500,7 @@ t = Nothing ##
 dia = renderT t # frame 0.5
   \end{diagram}
 
-    \onslide<2-> \dots this is just differentiation!
+    \onslide<2-> \dots this is differentiation!
   \end{center}
 \end{xframe}
 
