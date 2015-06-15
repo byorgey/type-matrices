@@ -196,6 +196,8 @@
     one-hole contexts'' (Huet, McBride, Joyal, \etc).
   \end{center}
 
+  XXX this picture is deceptive.
+
   \begin{center}
     \begin{diagram}[width=200]
       import Diagrams
@@ -565,17 +567,78 @@ dia = renderT t # frame 0.5
 \end{xframe}
 
 \begin{xframe}
-  %% XXX todo: pictures for these?
+  \[ 0_{ij} = 0 \]
+
+  \begin{center}
+    $0$ is the only thing with the same shape as $0$.
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \[  1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
+    j \end{cases} \]
+
+  \begin{center}
+    $0$ and $1$ are the only things with the same shape as $1$.  A
+    $1$-structure doesn't make the DFA transition at all.
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \[ X_{ij} = \sum_{i \stackrel{A}{\to} j} X_A \]
+
+  \begin{center}
+    \begin{tabular}{m{1.75in}m{1.75in}}
+    \begin{center}
+    \begin{diagram}[width=75]
+import TypeMatricesDiagrams
+
+dia =
+  mconcat
+  [ (txt "i" <> circle 1) # named "i"
+  , (txt "j" <> circle 1) # named "j" # translateX 5
+  , arcArrow origin (5 ^& 0) 1 1.4 (txt "A")
+  , arcArrow origin (5 ^& 0) (-1) 1.4 (txt "B")
+  ]
+  \end{diagram}
+  \end{center}
+  &
+  \begin{diagram}[width=100]
+    import TypeMatricesDiagrams
+    dia = hsep 2 [ drawType A, txt "OR", drawType B ]
+  \end{diagram}
+  \end{tabular}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \[ (F + G)_{ij} = F_{ij} + G_{ij} \]
+
+  \begin{center}
+    XXX picture
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \[ (F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq}
+  G_{qj} \]
+
+  \begin{center}
+    XXX picture
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
   \begin{itemize}
-  \item<+-> $0_{ij} = 0$
-  \item<+-> $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
+  \item $0_{ij} = 0$
+  \item $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
       j \end{cases}$
-  \item<+-> $X_{ij} = \text{sum of edge(s) from $i$ to $j$}$
-  \item<+-> $(F + G)_{ij} = F_{ij} + G_{ij}$
-  \item<+-> $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
+  \item $X_{ij} = \sum_{i \stackrel{A}{\to} j} X_A$
+  \item $(F + G)_{ij} = F_{ij} + G_{ij}$
+  \item $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
   \end{itemize} \bigskip
 
-  \onslide<6->
+  \onslide<2->
   \begin{center}
     These are matrix operations!  $X_{ij}$ is the transition matrix
     for the DFA, interpreted in the semiring of polynomial functors.
@@ -614,7 +677,7 @@ dia = drawDFA aaStar # frame 0.5
   \end{center}
   &
   \[ \begin{bmatrix}
-     0 & A \\ A & 0
+     0 & X_A \\ X_A & 0
      \end{bmatrix}
   \]
 \end{tabular}
@@ -631,8 +694,8 @@ dia = drawDFA aaStar # frame 0.5
   \end{bmatrix}
   +
   \begin{bmatrix}
-    0 & A \\
-    A & 0
+    0 & X_A \\
+    X_A & 0
   \end{bmatrix}
   \begin{bmatrix}
     L_{11} & L_{12} \\
@@ -641,8 +704,8 @@ dia = drawDFA aaStar # frame 0.5
   \\
   =
   \begin{bmatrix}
-    1 + A L_{21} & A L_{22} \\
-    A L_{11} & 1+ A L_{12}
+    1 + X_A L_{21} & X_A L_{22} \\
+    X_A L_{11} & 1+ X_A L_{12}
   \end{bmatrix}.
 \end{multline*}
 \end{center}
@@ -652,27 +715,138 @@ dia = drawDFA aaStar # frame 0.5
 \label{sec:deriv-dissect}
 
 \begin{xframe}{Derivative}
-  XXX show DFA for derivative.
-\end{xframe}
+  \begin{center}
+  \begin{tabular}{m{1in}m{1in}}
+  \begin{diagram}[width=75]
+import TypeMatricesDiagrams
 
-\begin{xframe}{Derivative}
-  XXX show corresponding matrix formulation.
-\end{xframe}
+deriv :: DFA (Diagram B)
+deriv = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (True , 5 ^& 0)
+  ]
+  [ 1 >-- txt "A" --> 1
+  , 1 >-- txt "H" --> 2
+  , 2 >-- txt "A" --> 2
+  ]
 
-\begin{xframe}{Derivative}
-  XXX show decomposition with infinitesimal.
+dia = drawDFA deriv # frame 0.5
+  \end{diagram}
+  &
+  \[
+  \begin{bmatrix}
+    X_A & X_H \\ 0 & X_A
+  \end{bmatrix}
+  \]
+  \end{tabular}
+  \end{center}
+  \[ F \mapsto
+  \begin{bmatrix}
+    F & F' \\ 0 & F
+  \end{bmatrix}
+  \]
+
+  \onslide<2->
+  \[
+  \begin{bmatrix}
+    F & F' \\ 0 & F
+  \end{bmatrix}
+  \begin{bmatrix}
+    G & G' \\ 0 & G
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    FG & FG' + F'G \\
+    0 & FG
+  \end{bmatrix}
+  \]
 \end{xframe}
 
 \begin{xframe}{Dissection}
-  XXX remind of definition.  Show RE and transition matrix.
+  \begin{center}
+\begin{diagram}[width=100]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t = nd
+    [ nd
+      [ nd $
+          leaves [B, B]
+      , lf B
+      ]
+    , nd
+      [ nd
+        [ lf H
+        , nd $ leaves [A, A]
+        ]
+      , nd $ leaves [A, A]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
+
+dia = renderT t # frame 0.5
+\end{diagram}
+%$
+
+\begin{tabular}{m{1.5in}m{1.5in}}
+    \begin{diagram}[width=75]
+import TypeMatricesDiagrams
+
+bstarhastar :: DFA (Diagram B)
+bstarhastar = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (True, 5 ^& 0)
+  ]
+  [ 1 >-- txt "H" --> 2
+
+  , 1 >-- txt "B" --> 1
+  , 2 >-- txt "A" --> 2
+  ]
+
+dia = drawDFA bstarhastar # frame 0.5
+  \end{diagram}
+  &
+  \[
+  \begin{bmatrix}
+    X_B & X_H \\
+    0 & X_A
+  \end{bmatrix}
+  \]
+  \end{tabular}
+  \[
+    F \mapsto
+    \begin{bmatrix}
+      \clowns F & \dissect F \\ 0 & \jokers F
+    \end{bmatrix}
+  \]
+  \end{center}
 \end{xframe}
 
 \begin{xframe}{Dissection}
   XXX central rule is Leibniz rule for products.
-\end{xframe}
 
-\begin{xframe}{Dissection}
-  XXX show via matrices.
+  \[ \dissect (FG) = \clowns F \dissect G + \dissect F \clowns G \]
+
+  \onslide<2->
+  \[
+  \begin{bmatrix}
+    \clowns F & \dissect F \\
+    0 & \jokers F
+  \end{bmatrix}
+  \begin{bmatrix}
+    \clowns G & \dissect G \\
+    0 & \jokers G
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    \clowns F \clowns G & \clowns F \dissect G + \dissect F \jokers G
+    \\
+    0 & \jokers F \jokers G
+  \end{bmatrix}
+  \]
 \end{xframe}
 
 \begin{xframe}{Divided differences}
@@ -699,543 +873,24 @@ dia = drawDFA aaStar # frame 0.5
   \end{center}
 \end{xframe}
 
-
-% \begin{xframe}
-
-% \begin{itemize}
-% \item Please ask questions!
-% \item Part I: get you to understand the title/problem statement
-% \item Part II: our solution (sketch)
-% \end{itemize}
-
-% %%% First two parts: get you to understand title, i.e. problem
-% %%% statement.  Part 3: our solution.  Based on joint work with Dan
-% %%% Piponi.
-
-% \end{xframe}
-
-% %% XXX section image: binary tree
-% %\def\sectionimg{dan.jpg}
-% \section{Polynomial functors}
-
-% \begin{xframe}{Polynomial functors}
-
-%   \begin{center}
-%   \[ F : \Set \to \Set \]
-%   elements $\to$ structures \bigskip
-
-% \begin{diagram}[width=200]
-% import           Data.List.Split
-% import           Diagrams
-
-% elts = map node [1,2,3,4::Int]
-% eltSet = atop (roundedRect 6 6 0.5)
-%        . centerXY
-%        . vsep 1 . map (hsep 1)
-%        . chunksOf 2
-%        $ elts    -- $
-
-% dia = [eltSet, arrowV (5 ^& 0), lsD] # map centerY # hsep 2 # frame 0.5
-% \end{diagram}
-% \bigskip
-
-% \onslide<2> aka \emph{algebraic data types}
-%   % think: \emph{(parameterized) combinatorial families}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Building polynomial functors}
-%   Polynomial functors are those $F : \Set \to \Set$ which can be built
-%   up out of:
-%   \begin{align*}
-%     0(A) &= \varnothing \\
-%     1(A) &= \{\star\} \\
-%     X(A) &= A \\
-%     (F + G)(A) &= F(A) \uplus G(A) \\
-%     (F \cdot G)(A) &= F(A) \times G(A)
-%   \end{align*}
-% \end{xframe}
-
-% \begin{xframe}{Example}
-%   \begin{gather*}
-%     1 + ((X \cdot X) + X) : \Set \to \Set \\
-%     (1 + ((X \cdot X) + X))(A) = \{\star\} \uplus ((A \times A) \uplus A)
-%   \end{gather*}
-% \end{xframe}
-
-% \begin{xframe}{Polynomial functor isomorphisms}
-%   Note that
-%   \begin{gather*}
-%     F + G \cong G + F \\
-%     F + (G + H) \cong (F + G) + H \\
-%     0 + F \cong F \cong F + 0 \\ \\
-%     F \cdot G \cong G \cdot F \\
-%     F \cdot (G \cdot H) \cong (F \cdot G) \cdot H \\
-%     1 \cdot F \cong F \cong F \cdot 1 \\ \\
-%     F \cdot (G + H) \cong F \cdot G + F \cdot H
-%   \end{gather*}
-% \end{xframe}
-
-% \begin{xframe}{Polynomial functor isomorphisms}
-% \[ 1 \cdot F \cong F \]
-
-% Example proof:
-
-%   \begin{align*}
-%     (1 \cdot F)(A) &= 1(A) \times F(A) \\
-%     &= \{\star\} \times F(A) \\
-%     &= \{(\star, f) \mid f \in F(A)\} \\
-%     &\cong F(A).
-%   \end{align*}
-% \end{xframe}
-
-% \begin{xframe}{Semirings}
-%   Up to isomorphism, polynomial functors form a (commutative) \emph{semiring}:
-
-%   \begin{itemize}
-%   \item Associative operations $+$, $\cdot$ with identities $0$, $1$
-%   \item $+$ is commutative
-%   \item $\cdot$ distributes over $+$
-%   \item $+$ does \emph{not} necessarily have inverses!
-%   \end{itemize}
-
-%   Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
-%   \lor, \land)$, $(\R \union \{\infty\}, \max, +)$
-% \end{xframe}
-
-% \begin{xframe}{Implicit/recursive definition}
-%   We also allow mutually recursive definitions:
-%   \begin{align*}
-%     F_1 &= \Phi_1(F_1, \dots, F_n) \\
-%     &\vdots \\
-%     F_n &= \Phi_n(F_1, \dots, F_n)
-%   \end{align*}
-% \end{xframe}
-
-% \begin{xframe}{Example: lists}
-%   \[ L = 1 + X \cdot L \]
-
-%   \onslide<2->
-%   \[ L(A) = \{\star\} \uplus (A \times L(A)) \]
-%   \begin{center}
-%   \begin{tabular}{c m{3in}}
-%     $L(\N) =$ &
-%   \begin{diagram}[width=200]
-%     import           Diagrams
-
-%     dia = lsD # frame 0.5
-%   \end{diagram}
-%   \end{tabular}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Example: binary trees}
-%   \[ T = 1 + X \cdot T \cdot T \]
-
-%   \onslide<2->
-%   \[ T(A) = \{\star\} \uplus (A \times T(A) \times T(A)) \]
-%   \begin{center}
-%   \begin{tabular}{c m{3in}}
-%     $T(\N) =$ &
-%   \begin{diagram}[width=200]
-%     import           Diagrams.TwoD.Layout.Tree
-
-%     import           Diagrams
-
-%     dia = frame 0.5
-%         . hsep 3
-%         . (++ [ellipsis])
-%         . map (centerY . drawTree)
-%         $ trees  -- $
-%   \end{diagram}
-%   \end{tabular}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Example: binary trees}
-%   Polynomial functors can be \textbf{directly encoded} in programming
-%   languages with \textbf{algebraic data types} (Haskell, OCaml, SML,
-%   Scala, F\#):
-%   \[ T = 1 + X \cdot T \cdot T \]
-%   \[ T(A) = \{\star\} \uplus (A \times T(A) \times T(A)) \]
-%   \begin{verbatim}
-%        data T a = Empty | Node a (T a) (T a)
-%   \end{verbatim}
-% \end{xframe}
-
-% \begin{xframe}{Example: even/odd lists}
-%   \begin{align*}
-%     E &= 1 + X \cdot O \\
-%     O &= X \cdot E
-%   \end{align*}
-
-%   \begin{center}
-%   \begin{tabular}{c m{3in}}
-%     $E(\N) =$ &
-%   \begin{diagram}[width=200]
-%     import Diagrams
-%     dia = hsep 2 (map drawList [[], [3 :: Int,7], [3,7,2,8]] ++ [ellipsis])
-%         # frame 0.5
-%   \end{diagram}
-%   \\
-%   $O(\N) =$ &
-%   \begin{diagram}[width=150]
-%     import Diagrams
-%     dia = hsep 2 (map drawList [[3 :: Int], [3,7,2]] ++ [ellipsis])
-%         # frame 0.5
-%   \end{diagram}
-%   \end{tabular}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{``Polynomial''?}
-%   All polynomial functors are isomorphic to \[ a_0 + a_1 X + a_2 X^2 +
-%   a_3 X^3 + \dots \] with $a_i \in \N$ ($n = 1 + \dots + 1$)
-%   \vspace{0.75in}
-
-%   % \begin{center}
-%   % {\small (mumble generating functions mumble blah \dots)}
-%   % \end{center}
-% \end{xframe}
-
-% %%% Do I need to say something about arbitrary arities?  OR can I just
-% %%% sweep that under the rug?
-
-% \begin{xframe}{``Functors''?}
-%   These are actually \emph{functors} $\Set \to \Set$: given a function
-%   we can apply it to every element in a structure (``map'').  E.g.:
-%   \[ T(x \mapsto x + 1) \]
-%   \begin{center}
-%   \begin{diagram}[width=200]
-%     import Diagrams
-%     dia =
-%       [ drawTree (trees !! 2)
-%       , arrowV (4 ^& 0)
-%       , drawTree (fmap succ (trees !! 2))
-%       ]
-%       # map centerY
-%       # hsep 2
-%       # frame 0.5
-%   \end{diagram}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Calculus!?}
-%   \begin{center}
-%   Analysis $\leftrightarrow$ Combinatorics \bigskip
-
-%   Example: \emph{differentiation}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}
-%   \begin{center}
-%     \includegraphics[width=3in]{diff-page1}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}
-%   \begin{center}
-%   \begin{tabular}{c m{2in}}
-%     $T(\N)$ &
-%     \begin{diagram}[width=100]
-%       import Diagrams
-%       dia = drawTree (trees !! 3) # frame 0.5
-%     \end{diagram}
-%     \\
-%     $\displaystyle \left(\dd T X \right)(\N)$ &
-%     \begin{diagram}[width=100]
-%       import Diagrams
-%       dia = drawNTree (poke 3 (trees !! 3)) # frame 0.5
-%     \end{diagram}
-%   \end{tabular}
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Proof!}
-%   \[ \dd 1 X \cong 0 \]
-%   % XXX if time, a picture
-%   \begin{center}
-%     $1$-structures have nowhere for a hole to go (they contain no
-%     data)
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}
-%   \[ \dd{X}{X} \cong 1 \]
-%   % XXX picture
-% \end{xframe}
-
-% \begin{xframe}
-%   \[ \dd{(F+G)}{X} \cong \dd F X + \dd G X \]
-%   % XXX picture
-% \end{xframe}
-
-% \begin{xframe}
-%   \[ \dd{(F \cdot G)}{X} \cong \dd F X \cdot G + F \cdot \dd G X \]
-%   % XXX picture
-% \end{xframe}
-
-% \begin{xframe}
-%   \begin{itemize}
-%   \item Note this proof is also an \emph{algorithm} for computing $\dd
-%     T X$ from the definition of $T$. \bigskip
-%   \item These ``one-hole contexts'' turn out to be quite useful in the
-%     context of functional programming (``zippers''); the theory gives
-%     an automatic way to generate them.
-%   \end{itemize}
-
-%   \begin{center}
-%     \begin{diagram}[width=100]
-%       import Diagrams
-%       dia = drawNTree (poke 3 (trees !! 3)) # frame 0.5
-%     \end{diagram}
-%   \end{center}
-% \end{xframe}
-
-% % XXX if I have time.
-% %
-% % \begin{xframe}
-% %   \begin{align*}
-% %     T &= 1 + X \cdot T \cdot T \\
-% %     \dd T X &= 0 + T^2 + X \dd T X T + X T \dd T X \\
-% %   \end{align*}
-% %   %% picture: three kinds of trees with a hole
-% % \end{xframe}
-
-% % \begin{xframe}
-% %   \begin{align*}
-% %     \dd T X &= T^2 + X \dd T X T + X T \dd T X \\
-% %     &= T^2 + 2XT \dd T X
-% %     &= \mathsf{List}(2XT) \cdot T^2
-% %   \end{align*}
-% %   %% picture: chain of contexts etc.  Put this in if I have time.
-% % \end{xframe}
-
-% %% XXX section image: DFA
-% %% \def\sectionimg{dan.jpg}
-% \section{Regular expressions}
-
-% \begin{xframe}{Regular expressions}
-%   Regular expressions are a language of ``patterns'' for strings in
-%   $\Sigma^*$ (finite sequences of elements from ``alphabet'' $\Sigma$)
-
-%   \begin{align*}
-%     R &::= \varnothing && \text{never matches} \\
-%     &\mid \varepsilon && \text{empty string} \\
-%     &\mid a \in \Sigma && \text{``a''} \\
-%     &\mid R_1 \realt R_2 && \text{$R_1$ or $R_2$} \\
-%     &\mid R_1R_2 && \text{$R_1$ followed by $R_2$} \\
-%     &\mid R^* && \text{sequence of zero or more $R$}
-%   \end{align*}
-% \end{xframe}
-
-% \begin{xframe}{Examples}
-%   \begin{itemize}
-%   \item $a^*b^*$ \quad matches ``b'', ``aaa'', ``aaaabbb'', \dots
-%   \item $a^* b (c+d)$ \quad matches ``abd'', ``bd'', ``aaaabc'', \dots
-%   \item $((a+b)^*c)^*$ \quad matches ``aababcacaabbabc'', \dots
-%   \end{itemize}
-% \end{xframe}
-
-% \begin{xframe}{Constraining polynomial functors}
-%   \begin{itemize}
-%   \item Generalize to multivariate polynomial functors \[ F : \Set^n
-%     \to \Set \] i.e. $F(A_1, A_2, \dots, A_n)$
-%   \item Given a (univariate) $F$ and some regular expression $R$ over
-%     $\Sigma = \{A_1, \dots, A_n\}$
-%   \item Find a multivariate $F_R$ with the ``same shape'' as $F$ but
-%     whose sequences of elements come from a sequence of sets
-%     corresponding to $R$
-%   \end{itemize}
-% \end{xframe}
-
-% \begin{xframe}{Example}
-%      \begin{center}
-%        \[ L(A) = 1 + A \times L(A) \]
-%        \[ R = (AA)^* \]
-
-%   \begin{tabular}{c m{3in}}
-%   %   $L(\N) =$ &
-%   % \begin{diagram}[width=200]
-%   %   import           Diagrams
-
-%   %   dia = lsD # frame 0.5
-%   % \end{diagram}
-%   % \\
-%   $L_R(\N) =$ &
-%   \begin{diagram}[width=200]
-%     import           Diagrams
-
-%     ls2 = [[], [3,4 :: Int], [1,4,2,6], [3,9,2,0,8,4]]
-
-%     dia = vsep 1 (map drawList ls2) # frame 0.5
-%   \end{diagram}
-%   \end{tabular}
-%   \end{center}
-
-% \end{xframe}
-
-% \begin{xframe}{Example}
-%   \[ P = X + P^2 \]
-%   \[ R = a^*ha^* \]
-%   \begin{center}
-%     \includegraphics[width=2in]{deriv-tree}
-
-%     \onslide<2-> \dots this is just differentiation!
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Example}
-%   \[ P = X + P^2 \]
-%   \[ R = b^*ha^* \]
-%   \begin{center}
-%     \includegraphics[width=2in]{dissect-tree}
-
-%   \onslide<2-> This is called a ``dissection'' and corresponds to
-%   \emph{divided difference}.
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{The problem}
-%   \begin{center}
-%   \textbf{Given a polynomial functor $F$ and regular expression $R$, compute
-%   a (system of mutually recursive, multivariate) polynomial functor(s)
-%   corresponding to $F$ constrained by $R$.}
-%   \end{center}
-% \end{xframe}
-
-% \section{The solution}
-
-% \begin{xframe}{DFAs}
-%   \begin{center}
-%     \textbf{D}eterministic \textbf{F}inite \textbf{A}utomata \bigskip
-
-%     \includegraphics[width=2in]{example-DFA}
-
-%     DFAs = machines for identifying sequences
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Punchline \#1}
-%   DFAs and regular expressions are ``about the same thing''! (Kleene,
-%   1951) \bigskip
-
-%   Every regular expression has a corresponding DFA (and vice versa).
-% \end{xframe}
-
-% \begin{xframe}{Example}
-%   \begin{center}
-%     \includegraphics[width=2in]{even-DFA}
-
-%     \[ (aa)^* \]
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Example}
-%   \begin{center}
-%     \includegraphics[width=2in]{deriv-DFA}
-
-%     \[ a^*ha^* \]
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{The setup}
-%   Given:
-%   \begin{itemize}
-%   \item Polynomial functor $F$
-%   \item DFA $D$
-%   \end{itemize} \medskip
-
-%   \onslide<2->
-%   Let $F_{ij}$ denote the (multivariate) polynomial functor
-%   \begin{itemize}
-%     \item with same shape as $F$
-%     \item constrained by sequences which take the DFA from state $i$
-%       to state $j$
-%   \end{itemize} \medskip
-
-%   \onslide<3->
-%   Ultimately we are interested in $\sum_{q \in \mathrm{final}(D)} F_{1q}$.
-% \end{xframe}
-
-% % XXX if time
-% % \begin{xframe}{Example}
-% %   XXX Show derivative DFA and all $T_{ij}$
-% % \end{xframe}
-
-% \begin{xframe}
-%   \begin{itemize}
-%   \item<+-> $0_{ij} = 0$
-%   \item<+-> $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
-%       j \end{cases}$
-%   \item<+-> $X_{ij} = \text{(sum of) edge(s) from $i$ to $j$}$
-%   \item<+-> $(F + G)_{ij} = F_{ij} + G_{ij}$
-%   \item<+-> $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
-%   \end{itemize} \bigskip
-
-%   \onslide<6-> These are just the definitions of matrix operations!
-% \end{xframe}
-
-% \begin{xframe}
-%   %% XXX reword etc.
-%   \begin{center}
-%     This is a \emph{semiring homomorphism} from polynomial functors to
-%     $n \times n$ matrices of (arity-$|\Sigma|$) polynomial functors!
-%   \end{center}
-% \end{xframe}
-
-% \begin{xframe}{Example}
-% \[ L = 1 + XL, R = (aa)^* \]
-% \begin{center}
-% \includegraphics[width=1in]{even-DFA} \\
-% Transition matrix = $\begin{bmatrix}
-%   0 & a \\ a & 0
-% \end{bmatrix}$
-
-% \begin{multline*}
-%   \begin{bmatrix}
-%     L_{11} & L_{12} \\
-%     L_{21} & L_{22}
-%   \end{bmatrix}
-%   =
-%   \begin{bmatrix}
-%     1 & 0 \\
-%     0 & 1
-%   \end{bmatrix}
-%   +
-%   \begin{bmatrix}
-%     0 & a \\
-%     a & 0
-%   \end{bmatrix}
-%   \begin{bmatrix}
-%     L_{11} & L_{12} \\
-%     L_{21} & L_{22}
-%   \end{bmatrix}
-%   \\
-%   =
-%   \begin{bmatrix}
-%     1 + a L_{21} & a L_{22} \\
-%     a L_{11} & 1+ a L_{12}
-%   \end{bmatrix}.
-% \end{multline*}
-% \end{center}
-% \end{xframe}
-
-% \begin{xframe}
-%   \begin{center}
-%     Thank you! \bigskip
-
-%     \includegraphics[width=1in]{deriv-tree}
-
-%     % XXX TODO include picture of publication first page
-%   \end{center}
-% \end{xframe}
-
-% % \begin{xframe}{Example}
-% %   \includegraphics[width=2in]{deriv-DFA}
-
-% %   \[ a^*ha^* \]
-% % \end{xframe}
+\begin{xframe}{Derivative}
+  \[
+  \begin{bmatrix}
+    X_A & X_H \\ 0 & X_A
+  \end{bmatrix}
+  =
+  X_A I +
+  \begin{bmatrix}
+    0 & X_H \\ 0 & 0
+  \end{bmatrix}
+  = X_A I + d
+  \]
+  \begin{center}
+    Note $d^2 = 0$. \[ (X_A I + d)^n \cong (X_A I)^n + n(X_A I)^{n-1}
+    d \]
+    XXX extend to polynomial???  Maybe I should just leave this part out?
+  \end{center}
+
+\end{xframe}
 
 \end{document}
