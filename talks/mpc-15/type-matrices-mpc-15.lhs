@@ -588,34 +588,63 @@ dia = renderT t # frame 0.5
   \[ X_{ij} = \sum_{i \stackrel{A}{\to} j} X_A \]
 
   \begin{center}
-    \begin{tabular}{m{1.75in}m{1.75in}}
-    \begin{center}
-    \begin{diagram}[width=75]
+    \begin{diagram}[width=200]
 import TypeMatricesDiagrams
 
-dia =
+i2jDFA =
   mconcat
-  [ (txt "i" <> circle 1) # named "i"
-  , (txt "j" <> circle 1) # named "j" # translateX 5
+  [ (txt "i" <> circle 1 # fc (nodeColors !! 0))
+  , (txt "j" <> circle 1 # fc (nodeColors !! 1)) # translateX 5
   , arcArrow origin (5 ^& 0) 1 1.4 (txt "A")
   , arcArrow origin (5 ^& 0) (-1) 1.4 (txt "B")
   ]
+
+aORb = hsep 2 [ drawType A, txt "OR", drawType B ]
+
+dia = hsep 4 [i2jDFA, aORb]
   \end{diagram}
-  \end{center}
-  &
-  \begin{diagram}[width=100]
-    import TypeMatricesDiagrams
-    dia = hsep 2 [ drawType A, txt "OR", drawType B ]
-  \end{diagram}
-  \end{tabular}
   \end{center}
 \end{xframe}
 
 \begin{xframe}
   \[ (F + G)_{ij} = F_{ij} + G_{ij} \]
+  \bigskip
 
   \begin{center}
-    XXX picture
+    \begin{diagram}[width=250]
+      import TypeMatricesDiagrams
+      mkNode i q = (txt q <> circle 1 # fc (nodeColors !! i)) # named q
+
+      i2j q0 q1 lab = mconcat
+        [ mkNode 0 q0
+        , mkNode 1 q1 # translateX 7
+        ]
+        # connectStates q0 q1 lab
+        # centerX
+
+      connectStates q0 q1 lab
+        = ( withNames [q0, q1] $ \ss ->   -- $
+              let [p0,p1] = map location ss
+                  theLab  = txt lab # scale 0.8
+                  labLoc  = lerp 0.5 p0 p1 # translate (perp (p1 .-. p0) # signorm)
+                  -- XXX compute rotation
+              in  atop (theLab # moveTo labLoc)
+          )
+        . connectOutside' opts q0 q1
+
+      opts = with & gaps .~ local 0.5
+                  & headLength .~ local 0.5
+                  & arrowShaft .~ wiggle
+
+      li2j = i2j "i" "j"
+
+      dia = vsep 1
+        [ li2j "$(F+G)_{ij}$"
+        , txt "="
+        , hsep 2 [ li2j "$F_{ij}$", txt "OR", li2j "$G_{ij}$" ]
+          # centerX
+        ]
+    \end{diagram}
   \end{center}
 \end{xframe}
 
@@ -624,7 +653,9 @@ dia =
   G_{qj} \]
 
   \begin{center}
-    XXX picture
+    \begin{diagram}[width=200]
+      dia = circle 1
+    \end{diagram}
   \end{center}
 \end{xframe}
 

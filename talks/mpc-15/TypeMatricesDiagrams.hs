@@ -6,6 +6,7 @@
 
 module TypeMatricesDiagrams where
 
+import           Data.Colour.SRGB          (sRGB24read)
 import qualified Data.Map                  as M
 import           Data.Maybe                (fromMaybe)
 import           Data.Tree
@@ -127,4 +128,14 @@ testDFA = dfa
 txt s = text s # italic # scale 0.8 <> square 1 # lw none
 
 -- main = defaultMain $ drawDFA testDFA
+
+wiggle :: Trail V2 Double
+wiggle = mconcat
+  [ hrule 0.2
+  , cubicSpline False [ x ^& (0.3 * sin (x*tau)) | x <- [0, 0.1 .. 6] ]
+  , hrule 0.2
+  ]
+
+nodeColors :: [Colour Double]
+nodeColors = map sRGB24read ["#FFF760", "9152FF"]
 
