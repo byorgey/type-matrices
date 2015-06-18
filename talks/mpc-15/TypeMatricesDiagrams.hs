@@ -129,6 +129,27 @@ txt s = text s # italic # scale 0.8 <> square 1 # lw none
 
 -- main = defaultMain $ drawDFA testDFA
 
+mkNode :: Int -> String -> Diagram B
+mkNode i q = (txt q <> circle 1 # fc (nodeColors !! i)) # named q
+
+connectStates :: IsName n => n -> n -> String -> Double -> Diagram B -> Diagram B
+connectStates q0 q1 lab off
+  = ( withNames [q0, q1] $ \ss ->
+        let [p0,p1] = map location ss
+            theLab  = txt lab # scale 0.8
+            labLoc  = lerp 0.5 p0 p1 # translate (signorm (perp (p1 .-. p0)) ^* off)
+            labRot  = 0 @@ turn
+            -- labRot  = signedAngleBetweenDirs (dirBetween p1 p0) xDir
+        in  atop (theLab # rotate labRot # moveTo labLoc)
+    )
+  . connectOutside' csOpts q0 q1
+
+  where
+    csOpts
+      = with & gaps       .~ local 0.5
+             & headLength .~ local 0.5
+             & arrowShaft .~ wiggle
+
 wiggle :: Trail V2 Double
 wiggle = mconcat
   [ hrule 0.2
@@ -137,5 +158,5 @@ wiggle = mconcat
   ]
 
 nodeColors :: [Colour Double]
-nodeColors = map sRGB24read ["#FFF760", "9152FF"]
+nodeColors = map sRGB24read ["FFF760", "9152FF", "BA92FF"]
 

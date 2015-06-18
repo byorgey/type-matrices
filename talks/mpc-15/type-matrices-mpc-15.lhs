@@ -613,28 +613,13 @@ dia = hsep 4 [i2jDFA, aORb]
   \begin{center}
     \begin{diagram}[width=250]
       import TypeMatricesDiagrams
-      mkNode i q = (txt q <> circle 1 # fc (nodeColors !! i)) # named q
 
       i2j q0 q1 lab = mconcat
         [ mkNode 0 q0
         , mkNode 1 q1 # translateX 7
         ]
-        # connectStates q0 q1 lab
+        # connectStates q0 q1 lab 1
         # centerX
-
-      connectStates q0 q1 lab
-        = ( withNames [q0, q1] $ \ss ->   -- $
-              let [p0,p1] = map location ss
-                  theLab  = txt lab # scale 0.8
-                  labLoc  = lerp 0.5 p0 p1 # translate (perp (p1 .-. p0) # signorm)
-                  -- XXX compute rotation
-              in  atop (theLab # moveTo labLoc)
-          )
-        . connectOutside' opts q0 q1
-
-      opts = with & gaps .~ local 0.5
-                  & headLength .~ local 0.5
-                  & arrowShaft .~ wiggle
 
       li2j = i2j "i" "j"
 
@@ -654,20 +639,35 @@ dia = hsep 4 [i2jDFA, aORb]
 
   \begin{center}
     \begin{diagram}[width=200]
-      dia = circle 1
+      import TypeMatricesDiagrams
+
+      dia = mconcat
+        [ mkNode 0 "i"
+        , mkNode 2 "$q_0$" # translate (7 ^& 4)
+        , mkNode 2 "$q_1$" # translate (7 ^& 1)
+        , vellipsis # translate (7 ^& (-1.5))
+        , mkNode 2 "$q_k$" # translate (7 ^& (-4))
+        , mkNode 1 "j" # translateX 14
+        ]
+        # applyAll
+        [ connectStates "i" ("$q_" ++ x ++ "$") ("$F_{iq_" ++ x ++ "}$") off
+        . connectStates ("$q_" ++ x ++ "$") "j" ("$G_{q_" ++ x ++ "j}$") off
+        || (x,off) <- [("0",1), ("1",-1), ("k",-1)]
+        ]
+      vellipsis = vsep 0.3 (replicate 3 (circle 0.1 # fc black)) # centerY
     \end{diagram}
   \end{center}
 \end{xframe}
 
 \begin{xframe}
-  \begin{itemize}
-  \item $0_{ij} = 0$
-  \item $ 1_{ij} = \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
-      j \end{cases}$
-  \item $X_{ij} = \sum_{i \stackrel{A}{\to} j} X_A$
-  \item $(F + G)_{ij} = F_{ij} + G_{ij}$
-  \item $(F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}$
-  \end{itemize} \bigskip
+  \begin{align*}
+  0_{ij} &= 0 \\
+   1_{ij} &= \begin{cases} 1 \quad i = j \\ 0 \quad i \neq
+     j \end{cases} \\
+  X_{ij} &= \sum_{i \stackrel{A}{\to} j} X_A \\
+  (F + G)_{ij} &= F_{ij} + G_{ij} \\
+  (F \cdot G)_{ij} &= \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}
+  \end{align*}
 
   \onslide<2->
   \begin{center}
