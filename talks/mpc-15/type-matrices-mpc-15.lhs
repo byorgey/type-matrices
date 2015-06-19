@@ -123,8 +123,6 @@
 \title{Polynomial Functors Constrained by Regular Expressions}
 \date{\theschool \\ \thelocation \\ \thedate}
 \author{Dan Piponi \and \usebeamercolor[fg]{title}{Brent Yorgey}}
-%% XXX todo fix title graphic to use same color scheme as the rest of
-%% the slides
 \titlegraphic{\includegraphics[width=1in]{deriv-tree}}
 
 % Abstract
@@ -196,15 +194,17 @@
     one-hole contexts'' (Huet, McBride, Joyal, \etc).
   \end{center}
 
-  XXX this picture is deceptive.
-
   \begin{center}
     \begin{diagram}[width=200]
       import Diagrams
       tree1 = drawTree (trees !! 3) # frame 0.5
       tree2 = drawNTree (poke 3 (trees !! 3)) # frame 0.5
       dia = hsep 2 $ -- $
-        map centerY [text "$\\partial$" # scale 3, tree1, arrowV (5 ^& 0), tree2]
+        map centerY
+        [ tree1, strutX 0.5, text "$\\in T$" # scale 2
+        , strutX 5
+        , tree2, strutX 0.5, text "$\\in \\partial T$" # scale 2
+        ]
     \end{diagram}
   \end{center}
   \begin{center}
@@ -435,9 +435,8 @@ dia = drawDFA exampleDFA # frame 0.5
 \]
 \end{tabular}
 
-\onslide<2->
-Interpret edge labels in an arbitrary semiring $\to$ XXX
-XXX citations (Dolan, O'Connor, etc.)
+\onslide<2-> Interpret edge labels in an arbitrary semiring
+(weighted automata theory; O'Connor 2011, Dolan 2013)
   \end{center}
 \end{xframe}
 
@@ -687,7 +686,7 @@ dia = hsep 4 [i2jDFA, aORb]
 \end{xframe}
 
 \begin{xframe}{Example}
-\[ L = 1 + XL, R = (AA)^* \]
+\[ L = 1 + XL \qquad R = (AA)^* \]
 \begin{center}
   \begin{tabular}{m{1in}m{1in}}
   \begin{center}
@@ -857,8 +856,6 @@ dia = drawDFA bstarhastar # frame 0.5
 \end{xframe}
 
 \begin{xframe}{Dissection}
-  XXX central rule is Leibniz rule for products.
-
   \[ \dissect (FG) = \clowns F \dissect G + \dissect F \clowns G \]
 
   \onslide<2->
