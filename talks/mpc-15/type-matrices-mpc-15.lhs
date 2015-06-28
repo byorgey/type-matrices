@@ -7,6 +7,7 @@
 
 \usepackage[all]{xy}
 \usepackage{brent}
+\usepackage{xspace}
 \usepackage[backend=pgf,extension=pgf,input,outputdir=diagrams]{diagrams-latex}
 \graphicspath{{images/}{../../symbols/}}
 
@@ -35,7 +36,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\etc}{\textit{etc.}}
-\renewcommand{\eg}{\textit{e.g.}}
+\renewcommand{\eg}{\textit{e.g.}\xspace}
+\renewcommand{\ie}{\textit{i.e.}\xspace}
 
 \newcommand{\theschool}{Mathematics of Program Construction}
 \newcommand{\thelocation}{K\"onigswinter, Germany}
@@ -369,9 +371,37 @@ txtN s = (txt s, False)
 
 dia = drawDFA exampleDFA # frame 0.5
   \end{diagram}
+\end{center}
+\end{xframe}
+
+\begin{xframe}
+
+  \begin{center}
+    \textbf{D}eterministic \textbf{F}inite \textbf{A}utomata \bigskip
+
+  \begin{diagram}[width=150]
+import TypeMatricesDiagrams
+
+exampleDFA :: DFA (Diagram B)
+exampleDFA = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True,  10 ^& 0)
+  ]
+  [ 1 >-- txt "a" --> 2
+  , 2 >-- txt "b" --> 1
+
+  , 2 >-- txt "a" --> 3
+  , 3 >-- txt "b" --> 2
+  ]
+
+dia = drawDFA exampleDFA # frame 0.5
+  \end{diagram}
+
+  Drop sink states; DFA halts and rejects if it can't take a step. \medskip
 
 \onslide<2->
-(We can actually drop \emph{finite})
+(We can also drop \emph{finiteness}.)
   \end{center}
 \end{xframe}
 
@@ -393,7 +423,11 @@ dia = drawDFA exampleDFA # frame 0.5
   \end{itemize}
 
   Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
-  \lor, \land)$, $(\R \union \{\infty\}, \max, +)$
+  \lor, \land)$, $(\R \union \{\infty\}, \max, +)$ \medskip
+
+  \onslide<2->
+  In fact, polynomial functors and regular expressions are both
+  \emph{star semirings}, with $x^* = 1 + x \cdot x^*$.
 \end{xframe}
 
 \begin{xframe}{Transition matrices for DFAs}
@@ -750,8 +784,40 @@ dia = drawDFA aaStar # frame 0.5
 \end{xframe}
 
 \begin{xframe}{Example}
-  XXX do another example here --- from Wesleyan talk, where we get
-  something that is zero but doesn't look it.
+  \[ T = 1 + XT^2 \qquad R = A^*HA^* \]
+  \begin{center}
+  \includegraphics[width=1in]{deriv-DFA} \\
+  Transition matrix = $\begin{bmatrix}
+    X_A & X_H \\ 0 & X_A
+  \end{bmatrix}$
+
+  \begin{multline*}
+  \begin{bmatrix}
+    T_{11} & T_{12} \\
+    0 & T_{22}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 \\
+    0 & 1
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+    X_A & X_H \\
+    0 & X_A
+  \end{bmatrix}
+  \begin{bmatrix}
+    T_{11} & T_{12} \\
+    0 & T_{22}
+  \end{bmatrix}^2
+  \\
+  =
+  \begin{bmatrix}
+    X_A T_{11}^2 & X_A(T_{11}T_{12} + T_{12}T_{22}) + X_HT_{22}^2 \\
+    0 & X_A T_{22}^2
+  \end{bmatrix}.
+  \end{multline*}
+  \end{center}
 \end{xframe}
 
 \section{Derivative and dissection}
@@ -894,21 +960,32 @@ dia = drawDFA bstarhastar # frame 0.5
   \[ f_{b,a} = \frac{f_b - f_a}{b - a} \]
 
   \onslide<2->
+  $f_{b,a}$ is the \emph{average} change in $f$ from $a$ to $b$, \ie
+  the secant slope. \medskip
+
   Note $f_{b,a} \to f'(a)$ as $b \to a$.
 \end{xframe}
 
-\begin{xframe}
-  Connection to XXX?  Well-known that
-
+\begin{xframe}{Divided differences and dissection?}
+  \onslide<2->
+  Well-known that
   \[ f \mapsto
   \begin{bmatrix}
     f_b & f_{b,a} \\ 0 & f_a
   \end{bmatrix}
   \]
-  is a semiring homomorphism.
+  is a semiring homomorphism. \medskip
+
+  Proof (interesting bit):
+  \begin{align*}
+    (fg)_{b,a} &= \frac{(fg)_b - (fg)_a}{b - a} \\
+    &= \frac{(fg)_b - f_bg_a + f_bg_a - (fg)_a}{b-a} \\
+    &= \frac{f_b(g_b - g_a) + (f_b - f_a)g_a}{b-a} \\
+    &= f_b g_{b,a} + f_{b,a} g_a.
+\end{align*}
 \end{xframe}
 
-\begin{xframe}{Divided differences}
+\begin{xframe}{Divided differences and |right|}
   Rearranging $f_{b,a} = \frac{f_b - f_a}{b - a}$ yields
   \[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b \]
   aka
