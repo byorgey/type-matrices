@@ -35,6 +35,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\etc}{\textit{etc.}}
+\renewcommand{\eg}{\textit{e.g.}}
 
 \newcommand{\theschool}{Mathematics of Program Construction}
 \newcommand{\thelocation}{K\"onigswinter, Germany}
@@ -265,6 +266,8 @@ Questions:
   right :: p j + (Dissect p c j, c) -> (j, Dissect p c j) + p c
 \end{spec}
 
+%% XXX if time: make some pictures?
+
 \end{xframe}
 
 \section{Preliminaries}
@@ -308,8 +311,8 @@ Questions:
   \end{align*}
 
   \onslide<2-> Can easily generalize to multivariate polynomial
-  functors \[ F : \Set^n \to \Set. \] $X$ generalizes to projections
-  $X_j(A_1,\dots,A_n) = A_j$.
+  functors \[ F : \Set^n \to \Set. \] $X$ generalizes to family of
+  projections $X_j(A_1,\dots,A_n) = A_j$.
 \end{xframe}
 
 \begin{xframe}{Implicit/recursive definition}
@@ -380,7 +383,7 @@ dia = drawDFA exampleDFA # frame 0.5
 
 \begin{xframe}{Semirings}
   Up to isomorphism, both polynomial functors and regular expressions
-  form commutative \emph{semirings}:
+  form commutative \emph{semirings} (aka \emph{rigs}):
 
   \begin{itemize}
   \item Associative operations $+$, $\cdot$ with identities $0$, $1$
@@ -447,9 +450,11 @@ dia = drawDFA exampleDFA # frame 0.5
   \begin{itemize}
   \item Given a (univariate) $F$ and some regular expression $R$ over
     $\Sigma = \{A_1, \dots, A_n\}$
-  \item Find a multivariate $F_R$ with the ``same shape'' as $F$ but
-    whose allowed sequences of element types always match $R$
-  \item (``Same shape'' = natural injection $F_R\ A\ \dots\ A \to F\ A$)
+  \item Want to have a restricted version of $F\ (A_1 + \dots + A_n)$
+    so the sequences of $A_i$ always match $R$.
+  \item<2-> That is, find a multivariate $F_R$ with the ``same shape'' as $F$ but
+    whose allowed sequences of element types always match $R$.
+  \item<3-> (``Same shape'' = natural injection $F_R\ A\ \dots\ A \to F\ A$)
 
   \end{itemize}
 \end{xframe}
@@ -476,6 +481,8 @@ dia = drawDFA exampleDFA # frame 0.5
   \[ P = X + P^2 \]
   \[ R = A^*HA^* \]
   \begin{center}
+  \begin{tabular}{c m{3in}}
+  $P_R(A,H) \ni$ &
   \begin{diagram}[width=150]
 import TypeMatricesDiagrams
 import Data.Tree
@@ -500,8 +507,9 @@ t = Nothing ##
 
 dia = renderT t # frame 0.5
   \end{diagram}
+\end{tabular}
 
-    \onslide<2-> \dots this is differentiation!
+\onslide<2-> \dots this is differentiation!  $P'(A) = P_R(A,1)$.
   \end{center}
 \end{xframe}
 
@@ -741,6 +749,11 @@ dia = drawDFA aaStar # frame 0.5
 \end{center}
 \end{xframe}
 
+\begin{xframe}{Example}
+  XXX do another example here --- from Wesleyan talk, where we get
+  something that is zero but doesn't look it.
+\end{xframe}
+
 \section{Derivative and dissection}
 \label{sec:deriv-dissect}
 
@@ -878,19 +891,107 @@ dia = drawDFA bstarhastar # frame 0.5
 \end{xframe}
 
 \begin{xframe}{Divided differences}
-  XXX define divided differences (for $n=2$)
+  \[ f_{b,a} = \frac{f_b - f_a}{b - a} \]
+
+  \onslide<2->
+  Note $f_{b,a} \to f'(a)$ as $b \to a$.
+\end{xframe}
+
+\begin{xframe}
+  Connection to XXX?  Well-known that
+
+  \[ f \mapsto
+  \begin{bmatrix}
+    f_b & f_{b,a} \\ 0 & f_a
+  \end{bmatrix}
+  \]
+  is a semiring homomorphism.
 \end{xframe}
 
 \begin{xframe}{Divided differences}
-  XXX show equivalent matrix formulation
+  Rearranging $f_{b,a} = \frac{f_b - f_a}{b - a}$ yields
+  \[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b \]
+  aka
+\begin{spec}
+  right :: p j + (Dissect p c j, c) -> (j, Dissect p c j) + p c
+\end{spec}
 \end{xframe}
 
-\begin{xframe}{Divided differences}
-  XXX derive isomorphism |right|
+\begin{xframe}{Higher-order divided differences?}
+\begin{equation*}
+f \mapsto
+\begin{bmatrix}
+f_c & f_{c,b} & f_{c,b,a} \\
+0   & f_b    & f_{b,a}   \\
+0   & 0      & f_a
+\end{bmatrix}
+\end{equation*}
+
+\onslide<2->
+  \begin{center}
+    \begin{tabular}{m{1.5in}m{1.5in}}
+      \begin{center}
+  \begin{diagram}[width=100]
+import TypeMatricesDiagrams
+
+deriv :: DFA (Diagram B)
+deriv = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (False, 5 ^& 0)
+  , 3 --> (True , 10 ^& 0)
+  ]
+  [ 1 >-- txt "c" --> 1
+  , 1 >-- txt "h" --> 2
+  , 2 >-- txt "b" --> 2
+  , 2 >-- txt "h" --> 3
+  , 3 >-- txt "a" --> 3
+  ]
+
+dia = drawDFA deriv # frame 0.5
+  \end{diagram}
+\end{center}
+&
+\begin{center}
+\begin{diagram}[width=100]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t = nd
+    [ nd
+      [ nd $
+          leaves [C, C]
+      , lf H
+      ]
+    , nd
+      [ nd
+        [ lf B
+        , nd $ leaves [B, B]
+        ]
+      , nd $ leaves [H, A]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
+
+dia = renderT t # frame 0.5
+\end{diagram}
+%$
+\end{center}
+
+\end{tabular}
+\end{center}
+
 \end{xframe}
 
-\begin{xframe}{Higher-order divided differences}
-  XXX show higher-order.
+\begin{xframe}{Higher-order divided differences?}
+\begin{equation*}
+f_{x_n \dots x_0} = \frac{f_{x_n
+    \dots x_1} - f_{x_{n-1} \dots x_0}}{x_n - x_0}.
+\end{equation*}
+
+Corresponding isomorphism??
 \end{xframe}
 
 \begin{xframe}
@@ -901,24 +1002,24 @@ dia = drawDFA bstarhastar # frame 0.5
   \end{center}
 \end{xframe}
 
-\begin{xframe}{Derivative}
-  \[
-  \begin{bmatrix}
-    X_A & X_H \\ 0 & X_A
-  \end{bmatrix}
-  =
-  X_A I +
-  \begin{bmatrix}
-    0 & X_H \\ 0 & 0
-  \end{bmatrix}
-  = X_A I + d
-  \]
-  \begin{center}
-    Note $d^2 = 0$. \[ (X_A I + d)^n \cong (X_A I)^n + n(X_A I)^{n-1}
-    d \]
-    XXX extend to polynomial???  Maybe I should just leave this part out?
-  \end{center}
+% \begin{xframe}{Derivative}
+%   \[
+%   \begin{bmatrix}
+%     X_A & X_H \\ 0 & X_A
+%   \end{bmatrix}
+%   =
+%   X_A I +
+%   \begin{bmatrix}
+%     0 & X_H \\ 0 & 0
+%   \end{bmatrix}
+%   = X_A I + d
+%   \]
+%   \begin{center}
+%     Note $d^2 = 0$. \[ (X_A I + d)^n \cong (X_A I)^n + n(X_A I)^{n-1}
+%     d \]
+%     XXX extend to polynomial???  Maybe I should just leave this part out?
+%   \end{center}
 
-\end{xframe}
+% \end{xframe}
 
 \end{document}

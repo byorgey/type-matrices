@@ -19,10 +19,11 @@ import           Linear.V2                 (perp)
 
 type Dia = QDiagram PGF V2 Double Any
 
-data Type = A | B | H | O
+data Type = A | B | C | H | O
 
 drawType A = text "A" # italic # centerX # translateX (-0.05) <> square 2 # fc lightblue
 drawType B = text "B" # italic # centerX # translateX (-0.1) <> circle 1 # fc lightgreen
+drawType C = text "C" # italic # centerX # translateX (-0.15) <> triangle 2.3 # fc lavender
 drawType H = text "H" # italic # centerX # translateX (-0.1) <> drawType O
 drawType O = circle 1 # fc white # dashingG [0.2,0.2] 0
 
