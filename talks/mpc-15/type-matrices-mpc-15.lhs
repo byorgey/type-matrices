@@ -4,6 +4,8 @@
 %include polycode.fmt
 
 %format Dissect = "\dissect"
+%format <->     = "\cong"
+%format *       = "\times"
 
 \usepackage[all]{xy}
 \usepackage{brent}
@@ -31,6 +33,10 @@
 \newcommand{\dissect}{\includegraphics{Dissect}}
 \newcommand{\clowns}{\includegraphics{Clowns}}
 \newcommand{\jokers}{\includegraphics{Jokers}}
+
+\newcommand{\Type}{\ensuremath{\mathbf{Type}}}
+
+\newcommand{\sprod}{\bullet}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,9 +210,9 @@
       tree2 = drawNTree (poke 3 (trees !! 3)) # frame 0.5
       dia = hsep 2 $ -- $
         map centerY
-        [ tree1, strutX 0.5, text "$\\in T$" # scale 2
+        [ tree1, strutX 0.5, text "$\\in T(\\N)$" # scale 1.5
         , strutX 5
-        , tree2, strutX 0.5, text "$\\in \\partial T$" # scale 2
+        , tree2, strutX 0.5, text "$\\in \\partial T(\\N)$" # scale 1.5
         ]
     \end{diagram}
   \end{center}
@@ -221,33 +227,60 @@
   \end{center}
 
   \begin{center}
-\begin{diagram}[width=150]
-import Diagrams.TwoD.Layout.Tree
-import Data.Tree
-import TypeMatricesDiagrams
+    \begin{diagram}[width=250]
+      import Diagrams
+      import           Diagrams.TwoD.Layout.Tree
+      import Data.Char
 
-t = nd
-    [ nd
-      [ nd $
-          leaves [B, B]
-      , lf B
-      ]
-    , nd
-      [ nd
-        [ lf O
-        , nd $ leaves [A, A]
+      tree1 = drawTree (trees !! 3) # frame 0.5
+      tree2 = drawNCTree (poke 4 (trees !! 3)) # frame 0.5
+      dia = hsep 2 $ -- $
+        map centerY
+        [ tree1, strutX 0.5, text "$\\in T(\\N)$" # scale 1.5
+        , strutX 5
+        , tree2, strutX 0.2, text "$\\in$" # scale 1.5, dissect # scale 1.7
+        , strutX 0.5, text "$T(\\N,C)$" # scale 1.5
         ]
-      , nd $ leaves [A, A]
-      ]
-    ]
-  where nd     = Node Nothing
-        lf x   = Node (Just x) []
-        leaves = map lf
+      ht = 1.2
+      dissect = triangle 1 # scaleToY ht # alignB <> vrule ht # alignB
 
-dia = renderT t # frame 0.5
-\end{diagram}
-%$
+      drawNCTree =
+        maybe mempty (renderTree (nodeType nil node' hole) (~~))
+        . symmLayoutBin' (with & slVSep .~ 3 & slHSep .~ 3)
+      node' x = ((<> circle 1 # fc lightblue) . text) $ elt'
+        where elt' || x < 10 = showElt (chr (ord 'a' + x))
+                   || otherwise = showElt x
+    \end{diagram}
   \end{center}
+
+%   \begin{center}
+% \begin{diagram}[width=150]
+% import Diagrams.TwoD.Layout.Tree
+% import Data.Tree
+% import TypeMatricesDiagrams
+
+% t = nd
+%     [ nd
+%       [ nd $
+%           leaves [6, 7]
+%       , lf 4
+%       ]
+%     , nd
+%       [ nd
+%         [ lf 12
+%         , nd $ leaves [3, 5]
+%         ]
+%       , nd $ leaves [1, 6]
+%       ]
+%     ]
+%   where nd     = Node Nothing
+%         lf x   = Node (Just x) []
+%         leaves = map lf
+
+% dia = renderT t # frame 0.5
+% \end{diagram}
+% %$
+%   \end{center}
 
   \begin{center}
     Application: tail-recursive traversals (maps and folds)
@@ -265,7 +298,7 @@ Questions:
 \end{itemize}
 
 \begin{spec}
-  right :: p j + (Dissect p c j, c) -> (j, Dissect p c j) + p c
+  right :: F A + (Dissect F B A * B) <-> (A * Dissect F B A) + F B
 \end{spec}
 
 %% XXX if time: make some pictures?
@@ -302,8 +335,8 @@ Questions:
 % \end{xframe}
 
 \begin{xframe}{Polynomial functors}
-  Polynomial functors are those functors $F : \Set \to \Set$
-  inductively built from:
+  Polynomial functors are those functors $F : \Set \to \Set$ (or
+  $\Type \to \Type$) inductively built from:
   \begin{align*}
     0(A) &= \varnothing \\
     1(A) &= \{\star\} \\
@@ -396,12 +429,13 @@ exampleDFA = dfa
   ]
 
 dia = drawDFA exampleDFA # frame 0.5
-  \end{diagram}
+  \end{diagram} \bigskip
 
-  Drop sink states; DFA halts and rejects if it can't take a step. \medskip
+  Drop sink states; DFA halts and rejects if it can't take a step.
+% \medskip
 
-\onslide<2->
-(We can also drop \emph{finiteness}.)
+% \onslide<2->
+% (We can also drop \emph{finiteness}.)
   \end{center}
 \end{xframe}
 
@@ -416,18 +450,18 @@ dia = drawDFA exampleDFA # frame 0.5
   form commutative \emph{semirings} (aka \emph{rigs}):
 
   \begin{itemize}
-  \item Associative operations $+$, $\cdot$ with identities $0$, $1$
+  \item Associative operations $+$, $\sprod$ with identities $0$, $1$
   \item $+$ is commutative
-  \item $\cdot$ distributes over $+$
-  \item $+$ does \emph{not} necessarily have inverses
+  \item $\sprod$ distributes over $+$
+  \item $+$ does \emph{not} necessarily have inverses (nor $\bullet$)
   \end{itemize}
 
-  Other examples: $(\N,+,\cdot)$, $(\{\mathit{true},\mathit{false}\},
+  Other examples: $(\N,+,\times)$, $(\{\mathit{true},\mathit{false}\},
   \lor, \land)$, $(\R \union \{\infty\}, \max, +)$ \medskip
 
   \onslide<2->
   In fact, polynomial functors and regular expressions are both
-  \emph{star semirings}, with $x^* = 1 + x \cdot x^*$.
+  \emph{star semirings}, with $x^* = 1 + x \sprod x^*$.
 \end{xframe}
 
 \begin{xframe}{Transition matrices for DFAs}
@@ -484,14 +518,69 @@ dia = drawDFA exampleDFA # frame 0.5
   \begin{itemize}
   \item Given a (univariate) $F$ and some regular expression $R$ over
     $\Sigma = \{A_1, \dots, A_n\}$
-  \item Want to have a restricted version of $F\ (A_1 + \dots + A_n)$
-    so the sequences of $A_i$ always match $R$.
-  \item<2-> That is, find a multivariate $F_R$ with the ``same shape'' as $F$ but
-    whose allowed sequences of element types always match $R$.
-  \item<3-> (``Same shape'' = natural injection $F_R\ A\ \dots\ A \to F\ A$)
-
+  \item Want to have a restricted version $F_R$ of $F\ (A_1 + \dots +
+    A_n)$ so the sequences of $A_i$ (obtained from an inorder
+    traversal) always match $R$.
   \end{itemize}
+
+  \begin{center}
+    \begin{diagram}[width=250]
+import Diagrams.TwoD.Layout.Tree
+import Data.Tree
+import TypeMatricesDiagrams
+
+t1 = nd
+    [ nd
+      [ nd $
+          leaves [B, C]
+      , lf B
+      ]
+    , nd
+      [ nd
+        [ lf A
+        , nd $ leaves [C, C]
+        ]
+      , nd $ leaves [A, B]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
+
+t2 = nd
+    [ nd
+      [ nd $
+          leaves [A, A]
+      , lf A
+      ]
+    , nd
+      [ nd
+        [ lf B
+        , nd $ leaves [B, C]
+        ]
+      , nd $ leaves [C, C]
+      ]
+    ]
+  where nd     = Node Nothing
+        lf x   = Node (Just x) []
+        leaves = map lf
+
+dia = [ vsep 3 [ renderT t1, text "$T(A+B+C)$" # scale 1.5 ]
+      , vsep 3 [ renderT t2, text "$T_{A^*B^*C^*}(A,B,C)$" # scale 1.5 ]
+      ]
+      # hsep 10 # frame 0.5
+\end{diagram}
+%$
+  \end{center}
 \end{xframe}
+
+% \begin{xframe}{
+%   \item<2-> That is, find a multivariate $F_R$ with the ``same shape'' as $F$ but
+%     whose allowed sequences of element types always match $R$.
+%   \item<3-> (``Same shape'' = natural injection $F_R\ A\ \dots\ A \to F\ A$)
+
+%   \end{itemize}
+% \end{xframe}
 
 \begin{xframe}{Example}
      \begin{center}
@@ -582,9 +671,9 @@ dia = renderT t # frame 0.5
 
 \begin{xframe}{The problem}
   \begin{center}
-  \textbf{Given a polynomial functor $F$ and regular expression $R$, compute
-  a (system of mutually recursive, multivariate) polynomial functor(s)
-  corresponding to $F$ constrained by $R$.}
+    \textbf{Given a polynomial functor $F$ and regular expression $R$,
+      compute a (system of mutually recursive, multivariate)
+      polynomial functor(s) representing $F_R$.}
   \end{center}
 \end{xframe}
 
@@ -675,7 +764,7 @@ dia = hsep 4 [i2jDFA, aORb]
 \end{xframe}
 
 \begin{xframe}
-  \[ (F \cdot G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq}
+  \[ (F \sprod G)_{ij} = \sum_{q \in \mathrm{states}(D)} F_{iq}
   G_{qj} \]
 
   \begin{center}
@@ -707,7 +796,7 @@ dia = hsep 4 [i2jDFA, aORb]
      j \end{cases} \\
   X_{ij} &= \sum_{i \stackrel{A}{\to} j} X_A \\
   (F + G)_{ij} &= F_{ij} + G_{ij} \\
-  (F \cdot G)_{ij} &= \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}
+  (F \sprod G)_{ij} &= \sum_{q \in \mathrm{states}(D)} F_{iq} G_{qj}
   \end{align*}
 
   \onslide<2->
@@ -786,11 +875,31 @@ dia = drawDFA aaStar # frame 0.5
 \begin{xframe}{Example}
   \[ T = 1 + XT^2 \qquad R = A^*HA^* \]
   \begin{center}
-  \includegraphics[width=1in]{deriv-DFA} \\
-  Transition matrix = $\begin{bmatrix}
-    X_A & X_H \\ 0 & X_A
-  \end{bmatrix}$
+  \begin{tabular}{m{1in}m{1in}}
+  \begin{center}
+  \begin{center}
+  \begin{diagram}[width=75]
+import TypeMatricesDiagrams
 
+aaStar :: DFA (Diagram B)
+aaStar = dfa
+  [ 1 --> (False, origin)
+  , 2 --> (True, 5 ^& 0)
+  ]
+  [ 1 >-- txt "H" --> 2
+  , 1 >-- txt "A" --> 1
+  , 2 >-- txt "A" --> 2
+  ]
+
+dia = drawDFA aaStar # frame 0.5
+  \end{diagram}
+  \end{center}
+  \end{center}
+  &
+  \[ \begin{bmatrix}
+    X_A & X_H \\ 0 & X_A
+  \end{bmatrix} \]
+  \end{tabular}
   \begin{multline*}
   \begin{bmatrix}
     T_{11} & T_{12} \\
@@ -930,6 +1039,9 @@ dia = drawDFA bstarhastar # frame 0.5
     \begin{bmatrix}
       \clowns F & \dissect F \\ 0 & \jokers F
     \end{bmatrix}
+    \qquad
+    \left( \begin{array}{c}\clowns F\ B\ A = F\ B \\ \jokers F\ B\ A
+        = F\ A\end{array} \right)
   \]
   \end{center}
 \end{xframe}
@@ -990,7 +1102,7 @@ dia = drawDFA bstarhastar # frame 0.5
   \[ f_a + f_{b,a} \times b = a \times f_{b,a} + f_b \]
   aka
 \begin{spec}
-  right :: p j + (Dissect p c j, c) -> (j, Dissect p c j) + p c
+  right :: F A + (Dissect F B A * B) <-> (A * Dissect F B A) + F B
 \end{spec}
 \end{xframe}
 

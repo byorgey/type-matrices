@@ -159,5 +159,5 @@ wiggle = mconcat
   ]
 
 nodeColors :: [Colour Double]
-nodeColors = map sRGB24read ["FFF760", "9152FF", "BA92FF"]
+nodeColors = map sRGB24read ["FFF760", "BA92FF", "FF98B9"]
 

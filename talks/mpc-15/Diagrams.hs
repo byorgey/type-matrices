@@ -57,7 +57,6 @@ instance Elt Int where
 drawNTree =
     maybe mempty (renderTree renderNode (~~))
   . symmLayoutBin' (with & slVSep .~ 3 & slHSep .~ 3)
-  where
 
 drawTree = drawNTree . toNTree
 
