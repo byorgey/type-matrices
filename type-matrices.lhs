@@ -958,7 +958,7 @@ Now suppose we have a unary functor $F$ and some DFA $D =
 same shape as $F$ but whose sequences of leaf types take $D$ from
 state $i$ to state $j$.  We are ultimately interested in
 constructing \[ \sum_{k \in \accept} T_{q_0 k}, \] the sum of all
-types $T_{ij}$ whose leaf sequences start in state $q_0$ and tahe the
+types $T_{ij}$ whose leaf sequences start in state $q_0$ and take the
 DFA to some accept state. Note that $F_{ij}$ has arity $\Sigma$, that
 is, there is a leaf type corresponding to each alphabet symbol of $D$.
 We can deduce $F_{ij}$ compositionally, by recursion on the syntax of
